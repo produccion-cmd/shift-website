@@ -4,16 +4,19 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>SHIFT · Manager</title>
+<link rel="icon" type="image/svg+xml" href="SHIFT-ICON.svg"/>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
+@font-face{font-family:'SHIFTBrand';src:url('fonts/shift-brand.woff2') format('woff2'),url('fonts/shift-brand.woff') format('woff');font-weight:normal;font-style:normal;font-display:swap;}
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#000;--surface:#0a0a0a;--border:#1a1a1a;--white:#fff;--gray:#888;--dim:#444;--accent:#fff;--red:#ff4444}
 body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column}
 /* LOGIN */
 #login-screen{flex:1;display:flex;align-items:center;justify-content:center;padding:32px}
 .login-box{width:100%;max-width:400px;border:1px solid var(--border);padding:48px 40px;text-align:center}
-.login-logo{font-family:'Sora',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.03em;margin-bottom:4px}
-.login-logo span{display:inline-block;width:7px;height:7px;background:var(--white);margin-left:2px;margin-bottom:6px}
+.login-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:4px}
+.login-logo img{height:32px;width:auto;filter:brightness(0) invert(1)}
+.login-logo span{font-family:'SHIFTBrand',sans-serif;font-size:28px;line-height:1;color:var(--white);letter-spacing:0.5em}
 .login-sub{font-size:11px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:40px}
 .login-label{display:block;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;text-align:left}
 .login-input{width:100%;background:transparent;border:1px solid var(--border);color:var(--white);font-family:'Inter',sans-serif;font-size:15px;padding:14px 16px;outline:none;transition:border-color .2s}
@@ -24,8 +27,9 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 /* APP */
 #app{flex:1;display:none;flex-direction:column}
 header{border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px}
-.logo{font-family:'Sora',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.03em}
-.logo span{display:inline-block;width:6px;height:6px;background:var(--white);margin-left:2px;margin-bottom:4px}
+.logo{display:flex;align-items:center;gap:8px}
+.logo img{height:26px;width:auto;filter:brightness(0) invert(1)}
+.logo span{font-family:'SHIFTBrand',sans-serif;font-size:22px;line-height:1;color:var(--white);letter-spacing:0.5em}
 .header-badge{font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);background:var(--border);padding:5px 12px}
 .logout-btn{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);cursor:pointer;background:none;border:none}
 .logout-btn:hover{color:var(--white)}
@@ -70,7 +74,7 @@ h2{font-family:'Sora',sans-serif;font-weight:800;font-size:28px;letter-spacing:-
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
   <div class="login-box">
-    <div class="login-logo">SHIFT<span></span></div>
+    <div class="login-logo"><img src="SHIFT-ICON.svg" alt=""/><span>SHIFT</span></div>
     <div class="login-sub">Manager Access</div>
     <label class="login-label" for="pw">Password</label>
     <input class="login-input" type="password" id="pw" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
@@ -82,7 +86,7 @@ h2{font-family:'Sora',sans-serif;font-weight:800;font-size:28px;letter-spacing:-
 <!-- APP -->
 <div id="app">
   <header>
-    <div class="logo">SHIFT<span></span></div>
+    <div class="logo"><img src="SHIFT-ICON.svg" alt=""/><span>SHIFT</span></div>
     <div class="header-badge">Manager Portal</div>
     <div style="display:flex;align-items:center;gap:16px">
       <button class="open-portal-btn" id="open-portal-btn" onclick="openPortal()">View Portal ↗</button>
