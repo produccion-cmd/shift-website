@@ -1,1169 +1,650 @@
 <!DOCTYPE html>
-<!--
-  ╔══════════════════════════════════════════════════════════════════════════╗
-  ║  SHIFT · MAIN WEBSITE — v4                                              ║
-  ║  Design system: Kinetic Noir (Stitch · New Website Project)             ║
-  ║  Fonts: Sora (display) + Inter (body)                                   ║
-  ║                                                                          ║
-  ║  GOOGLE SITES EMBED INSTRUCTIONS                                         ║
-  ║  1. Host this file on GitHub Pages, Netlify, or any static host         ║
-  ║  2. In Google Sites → Insert → Embed → "By URL"                         ║
-  ║  3. Paste your hosted URL and click Insert                               ║
-  ║  4. Resize the embed block to fill the page                              ║
-  ║  Note: Custom cursor is disabled inside iframes automatically            ║
-  ╚══════════════════════════════════════════════════════════════════════════╝
--->
-<html lang="en">
+<html class="dark" lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="description" content="SHIFT — Immersive AV engineering, projection mapping, LED architecture, and event production. Houston, TX."/>
-<title>SHIFT — AV Engineering · Houston, TX</title>
+<title>SHIFT · Event Production & AV Design · Houston</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "background":                "#121414",
+        "surface":                   "#121414",
+        "surface-dim":               "#121414",
+        "surface-container-lowest":  "#0d0e0f",
+        "surface-container-low":     "#1b1c1c",
+        "surface-container":         "#1f2020",
+        "surface-container-high":    "#292a2a",
+        "surface-container-highest": "#343535",
+        "surface-bright":            "#383939",
+        "surface-variant":           "#343535",
+        "on-surface":                "#e3e2e2",
+        "on-surface-variant":        "#c4c7c8",
+        "on-background":             "#e3e2e2",
+        "outline":                   "#8e9192",
+        "outline-variant":           "#444748",
+        "primary":                   "#ffffff",
+        "on-primary":                "#2f3131",
+        "secondary":                 "#c6c6c6",
+        "surface-tint":              "#c6c6c7",
+        "inverse-surface":           "#e3e2e2",
+        "inverse-on-surface":        "#303031",
+      },
+      fontFamily: {
+        "display": ["Sora","sans-serif"],
+        "body":    ["Inter","sans-serif"],
+      },
+      fontSize: {
+        "display-xl":        ["120px", { lineHeight:"110px",  letterSpacing:"-0.04em", fontWeight:"800" }],
+        "headline-lg":       ["72px",  { lineHeight:"72px",   letterSpacing:"-0.02em", fontWeight:"700" }],
+        "headline-lg-m":     ["48px",  { lineHeight:"48px",   letterSpacing:"-0.02em", fontWeight:"700" }],
+        "headline-md":       ["32px",  { lineHeight:"40px",   letterSpacing:"0.05em",  fontWeight:"600" }],
+        "body-lg":           ["20px",  { lineHeight:"32px",   letterSpacing:"-0.01em", fontWeight:"400" }],
+        "body-md":           ["16px",  { lineHeight:"24px",   fontWeight:"400" }],
+        "label-sm":          ["12px",  { lineHeight:"16px",   letterSpacing:"0.1em",   fontWeight:"600" }],
+      },
+      spacing: {
+        "gm":  "4rem",
+        "sg":  "8rem",
+        "gg":  "1.5rem",
+        "cp":  "1.25rem",
+      },
+    }
+  }
+}
+</script>
 <style>
-/* ─── KINETIC NOIR TOKENS ──────────────────────────────── */
-:root {
-  --bg:       #000000;
-  --bg-panel: #0a0a0c;
-  --border:   #1a1a1a;
-  --border-hi:#333333;
-  --white:    #ffffff;
-  --gray:     #888888;
-  --gray-dim: #444444;
-  --maxw:     1400px;
-  --px:       clamp(24px,5vw,80px);
-  --section:  clamp(80px,10vh,140px);
-}
-
-/* ─── RESET ────────────────────────────────────────────── */
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;cursor:none}
-body{
-  background:var(--bg);
-  color:var(--white);
-  font-family:'Inter',system-ui,sans-serif;
-  -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
-  line-height:1.5;
-}
-::selection{background:#fff;color:#000}
-a{text-decoration:none;color:inherit}
-img{display:block;max-width:100%}
-
-/* ─── CUSTOM CURSOR ─────────────────────────────────────── */
-#cursor{
-  position:fixed;width:8px;height:8px;background:#fff;
-  border-radius:50%;pointer-events:none;z-index:9999;
-  transform:translate(-50%,-50%);
-  transition:width .18s,height .18s,opacity .2s;
-  mix-blend-mode:difference;
-}
-#cursor-ring{
-  position:fixed;width:36px;height:36px;
-  border:1px solid rgba(255,255,255,.35);border-radius:50%;
-  pointer-events:none;z-index:9998;
-  transform:translate(-50%,-50%);
-  transition:width .32s cubic-bezier(.22,1,.36,1),
-             height .32s cubic-bezier(.22,1,.36,1),
-             opacity .3s,border-color .2s;
-}
-body.hovering #cursor{width:14px;height:14px}
-body.hovering #cursor-ring{width:54px;height:54px;border-color:rgba(255,255,255,.55)}
-
-/* ─── SCROLL PROGRESS ──────────────────────────────────── */
-#progress{
-  position:fixed;top:0;left:0;height:1px;
-  background:#fff;z-index:700;width:0%;
-  transition:width .1s linear;
-}
-
-/* ─── NAV ──────────────────────────────────────────────── */
-#nav{
-  position:fixed;top:0;left:0;width:100%;z-index:500;
-  display:flex;justify-content:space-between;align-items:center;
-  padding:20px var(--px);
-  background:rgba(0,0,0,.12);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--border);
-  transition:padding .4s,background .4s;
-}
-#nav.scrolled{padding:14px var(--px);background:rgba(0,0,0,.72)}
-.nav-logo{
-  font-family:'Sora',sans-serif;font-weight:800;font-size:22px;
-  letter-spacing:-.02em;cursor:pointer;
-  display:flex;align-items:flex-start;gap:3px;
-}
-.nav-logo .dot{width:6px;height:6px;background:#fff;margin-top:5px;flex-none}
-.nav-links{display:flex;align-items:center;gap:40px}
-.nav-links a{
-  font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--gray);transition:color .2s;
-}
-.nav-links a:hover,.nav-links a.active{color:var(--white)}
-.nav-links a.active{border-bottom:1px solid var(--white);padding-bottom:2px}
-.nav-cta{
-  font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
-  border:1px solid var(--white);color:var(--white);
-  padding:11px 26px;
-  transition:background .2s,color .2s;
-  display:flex;align-items:center;gap:8px;
-}
-.nav-cta:hover{background:var(--white);color:#000}
-#hamburger{display:none;flex-direction:column;gap:5px;cursor:none;padding:4px}
-#hamburger span{display:block;width:22px;height:1px;background:#fff;transition:all .3s}
-#mobile-drawer{
-  display:none;position:fixed;inset:0;
-  background:#000;z-index:490;
-  padding:90px var(--px) 40px;
-  flex-direction:column;gap:32px;
-}
-#mobile-drawer.open{display:flex}
-#mobile-drawer a{
-  font-family:'Sora';font-size:clamp(28px,8vw,52px);
-  font-weight:700;color:var(--gray);letter-spacing:-.02em;transition:color .2s;
-}
-#mobile-drawer a:hover{color:var(--white)}
-#drawer-close{
-  position:absolute;top:22px;right:var(--px);
-  font-size:11px;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--gray);cursor:none;
-}
-
-/* ─── HERO ─────────────────────────────────────────────── */
-#hero{
-  position:relative;min-height:100svh;
-  display:flex;flex-direction:column;justify-content:flex-end;
-  padding:0 var(--px) clamp(48px,7vh,80px);
-  overflow:hidden;
-}
-#shader-canvas{position:absolute;inset:0;z-index:0;display:block}
-.hero-overlay{
-  position:absolute;inset:0;z-index:1;pointer-events:none;
-  background:linear-gradient(180deg,
-    rgba(0,0,0,.15) 0%,
-    rgba(0,0,0,0)   30%,
-    rgba(0,0,0,.55) 68%,
-    rgba(0,0,0,.97) 100%);
-}
-.hero-content{position:relative;z-index:2}
-.hero-eyebrow{
-  font-size:11px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;
-  color:var(--gray);margin-bottom:20px;
-  display:flex;align-items:center;gap:12px;
-}
-.hero-eyebrow::before{content:"";width:32px;height:1px;background:var(--gray-dim)}
-.hero-title{
-  font-family:'Sora',sans-serif;font-weight:800;
-  font-size:clamp(80px,17vw,220px);
-  line-height:.9;letter-spacing:-.04em;
-  margin-bottom:clamp(20px,3vh,40px);
-}
-.hero-title .dim{color:var(--gray)}
-.hero-sub{
-  max-width:520px;
-  font-size:clamp(16px,1.8vw,20px);color:var(--gray);
-  line-height:1.6;margin-bottom:clamp(24px,3vh,40px);
-  font-weight:300;
-}
-.hero-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:clamp(28px,4vh,48px)}
-.hero-chip{
-  font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;
-  color:var(--gray-dim);padding:7px 14px;border:1px solid var(--border);
-}
-.hero-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:clamp(32px,5vh,60px)}
-.hero-scroll{
-  font-size:10px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;
-  color:var(--gray-dim);display:flex;align-items:center;gap:12px;
-}
-.hero-scroll-line{width:40px;height:1px;background:var(--gray-dim)}
-
-/* ─── MARQUEE ──────────────────────────────────────────── */
-.marquee-wrap{
-  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
-  overflow:hidden;padding:14px 0;background:var(--bg);
-}
-.marquee-track{
-  display:flex;white-space:nowrap;
-  animation:marquee 30s linear infinite;
-}
-.marquee-wrap:hover .marquee-track{animation-play-state:paused}
-.marquee-item{
-  font-family:'Sora',sans-serif;
-  font-size:clamp(10px,1.1vw,12px);
-  font-weight:600;letter-spacing:.28em;text-transform:uppercase;
-  color:var(--gray-dim);
-  padding:0 40px;
-  display:flex;align-items:center;gap:40px;flex-shrink:0;
-}
-.marquee-item::after{content:"✦";color:var(--gray-dim);font-size:7px}
-@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-
-/* ─── SECTION COMMONS ──────────────────────────────────── */
-.section{padding:var(--section) var(--px);border-top:1px solid var(--border);max-width:var(--maxw);margin:0 auto}
-.section-full{padding:var(--section) var(--px);border-top:1px solid var(--border)}
-.section-label{
-  font-size:10px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;
-  color:var(--gray-dim);
-  margin-bottom:clamp(40px,7vh,72px);
-  display:flex;align-items:center;gap:16px;
-}
-.section-label::after{content:"";flex:1;height:1px;background:var(--border)}
-.section-h2{
-  font-family:'Sora',sans-serif;font-weight:800;
-  font-size:clamp(40px,7vw,96px);
-  line-height:.96;letter-spacing:-.04em;text-transform:uppercase;
-}
-
-/* ─── BUTTONS ──────────────────────────────────────────── */
-.btn-primary{
-  display:inline-flex;align-items:center;gap:12px;
-  font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
-  background:var(--white);color:#000;
-  padding:16px 36px;
-  transition:background .2s,color .2s,transform .18s;
-}
-.btn-primary:hover{background:var(--gray);transform:translateY(-2px)}
-.btn-outline{
-  display:inline-flex;align-items:center;gap:12px;
-  font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
-  border:1px solid var(--white);color:var(--white);
-  padding:16px 36px;
-  transition:background .2s,color .2s;
-}
-.btn-outline:hover{background:var(--white);color:#000}
-
-/* ─── SERVICES ─────────────────────────────────────────── */
-.services-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);
-  border:1px solid var(--border);
-}
-.services-grid-3{
-  display:grid;grid-template-columns:repeat(3,1fr);
-  border:1px solid var(--border);border-top:0;
-}
-.svc-card{
-  padding:clamp(28px,3vw,40px);
-  border-right:1px solid var(--border);
-  display:flex;flex-direction:column;gap:20px;
-  transition:background .22s;cursor:default;
-}
-.services-grid .svc-card:last-child,
-.services-grid-3 .svc-card:last-child{border-right:0}
-.svc-card:hover{background:rgba(255,255,255,.025)}
-.svc-num{font-family:'Sora';font-weight:800;font-size:11px;letter-spacing:.22em;color:var(--gray-dim)}
-.svc-icon{
-  width:44px;height:44px;border:1px solid var(--border-hi);
-  display:flex;align-items:center;justify-content:center;
-  transition:border-color .22s;
-}
-.svc-card:hover .svc-icon{border-color:var(--white)}
-.svc-icon svg{width:18px;height:18px;stroke:var(--gray);stroke-width:1;fill:none;transition:stroke .22s}
-.svc-card:hover .svc-icon svg{stroke:var(--white)}
-.svc-title{font-family:'Sora';font-weight:700;font-size:clamp(15px,1.5vw,19px);text-transform:uppercase;letter-spacing:.04em;line-height:1.2}
-.svc-desc{font-size:13px;color:var(--gray);line-height:1.7;flex:1}
-.svc-link{
-  font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--gray-dim);display:flex;align-items:center;gap:8px;
-  transition:color .2s,gap .18s;margin-top:auto;
-}
-.svc-card:hover .svc-link{color:var(--white);gap:14px}
-
-/* ─── PROCESS ──────────────────────────────────────────── */
-.process-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);
-  border:1px solid var(--border);
-}
-.process-step{
-  padding:clamp(28px,3vw,40px);
-  border-right:1px solid var(--border);
-}
-.process-step:last-child{border-right:0}
-.process-step-num{
-  font-family:'Sora';font-weight:800;
-  font-size:clamp(44px,5.5vw,72px);
-  letter-spacing:-.04em;line-height:1;
-  color:var(--border-hi);margin-bottom:20px;
-  transition:color .4s;
-}
-.process-step:hover .process-step-num{color:var(--white)}
-.process-step-title{font-family:'Sora';font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
-.process-step-desc{font-size:13px;color:var(--gray);line-height:1.72}
-
-/* ─── PROJECTS ─────────────────────────────────────────── */
-.projects-scroll-wrap{
-  overflow-x:auto;overflow-y:hidden;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-  padding:0 var(--px) clamp(40px,6vh,64px);
-  cursor:grab;
-}
-.projects-scroll-wrap:active{cursor:grabbing}
-.projects-scroll-wrap::-webkit-scrollbar{display:none}
-.projects-track{
-  display:flex;gap:1px;
-  width:max-content;
-}
-.project-card{
-  width:clamp(280px,30vw,440px);flex-shrink:0;
-  border:1px solid var(--border);
-  transition:border-color .22s;
-  user-select:none;
-}
-.project-card:hover{border-color:var(--border-hi)}
-.project-img{
-  aspect-ratio:4/3;overflow:hidden;
-  background:var(--bg-panel);
-  display:flex;align-items:center;justify-content:center;
-  border-bottom:1px solid var(--border);
-  position:relative;
-}
-.project-img-bg{
-  position:absolute;inset:0;
-  background:var(--bg-panel);
-  transition:opacity .4s;
-}
-.project-card:hover .project-img-bg{opacity:.65}
-.project-img-icon{
-  position:relative;z-index:1;
-  width:48px;height:48px;border:1px solid var(--border-hi);
-  display:flex;align-items:center;justify-content:center;
-  transition:border-color .28s;
-}
-.project-card:hover .project-img-icon{border-color:rgba(255,255,255,.45)}
-.project-img-icon svg{width:20px;height:20px;stroke:var(--gray-dim);stroke-width:1;fill:none;transition:stroke .28s}
-.project-card:hover .project-img-icon svg{stroke:var(--white)}
-.project-info{padding:24px}
-.project-meta{font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--gray-dim);margin-bottom:8px}
-.project-title{font-family:'Sora';font-weight:700;font-size:clamp(15px,1.6vw,19px);line-height:1.2;margin-bottom:6px}
-.project-type{font-size:12px;color:var(--gray)}
-
-/* ─── STATS ────────────────────────────────────────────── */
-.stats-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);
-  border:1px solid var(--border);
-}
-.stat-cell{
-  padding:clamp(28px,4vw,52px) clamp(24px,3vw,40px);
-  border-right:1px solid var(--border);
-}
-.stat-cell:last-child{border-right:0}
-.stat-num{
-  font-family:'Sora';font-weight:800;
-  font-size:clamp(44px,5.5vw,72px);
-  letter-spacing:-.04em;line-height:1;
-  margin-bottom:8px;
-}
-.stat-label{font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--gray)}
-
-/* ─── ABOUT / MANIFESTO ────────────────────────────────── */
-.manifesto-text{
-  font-family:'Sora';font-weight:800;
-  font-size:clamp(34px,6vw,88px);
-  line-height:1.0;letter-spacing:-.03em;
-  max-width:18ch;
-}
-.manifesto-text .dim{color:var(--gray-dim)}
-.manifesto-aside{
-  max-width:380px;
-  font-size:15px;color:var(--gray);line-height:1.72;font-weight:300;
-}
-.manifesto-aside p+p{margin-top:16px}
-.manifesto-tools{margin-top:32px;display:flex;flex-wrap:wrap;gap:8px}
-.tool-tag{
-  font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--gray-dim);border:1px solid var(--border);
-  padding:6px 12px;transition:color .2s,border-color .2s;
-}
-.tool-tag:hover{color:var(--white);border-color:var(--gray-dim)}
-
-
-/* ─── CONTACT ──────────────────────────────────────────── */
-.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(40px,8vw,100px);align-items:start}
-.contact-info-item{
-  display:flex;align-items:flex-start;gap:16px;
-  padding:16px 0;border-bottom:1px solid var(--border);
-}
-.contact-info-item:first-child{border-top:1px solid var(--border)}
-.contact-info-k{font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--gray-dim);min-width:64px;margin-top:2px}
-.contact-info-v{font-size:14px;color:var(--gray)}
-.contact-info-v a{color:var(--white);transition:color .2s}
-.contact-info-v a:hover{color:var(--gray)}
-.form-field{margin-bottom:24px}
-.form-label{font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--gray-dim);display:block;margin-bottom:10px}
-.form-input{
-  width:100%;background:transparent;
-  border:none;border-bottom:1px solid var(--border);
-  color:var(--white);font-family:'Inter';font-size:14px;
-  padding:10px 0;outline:none;
-  transition:border-color .2s;
-}
-.form-input::placeholder{color:var(--gray-dim)}
-.form-input:focus{border-color:var(--white)}
-.form-input option{background:#0a0a0c;color:var(--white)}
-.form-textarea{resize:none;min-height:100px}
-.form-submit{
-  width:100%;font-size:11px;font-weight:600;letter-spacing:.2em;
-  text-transform:uppercase;background:var(--white);color:#000;
-  padding:16px;border:none;cursor:none;
-  transition:background .2s;
-}
-.form-submit:hover{background:var(--gray)}
-.form-submit.sent{background:transparent;border:1px solid var(--border);color:var(--gray)}
-
-/* ─── FOOTER ───────────────────────────────────────────── */
-footer{border-top:1px solid var(--border);padding:48px var(--px)}
-.footer-inner{
-  max-width:var(--maxw);margin:0 auto;
-  display:flex;justify-content:space-between;align-items:flex-start;
-  gap:40px;flex-wrap:wrap;
-}
-.footer-brand{font-family:'Sora';font-weight:800;font-size:clamp(28px,4.5vw,56px);letter-spacing:-.04em;line-height:1}
-.footer-meta{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gray-dim);margin-top:8px}
-.footer-links{display:flex;flex-direction:column;gap:10px}
-.footer-links h4{font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--gray-dim);margin-bottom:4px}
-.footer-links a{font-size:13px;color:var(--gray);transition:color .2s}
-.footer-links a:hover{color:var(--white)}
-.footer-bottom{
-  max-width:var(--maxw);margin:28px auto 0;
-  padding-top:24px;border-top:1px solid var(--border);
-  display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
-}
-.footer-copy{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gray-dim)}
-
-/* ─── REVEAL ANIMATIONS ─────────────────────────────────── */
-.reveal{opacity:0;transform:translateY(34px);transition:opacity .88s cubic-bezier(.22,1,.36,1),transform .88s cubic-bezier(.22,1,.36,1)}
-.reveal.in{opacity:1;transform:none}
-.reveal-left{opacity:0;transform:translateX(-38px);transition:opacity .88s cubic-bezier(.22,1,.36,1),transform .88s cubic-bezier(.22,1,.36,1)}
-.reveal-left.in{opacity:1;transform:none}
-
-/* ─── RESPONSIVE ─────────────────────────────────────────── */
-@media(max-width:960px){
-  .services-grid{grid-template-columns:repeat(2,1fr)}
-  .services-grid-3{grid-template-columns:repeat(2,1fr)}
-  .process-grid{grid-template-columns:repeat(2,1fr)}
-  .process-step{border-bottom:1px solid var(--border)}
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
-  .stat-cell:nth-child(2){border-right:0}
-  .stat-cell:nth-child(3){border-right:1px solid var(--border);border-top:1px solid var(--border)}
-  .stat-cell:last-child{border-top:1px solid var(--border)}
-}
-@media(max-width:760px){
-  .contact-grid{grid-template-columns:1fr}
-  div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
-}
-@media(max-width:680px){
-  .services-grid{grid-template-columns:1fr}
-  .services-grid-3{grid-template-columns:1fr}
-  .svc-card{border-right:0;border-bottom:1px solid var(--border)}
-  .process-grid{grid-template-columns:1fr}
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:900px){
-  .nav-links,.nav-cta{display:none}
-  #hamburger{display:flex}
-}
-@media(prefers-reduced-motion:reduce){
-  .reveal,.reveal-left{opacity:1;transform:none;transition:none}
-  #shader-canvas{display:none}
-  .marquee-track{animation:none}
-  html{cursor:auto}
-  #cursor,#cursor-ring{display:none}
-}
+  .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; }
+  .glass-nav { background:rgba(18,20,20,.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
+  .hero-bg {
+    background:
+      radial-gradient(ellipse 70% 60% at 60% 40%, rgba(60,60,60,.18) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 80% at 10% 80%, rgba(40,40,40,.15) 0%, transparent 60%),
+      #121414;
+  }
+  .sr { opacity:0; transform:translateY(24px); transition:opacity .85s cubic-bezier(.22,1,.36,1), transform .85s cubic-bezier(.22,1,.36,1); }
+  .sr.in { opacity:1; transform:none; }
+  .proj-track-wrap { overflow-x:auto; cursor:grab; scrollbar-width:none; -webkit-user-select:none; user-select:none; }
+  .proj-track-wrap::-webkit-scrollbar { display:none; }
+  .proj-track-wrap.grabbing { cursor:grabbing; }
+  #mobile-drawer { display:none; }
+  #mobile-drawer.open { display:flex; }
+  /* Scroll progress bar */
+  #scroll-bar { position:fixed; top:0; left:0; height:1px; background:#fff; z-index:9999; width:0%; transition:width .1s linear; }
+  /* Stat counter */
+  .stat-num { font-family:'Sora',sans-serif; font-weight:800; font-size:clamp(44px,6vw,80px); letter-spacing:-0.04em; line-height:1; }
 </style>
 </head>
-<body>
+<body class="bg-background text-on-background font-body antialiased overflow-x-hidden selection:bg-primary selection:text-background">
 
-<!-- Scroll progress bar -->
-<div id="progress"></div>
-<!-- Custom cursor -->
-<div id="cursor"></div>
-<div id="cursor-ring"></div>
+<!-- Scroll Progress -->
+<div id="scroll-bar"></div>
 
-<!-- ═══════════════════════════════════════════════════════
-     NAV
-════════════════════════════════════════════════════════ -->
-<nav id="nav">
-  <a href="#hero" class="nav-logo">SHIFT<span class="dot"></span></a>
-  <div class="nav-links">
-    <a href="#services">Services</a>
-    <a href="#process">Process</a>
-    <a href="#projects">Projects</a>
-    <a href="#about">About</a>
+<!-- ═══════════════════════════════ NAV ═══ -->
+<nav id="nav" class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gm py-5 glass-nav border-b border-outline-variant/30">
+  <a href="#hero" class="font-display font-extrabold text-headline-md tracking-tighter text-primary">SHIFT<span class="inline-block w-[7px] h-[7px] bg-primary ml-[3px] mb-1 align-middle"></span></a>
+  <div class="hidden md:flex items-center gap-8">
+    <a href="#services" class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Services</a>
+    <a href="#process"  class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Process</a>
+    <a href="#projects" class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Projects</a>
+    <a href="#about"    class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">About</a>
+    <a href="#contact"  class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Contact</a>
   </div>
-  <a href="#contact" class="nav-cta">
+  <a href="#contact" class="hidden md:inline-flex items-center gap-2 border border-primary text-primary px-6 py-3 font-body text-label-sm uppercase tracking-widest hover:bg-primary hover:text-background transition-all duration-300 rounded-none">
     Start a Project
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 10L10 2M10 2H4M10 2v6"/></svg>
+    <span class="material-symbols-outlined" style="font-size:16px">arrow_outward</span>
   </a>
-  <div id="hamburger" onclick="toggleDrawer()">
-    <span></span><span></span><span></span>
-  </div>
+  <button id="menu-btn" class="md:hidden text-primary p-1" onclick="toggleDrawer()">
+    <span class="material-symbols-outlined">menu</span>
+  </button>
 </nav>
 
-<!-- Mobile drawer -->
-<div id="mobile-drawer">
-  <span id="drawer-close" onclick="toggleDrawer()">Close ✕</span>
-  <a href="#services"  onclick="toggleDrawer()">Services</a>
-  <a href="#process"   onclick="toggleDrawer()">Process</a>
-  <a href="#projects"  onclick="toggleDrawer()">Projects</a>
-  <a href="#about"     onclick="toggleDrawer()">About</a>
-  <a href="#contact"   onclick="toggleDrawer()">Contact</a>
+<!-- Mobile Drawer -->
+<div id="mobile-drawer" class="fixed inset-0 z-40 flex-col bg-background border-r border-outline-variant/30 pt-24 px-8 pb-8 gap-6">
+  <button class="absolute top-5 right-6 text-on-surface-variant" onclick="toggleDrawer()">
+    <span class="material-symbols-outlined">close</span>
+  </button>
+  <a href="#services" onclick="toggleDrawer()" class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">Services</a>
+  <a href="#process"  onclick="toggleDrawer()" class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">Process</a>
+  <a href="#projects" onclick="toggleDrawer()" class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">Projects</a>
+  <a href="#about"    onclick="toggleDrawer()" class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">About</a>
+  <a href="#contact"  onclick="toggleDrawer()" class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">Contact</a>
+  <a href="#contact"  onclick="toggleDrawer()" class="mt-4 inline-flex items-center justify-center gap-2 border border-primary text-primary px-6 py-3 font-body text-label-sm uppercase tracking-widest">
+    Start a Project <span class="material-symbols-outlined" style="font-size:16px">arrow_outward</span>
+  </a>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════
-     HERO — WebGL Shader Background
-════════════════════════════════════════════════════════ -->
-<section id="hero">
-  <canvas id="shader-canvas"></canvas>
-  <div class="hero-overlay"></div>
-  <div class="hero-content">
-    <div class="hero-eyebrow">Houston, TX · AV Engineering</div>
-    <h1 class="hero-title">
-      <span id="scramble-text">SHIFT</span><br/>
-      <span class="dim">EVENTS.</span>
+<!-- ═══════════════════════════════ HERO ═══ -->
+<section id="hero" class="relative min-h-screen flex items-end pt-24 pb-sg overflow-hidden hero-bg">
+  <div class="absolute inset-0 z-0 pointer-events-none">
+    <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent"></div>
+    <!-- Thin grid lines -->
+    <svg class="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+          <path d="M 80 0 L 0 0 0 80" fill="none" stroke="white" stroke-width="0.5"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid)"/>
+    </svg>
+  </div>
+  <div class="relative z-10 px-gm w-full max-w-7xl mx-auto">
+    <p class="sr font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-8">Houston, TX · Available Nationwide</p>
+    <h1 class="sr font-display font-extrabold text-display-xl text-primary uppercase tracking-tighter mb-6" style="font-size:clamp(56px,10vw,120px);line-height:.95;transition-delay:60ms">
+      ENGINEERING<br/><span class="text-on-surface-variant">THE</span><br/>INVISIBLE.
     </h1>
-    <p class="hero-sub">Immersive projection systems, LED architecture, and event production for moments that can't be rehearsed.</p>
-    <div class="hero-chips">
-      <span class="hero-chip">Projection Mapping</span>
-      <span class="hero-chip">LED Volumes</span>
-      <span class="hero-chip">Lighting Design</span>
-      <span class="hero-chip">DJ Production</span>
-      <span class="hero-chip">Venue Installs</span>
+    <p class="sr font-body text-body-lg text-on-surface-variant max-w-xl mb-12" style="transition-delay:120ms">
+      Event production, AV design, and lighting systems for South Asian weddings, multicultural events, and corporate experiences.
+    </p>
+    <div class="sr flex flex-wrap items-center gap-4 font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-16" style="transition-delay:180ms">
+      <span>Wedding AV</span><span class="w-1 h-1 bg-on-surface-variant rounded-full"></span>
+      <span>LED Architecture</span><span class="w-1 h-1 bg-on-surface-variant rounded-full"></span>
+      <span>Projection Mapping</span><span class="w-1 h-1 bg-on-surface-variant rounded-full"></span>
+      <span>DJ Production</span><span class="w-1 h-1 bg-on-surface-variant rounded-full"></span>
+      <span>Venue Installs</span>
     </div>
-    <div class="hero-btns">
-      <a href="#services" class="btn-primary">Explore Services</a>
-      <a href="#contact"  class="btn-outline">Book a Consultation</a>
+    <a href="#services" class="sr inline-flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-primary hover:text-surface-tint transition-colors" style="transition-delay:220ms">
+      Discover More <span class="material-symbols-outlined">arrow_downward</span>
+    </a>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ SERVICES ═══ -->
+<section id="services" class="px-gm py-sg border-t border-outline-variant/30">
+  <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+    <h2 class="sr font-display font-bold text-headline-lg md:text-headline-lg text-primary uppercase tracking-tighter" style="font-size:clamp(40px,6vw,72px);line-height:1">Services</h2>
+    <div class="flex-grow border-t border-outline-variant/30 mx-8 mb-2 hidden md:block"></div>
+    <p class="sr font-body text-body-md text-on-surface-variant max-w-xs text-right" style="transition-delay:80ms">
+      Full-stack event production — design through execution.
+    </p>
+  </div>
+
+  <!-- Row 1 — 4 cols -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gg border-t border-outline-variant/30 pt-12 mb-12">
+    <!-- S1 -->
+    <div class="sr flex flex-col gap-5 group">
+      <div class="w-10 h-10 border border-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary" style="font-size:20px">celebration</span>
+      </div>
+      <h3 class="font-display font-semibold text-label-sm uppercase tracking-widest text-primary">Wedding AV + Lighting</h3>
+      <p class="font-body text-body-md text-on-surface-variant flex-grow">Full audio-visual and lighting design for South Asian and multicultural weddings. From mandap uplighting to concert-grade sound.</p>
+      <a href="#contact" class="inline-flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors">
+        Get a Quote <span class="material-symbols-outlined" style="font-size:14px">arrow_right_alt</span>
+      </a>
     </div>
-    <div class="hero-scroll">
-      <span class="hero-scroll-line"></span>
-      Scroll to explore
+    <!-- S2 -->
+    <div class="sr flex flex-col gap-5 group" style="transition-delay:40ms">
+      <div class="w-10 h-10 border border-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary" style="font-size:20px">restaurant</span>
+      </div>
+      <h3 class="font-display font-semibold text-label-sm uppercase tracking-widest text-primary">Venue / Restaurant Install</h3>
+      <p class="font-body text-body-md text-on-surface-variant flex-grow">Permanent AV and lighting infrastructure for restaurants, lounges, and event spaces. Designed to run beautifully every night.</p>
+      <a href="#contact" class="inline-flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors">
+        Get a Quote <span class="material-symbols-outlined" style="font-size:14px">arrow_right_alt</span>
+      </a>
+    </div>
+    <!-- S3 -->
+    <div class="sr flex flex-col gap-5 group" style="transition-delay:80ms">
+      <div class="w-10 h-10 border border-primary flex items-center justify-center">
+        <svg width="20" height="20" fill="none" stroke="white" stroke-width="1.2" viewBox="0 0 24 24"><polygon points="12,2 22,22 2,22"/></svg>
+      </div>
+      <h3 class="font-display font-semibold text-label-sm uppercase tracking-widest text-primary">Projection Mapping</h3>
+      <p class="font-body text-body-md text-on-surface-variant flex-grow">Custom content projected onto architectural surfaces, stages, and objects. Every event becomes a visual statement.</p>
+      <a href="#contact" class="inline-flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors">
+        Get a Quote <span class="material-symbols-outlined" style="font-size:14px">arrow_right_alt</span>
+      </a>
+    </div>
+    <!-- S4 -->
+    <div class="sr flex flex-col gap-5 group" style="transition-delay:120ms">
+      <div class="w-10 h-10 border border-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary" style="font-size:20px">grid_view</span>
+      </div>
+      <h3 class="font-display font-semibold text-label-sm uppercase tracking-widest text-primary">LED Architecture</h3>
+      <p class="font-body text-body-md text-on-surface-variant flex-grow">Custom LED pixel arrays, walls, and ceiling grids built from the ground up for maximum visual impact.</p>
+      <a href="#contact" class="inline-flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors">
+        Get a Quote <span class="material-symbols-outlined" style="font-size:14px">arrow_right_alt</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Row 2 — 3 cols -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gg border-t border-outline-variant/30 pt-12">
+    <!-- S5 -->
+    <div class="sr flex flex-col gap-5 group">
+      <div class="w-10 h-10 border border-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary" style="font-size:20px">light_mode</span>
+      </div>
+      <h3 class="font-display font-semibold text-label-sm uppercase tracking-widest text-primary">Lighting Design</h3>
+      <p class="font-body text-body-md text-on-surface-variant flex-grow">Theatrical and atmospheric lighting design — from intimate uplighting to full RGBW moving head rigs for large ballrooms.</p>
+      <a href="#contact" class="inline-flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors">
+        Get a Quote <span class="material-symbols-outlined" style="font-size:14px">arrow_right_alt</span>
+      </a>
+    </div>
+    <!-- S6 -->
+    <div class="sr flex flex-col gap-5 group" style="transition-delay:60ms">
+      <div class="w-10 h-10 border border-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary" style="font-size:20px">music_note</span>
+      </div>
+      <h3 class="font-display font-semibold text-label-sm uppercase tracking-widest text-primary">DJ Production</h3>
+      <p class="font-body text-body-md text-on-surface-variant flex-grow">Live DJ sets blending Bollywood, South Asian fusion, and contemporary genres — perfectly synced with your event timeline.</p>
+      <a href="#contact" class="inline-flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors">
+        Get a Quote <span class="material-symbols-outlined" style="font-size:14px">arrow_right_alt</span>
+      </a>
+    </div>
+    <!-- S7 -->
+    <div class="sr flex flex-col gap-5 group" style="transition-delay:120ms">
+      <div class="w-10 h-10 border border-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary" style="font-size:20px">play_circle</span>
+      </div>
+      <h3 class="font-display font-semibold text-label-sm uppercase tracking-widest text-primary">Visual Content</h3>
+      <p class="font-body text-body-md text-on-surface-variant flex-grow">Motion graphics, monograms, and custom video content for screens, LED walls, and projection surfaces.</p>
+      <a href="#contact" class="inline-flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors">
+        Get a Quote <span class="material-symbols-outlined" style="font-size:14px">arrow_right_alt</span>
+      </a>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════
-     MARQUEE
-════════════════════════════════════════════════════════ -->
-<div class="marquee-wrap">
-  <div class="marquee-track">
-    <div class="marquee-item">Projection Mapping</div>
-    <div class="marquee-item">LED Architecture</div>
-    <div class="marquee-item">Lighting Design</div>
-    <div class="marquee-item">Visual Content</div>
-    <div class="marquee-item">Event Production</div>
-    <div class="marquee-item">Venue Installs</div>
-    <div class="marquee-item">DJ Production</div>
-    <div class="marquee-item">Resolume VJ</div>
-    <div class="marquee-item">Projection Mapping</div>
-    <div class="marquee-item">LED Architecture</div>
-    <div class="marquee-item">Lighting Design</div>
-    <div class="marquee-item">Visual Content</div>
-    <div class="marquee-item">Event Production</div>
-    <div class="marquee-item">Venue Installs</div>
-    <div class="marquee-item">DJ Production</div>
-    <div class="marquee-item">Resolume VJ</div>
+<!-- ═══════════════════════════════ PROCESS ═══ -->
+<section id="process" class="px-gm py-sg border-t border-outline-variant/30 bg-surface-container-lowest">
+  <h2 class="sr font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-12">Our Process</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gg divide-y sm:divide-y-0 sm:divide-x divide-outline-variant/30">
+    <div class="sr pb-10 sm:pb-0 sm:pr-8 flex flex-col gap-4">
+      <span class="font-display font-light text-primary mb-2" style="font-size:48px;line-height:1">01</span>
+      <h4 class="font-body text-label-sm uppercase tracking-wider text-primary">Design Phase</h4>
+      <p class="font-body text-body-md text-on-surface-variant">We map out every technical element — lighting plots, AV schematics, stage layout, and pixel maps. Starting at $1,150.</p>
+    </div>
+    <div class="sr py-10 sm:py-0 sm:px-8 flex flex-col gap-4" style="transition-delay:60ms">
+      <span class="font-display font-light text-primary mb-2" style="font-size:48px;line-height:1">02</span>
+      <h4 class="font-body text-label-sm uppercase tracking-wider text-primary">Approval</h4>
+      <p class="font-body text-body-md text-on-surface-variant">You review the full technical plan and proposal. We refine until every detail aligns with your vision.</p>
+    </div>
+    <div class="sr py-10 sm:py-0 sm:px-8 flex flex-col gap-4" style="transition-delay:120ms">
+      <span class="font-display font-light text-primary mb-2" style="font-size:48px;line-height:1">03</span>
+      <h4 class="font-body text-label-sm uppercase tracking-wider text-primary">Build + Install</h4>
+      <p class="font-body text-body-md text-on-surface-variant">Our crew handles load-in, rigging, cable management, and full system testing before any guest arrives.</p>
+    </div>
+    <div class="sr pt-10 sm:pt-0 sm:pl-8 flex flex-col gap-4" style="transition-delay:180ms">
+      <span class="font-display font-light text-primary mb-2" style="font-size:48px;line-height:1">04</span>
+      <h4 class="font-body text-label-sm uppercase tracking-wider text-primary">Event Day</h4>
+      <p class="font-body text-body-md text-on-surface-variant">On-site operators run the full show live. You celebrate. We execute.</p>
+    </div>
   </div>
-</div>
+</section>
 
-<!-- ═══════════════════════════════════════════════════════
-     SERVICES — 7 disciplines
-════════════════════════════════════════════════════════ -->
-<div id="services">
-<div class="section">
-  <div class="section-label reveal">01 — Core Disciplines</div>
-  <div class="section-h2 reveal" style="margin-bottom:clamp(36px,5vh,56px)">
-    WHAT WE<br/><span style="color:var(--gray-dim)">BUILD.</span>
+<!-- ═══════════════════════════════ PROJECTS ═══ -->
+<section id="projects" class="px-gm py-sg border-t border-outline-variant/30">
+  <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+    <h2 class="sr font-display font-bold text-primary uppercase tracking-tighter" style="font-size:clamp(40px,6vw,72px);line-height:1">Projects</h2>
+    <div class="flex-grow border-t border-outline-variant/30 mx-8 mb-2 hidden md:block"></div>
+    <p class="sr font-body text-body-md text-on-surface-variant max-w-xs text-right" style="transition-delay:80ms">Drag to explore recent work.</p>
   </div>
+  <div class="proj-track-wrap -mx-gm" id="proj-wrap">
+    <div class="flex gap-4 px-gm pb-4" id="proj-track" style="width:max-content">
 
-  <!-- Row 1: 4 cards -->
-  <div class="services-grid">
-    <div class="svc-card reveal" style="transition-delay:0ms">
-      <div class="svc-num">01</div>
-      <div class="svc-icon">
-        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14"/><path d="M8 21h8M12 17v4"/></svg>
-      </div>
-      <div>
-        <h3 class="svc-title">Projection<br/>Mapping</h3>
-        <p class="svc-desc">Full venue projection and pixel mapping — designed in Vectorworks, previsualized in Capture before a single unit ships. Restaurants, ballrooms, stages.</p>
-      </div>
-      <a href="#contact" class="svc-link">Inquire <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2v7"/></svg></a>
-    </div>
-    <div class="svc-card reveal" style="transition-delay:60ms">
-      <div class="svc-num">02</div>
-      <div class="svc-icon">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
-      </div>
-      <div>
-        <h3 class="svc-title">LED<br/>Architecture</h3>
-        <p class="svc-desc">Large-scale LED video walls, modular pixel volumes, and signal routing for immersive environments. We size, spec, and install everything.</p>
-      </div>
-      <a href="#contact" class="svc-link">Inquire <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2v7"/></svg></a>
-    </div>
-    <div class="svc-card reveal" style="transition-delay:120ms">
-      <div class="svc-num">03</div>
-      <div class="svc-icon">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></svg>
-      </div>
-      <div>
-        <h3 class="svc-title">Lighting<br/>Design</h3>
-        <p class="svc-desc">Intelligent fixtures, pin-spots, uplighting, and atmospheric programming. From wedding chandeliers to stage wash — structural light that defines the space.</p>
-      </div>
-      <a href="#contact" class="svc-link">Inquire <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2v7"/></svg></a>
-    </div>
-    <div class="svc-card reveal" style="transition-delay:180ms">
-      <div class="svc-num">04</div>
-      <div class="svc-icon">
-        <svg viewBox="0 0 24 24"><path d="M9 19V6l12-3v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-      </div>
-      <div>
-        <h3 class="svc-title">DJ &amp;<br/>Audio</h3>
-        <p class="svc-desc">Desi Junction DJs — curated sets for South Asian and multicultural weddings and events. Line arrays, pristine signal chains, and rooms that sound right.</p>
-      </div>
-      <a href="#contact" class="svc-link">Inquire <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2v7"/></svg></a>
-    </div>
-  </div>
-
-  <!-- Row 2: 3 cards -->
-  <div class="services-grid-3">
-    <div class="svc-card reveal" style="transition-delay:240ms">
-      <div class="svc-num">05</div>
-      <div class="svc-icon">
-        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20"/><path d="M2 8h20M8 2v20"/></svg>
-      </div>
-      <div>
-        <h3 class="svc-title">Venue<br/>Installs</h3>
-        <p class="svc-desc">Permanent AV infrastructure that hides inside the architecture. Restaurants, event halls, lobbies — clean lines, zero visible cable, stunning output.</p>
-      </div>
-      <a href="#contact" class="svc-link">Inquire <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2v7"/></svg></a>
-    </div>
-    <div class="svc-card reveal" style="transition-delay:300ms">
-      <div class="svc-num">06</div>
-      <div class="svc-icon">
-        <svg viewBox="0 0 24 24"><polygon points="12,2 22,20 2,20"/></svg>
-      </div>
-      <div>
-        <h3 class="svc-title">Visual<br/>Content</h3>
-        <p class="svc-desc">Monogram animations, ambient loops, seasonal themed visuals, and event-night content designed to run seamlessly on your LED or projection system.</p>
-      </div>
-      <a href="#contact" class="svc-link">Inquire <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2v7"/></svg></a>
-    </div>
-    <div class="svc-card reveal" style="transition-delay:360ms">
-      <div class="svc-num">07</div>
-      <div class="svc-icon">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>
-      </div>
-      <div>
-        <h3 class="svc-title">Maintenance<br/>Plans</h3>
-        <p class="svc-desc">Bi-monthly preventive check-ups for installed systems. Projectors, signal chain, content backup, alignment — so the system performs every night, not just opening night.</p>
-      </div>
-      <a href="#contact" class="svc-link">Inquire <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L12 2M12 2H5M12 2v7"/></svg></a>
-    </div>
-  </div>
-</div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════
-     PROCESS
-════════════════════════════════════════════════════════ -->
-<div id="process">
-<div class="section">
-  <div class="section-label reveal">02 — How It Works</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(36px,7vw,96px);align-items:start;margin-bottom:clamp(36px,5vh,56px)">
-    <div class="section-h2 reveal">PRECISION<br/><span style="color:var(--gray-dim)">BEFORE<br/>INSTALL.</span></div>
-    <p class="reveal" style="font-size:15px;color:var(--gray);line-height:1.75;max-width:44ch;padding-top:8px;font-weight:300;align-self:end;transition-delay:80ms">
-      Quoting blind means wrong equipment, surprise costs, and a result that misses the mark. We design the entire system before purchasing a single piece of gear.
-    </p>
-  </div>
-  <div class="process-grid">
-    <div class="process-step reveal" style="transition-delay:0ms">
-      <div class="process-step-num">01</div>
-      <h4 class="process-step-title">Site Survey &amp; Design</h4>
-      <p class="process-step-desc">We measure the space, analyze surfaces, ambient light, signal paths, and mounting points — then design the complete system in Vectorworks. No guesswork.</p>
-    </div>
-    <div class="process-step reveal" style="transition-delay:80ms">
-      <div class="process-step-num">02</div>
-      <h4 class="process-step-title">Capture Previsual</h4>
-      <p class="process-step-desc">The system runs inside Capture software — you see your actual space with real throw distances, real brightness, real feel — before anything is purchased.</p>
-    </div>
-    <div class="process-step reveal" style="transition-delay:160ms">
-      <div class="process-step-num">03</div>
-      <h4 class="process-step-title">Fixed-Price Proposal</h4>
-      <p class="process-step-desc">One locked number. Not an estimate. Not a range. A precise installation quote that won't change because we've already designed everything it covers.</p>
-    </div>
-    <div class="process-step reveal" style="transition-delay:240ms">
-      <div class="process-step-num">04</div>
-      <h4 class="process-step-title">Install &amp; Calibrate</h4>
-      <p class="process-step-desc">Full installation, alignment, content load-in, staff training, and ongoing maintenance so the system performs every night — not just opening night.</p>
-    </div>
-  </div>
-  <!-- Design Phase CTA -->
-  <div style="margin-top:32px;border:1px solid var(--border);padding:clamp(28px,4vw,48px);display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap" class="reveal">
-    <div>
-      <p style="font-size:11px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--gray-dim);margin-bottom:8px">Technical Design Phase</p>
-      <p style="font-family:'Sora';font-weight:800;font-size:clamp(26px,4vw,44px);letter-spacing:-.03em">Starting at $1,150 <span style="font-size:clamp(14px,1.8vw,18px);color:var(--gray);font-weight:300">USD</span></p>
-      <p style="font-size:13px;color:var(--gray);margin-top:6px">Credits toward full installation within 30 days.</p>
-    </div>
-    <a href="#contact" class="btn-outline">Request a Proposal</a>
-  </div>
-</div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════
-     PROJECTS — Horizontal Drag Scroll
-════════════════════════════════════════════════════════ -->
-<div id="projects" style="border-top:1px solid var(--border);padding-top:var(--section)">
-  <div style="max-width:var(--maxw);margin:0 auto;padding:0 var(--px);margin-bottom:clamp(28px,4vh,48px)">
-    <div class="section-label reveal">03 — Recent Work</div>
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap">
-      <div class="section-h2 reveal">SELECTED<br/><span style="color:var(--gray-dim)">PROJECTS.</span></div>
-      <p class="reveal" style="font-size:13px;color:var(--gray);max-width:32ch;line-height:1.65;font-weight:300;transition-delay:80ms">Drag to explore. Every project starts with a design phase.</p>
-    </div>
-  </div>
-  <div class="projects-scroll-wrap" id="proj-scroll">
-    <div class="projects-track" id="proj-track" style="padding:0 var(--px)">
-
-      <div class="project-card reveal">
-        <div class="project-img">
-          <div class="project-img-bg"></div>
-          <div class="project-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20"/></svg></div>
+      <a class="group block flex-none w-72 md:w-80" href="#contact">
+        <div class="relative aspect-[4/3] overflow-hidden mb-4 border border-outline-variant/30 bg-surface-container-lowest">
+          <div class="absolute inset-0 bg-gradient-to-br from-surface-container to-background opacity-80"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="material-symbols-outlined text-on-surface-variant" style="font-size:40px;font-variation-settings:'FILL' 0,'wght' 200">celebration</span>
+          </div>
+          <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-primary bg-background/60 backdrop-blur-sm p-2">
+            <span class="material-symbols-outlined" style="font-size:18px">arrow_outward</span>
+          </div>
         </div>
-        <div class="project-info">
-          <p class="project-meta">Beyond Restaurant · Houston, TX</p>
-          <h3 class="project-title">Immersive Projection System</h3>
-          <p class="project-type">Permanent Install · 2026</p>
+        <h4 class="font-body text-label-sm uppercase tracking-widest text-primary mb-1">The Jewel Ballroom</h4>
+        <p class="font-body text-body-md text-on-surface-variant text-sm">Wedding AV + LED Architecture</p>
+      </a>
+
+      <a class="group block flex-none w-72 md:w-80" href="#contact">
+        <div class="relative aspect-[4/3] overflow-hidden mb-4 border border-outline-variant/30 bg-surface-container-lowest">
+          <div class="absolute inset-0 bg-gradient-to-br from-surface-container to-background opacity-80"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="material-symbols-outlined text-on-surface-variant" style="font-size:40px;font-variation-settings:'FILL' 0,'wght' 200">restaurant</span>
+          </div>
+          <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-primary bg-background/60 backdrop-blur-sm p-2">
+            <span class="material-symbols-outlined" style="font-size:18px">arrow_outward</span>
+          </div>
+        </div>
+        <h4 class="font-body text-label-sm uppercase tracking-widest text-primary mb-1">Meridian Lounge</h4>
+        <p class="font-body text-body-md text-on-surface-variant text-sm">Permanent Install, Lighting Design</p>
+      </a>
+
+      <a class="group block flex-none w-72 md:w-80" href="#contact">
+        <div class="relative aspect-[4/3] overflow-hidden mb-4 border border-outline-variant/30 bg-surface-container-lowest">
+          <div class="absolute inset-0 bg-gradient-to-br from-surface-container to-background opacity-80"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <svg width="40" height="40" fill="none" stroke="#8e9192" stroke-width="1" viewBox="0 0 48 48"><polygon points="24,4 44,44 4,44"/></svg>
+          </div>
+          <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-primary bg-background/60 backdrop-blur-sm p-2">
+            <span class="material-symbols-outlined" style="font-size:18px">arrow_outward</span>
+          </div>
+        </div>
+        <h4 class="font-body text-label-sm uppercase tracking-widest text-primary mb-1">Void Stage</h4>
+        <p class="font-body text-body-md text-on-surface-variant text-sm">Projection Mapping, Visual Content</p>
+      </a>
+
+      <a class="group block flex-none w-72 md:w-80" href="#contact">
+        <div class="relative aspect-[4/3] overflow-hidden mb-4 border border-outline-variant/30 bg-surface-container-lowest">
+          <div class="absolute inset-0 bg-gradient-to-br from-surface-container to-background opacity-80"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="material-symbols-outlined text-on-surface-variant" style="font-size:40px;font-variation-settings:'FILL' 0,'wght' 200">grid_view</span>
+          </div>
+          <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-primary bg-background/60 backdrop-blur-sm p-2">
+            <span class="material-symbols-outlined" style="font-size:18px">arrow_outward</span>
+          </div>
+        </div>
+        <h4 class="font-body text-label-sm uppercase tracking-widest text-primary mb-1">Spectrum</h4>
+        <p class="font-body text-body-md text-on-surface-variant text-sm">LED Architecture, Corporate Event</p>
+      </a>
+
+      <a class="group block flex-none w-72 md:w-80" href="#contact">
+        <div class="relative aspect-[4/3] overflow-hidden mb-4 border border-outline-variant/30 bg-surface-container-lowest">
+          <div class="absolute inset-0 bg-gradient-to-br from-surface-container to-background opacity-80"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="material-symbols-outlined text-on-surface-variant" style="font-size:40px;font-variation-settings:'FILL' 0,'wght' 200">music_note</span>
+          </div>
+          <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-primary bg-background/60 backdrop-blur-sm p-2">
+            <span class="material-symbols-outlined" style="font-size:18px">arrow_outward</span>
+          </div>
+        </div>
+        <h4 class="font-body text-label-sm uppercase tracking-widest text-primary mb-1">The Sangeet</h4>
+        <p class="font-body text-body-md text-on-surface-variant text-sm">DJ Production, Full AV</p>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ STATS ═══ -->
+<section class="px-gm py-sg border-t border-outline-variant/30 bg-surface-container-lowest">
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-gg">
+    <div class="sr flex flex-col gap-2">
+      <span class="stat-num text-primary" data-target="120">0</span>
+      <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">Events / Year</p>
+    </div>
+    <div class="sr flex flex-col gap-2" style="transition-delay:60ms">
+      <span class="stat-num text-primary" data-target="8">0</span>
+      <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">Years Running</p>
+    </div>
+    <div class="sr flex flex-col gap-2" style="transition-delay:120ms">
+      <span class="stat-num text-primary" data-target="300">0</span>
+      <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">Clients Served</p>
+    </div>
+    <div class="sr flex flex-col gap-2" style="transition-delay:180ms">
+      <span class="stat-num text-primary" data-target="15">0</span>
+      <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">States Covered</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════ ABOUT ═══ -->
+<section id="about" class="px-gm py-sg border-t border-outline-variant/30">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-gg items-start">
+    <div class="lg:col-span-5">
+      <p class="sr font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-6">About SHIFT</p>
+      <h2 class="sr font-display font-bold text-primary uppercase tracking-tighter mb-0" style="font-size:clamp(48px,7vw,96px);line-height:.92;transition-delay:60ms">
+        SHIFT<span class="text-on-surface-variant">.</span>
+      </h2>
+    </div>
+    <div class="lg:col-span-7 lg:pt-6 flex flex-col gap-8">
+      <p class="sr font-body text-body-lg text-on-surface-variant" style="transition-delay:80ms">
+        We build experiences that people feel before they see. SHIFT is a Houston-based event production company specializing in high-impact AV, architectural lighting, and technical design for South Asian weddings, multicultural celebrations, and corporate events.
+      </p>
+      <p class="sr font-body text-body-lg text-primary font-semibold" style="transition-delay:120ms">
+        Every element is engineered. Every detail is intentional.
+      </p>
+      <div class="sr border border-outline-variant/30 p-8 flex flex-col gap-6" style="transition-delay:160ms">
+        <p class="font-body text-body-md text-on-surface-variant leading-relaxed">
+          Our design-first process starts with a technical proposal — exact lighting plots, AV schematics, and stage plans — before we ever pick up a cable. Clients receive a private portal link with their full proposal. No PDFs. No guesswork.
+        </p>
+        <div class="flex items-center gap-4">
+          <div class="w-8 h-px bg-outline-variant"></div>
+          <span class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">Desi Junction DJs · Est. 2017</span>
         </div>
       </div>
-
-      <div class="project-card reveal" style="transition-delay:60ms">
-        <div class="project-img">
-          <div class="project-img-bg" style="background:#0d0a0a"></div>
-          <div class="project-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="3" width="20" height="14"/><path d="M8 21h8M12 17v4"/></svg></div>
-        </div>
-        <div class="project-info">
-          <p class="project-meta">Grand Ballroom · Houston, TX</p>
-          <h3 class="project-title">South Asian Wedding Production</h3>
-          <p class="project-type">Full AV + Lighting · 2024</p>
-        </div>
-      </div>
-
-      <div class="project-card reveal" style="transition-delay:120ms">
-        <div class="project-img">
-          <div class="project-img-bg" style="background:#0a0a0d"></div>
-          <div class="project-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14"/></svg></div>
-        </div>
-        <div class="project-info">
-          <p class="project-meta">Corporate · Houston, TX</p>
-          <h3 class="project-title">LED Stage + Keynote Production</h3>
-          <p class="project-type">Video Architecture · 2024</p>
-        </div>
-      </div>
-
-      <div class="project-card reveal" style="transition-delay:180ms">
-        <div class="project-img">
-          <div class="project-img-bg" style="background:#0a0d0a"></div>
-          <div class="project-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
-        </div>
-        <div class="project-info">
-          <p class="project-meta">Luxury Wedding · Dallas, TX</p>
-          <h3 class="project-title">Custom Monogram &amp; Visual Content</h3>
-          <p class="project-type">Content + LED · 2023</p>
-        </div>
-      </div>
-
-      <div class="project-card reveal" style="transition-delay:240ms">
-        <div class="project-img">
-          <div class="project-img-bg" style="background:#0d0d0a"></div>
-          <div class="project-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
-        </div>
-        <div class="project-info">
-          <p class="project-meta">Event Venue · Houston, TX</p>
-          <h3 class="project-title">Uplighting + Intelligent Fixtures</h3>
-          <p class="project-type">Lighting Design · 2023</p>
-        </div>
-      </div>
-
     </div>
   </div>
-</div>
+</section>
 
-<!-- ═══════════════════════════════════════════════════════
-     STATS — Animated counters
-════════════════════════════════════════════════════════ -->
-<div style="border-top:1px solid var(--border);max-width:var(--maxw);margin:0 auto;padding:0 var(--px)">
-  <div class="stats-grid reveal">
-    <div class="stat-cell"><div class="stat-num" data-count="10" data-suffix="+">0</div><div class="stat-label">Years Active</div></div>
-    <div class="stat-cell"><div class="stat-num" data-count="200" data-suffix="+">0</div><div class="stat-label">Events Produced</div></div>
-    <div class="stat-cell"><div class="stat-num" data-count="100" data-suffix="%">0</div><div class="stat-label">Fixed-Price Installs</div></div>
-    <div class="stat-cell"><div class="stat-num" data-count="30" data-suffix="d">0</div><div class="stat-label">Credit Window</div></div>
-  </div>
-</div>
+<!-- ═══════════════════════════════ CONTACT ═══ -->
+<section id="contact" class="px-gm py-sg border-t border-outline-variant/30">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-gg">
 
-<!-- ═══════════════════════════════════════════════════════
-     ABOUT / MANIFESTO
-════════════════════════════════════════════════════════ -->
-<div id="about">
-<div class="section" style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(40px,8vw,120px);align-items:start">
-  <div>
-    <div class="section-label reveal">04 — About SHIFT</div>
-    <p class="manifesto-text reveal" style="transition-delay:60ms">
-      WE BUILD<br/>THE INFRA<span class="dim">STRUCTURE</span><br/>OF THE<br/><span class="dim">MOMENT.</span>
-    </p>
-  </div>
-  <div style="padding-top:clamp(0px,6vh,60px)">
-    <div class="manifesto-aside reveal" style="transition-delay:100ms">
-      <p>SHIFT is the AV engineering arm of Desi Junction DJs — Edwin's Houston production house built on a single conviction: the technology should disappear. The experience should be everything.</p>
-      <p>We specialize in South Asian weddings, multicultural events, and permanent venue installations where precision is non-negotiable and there is no second take. Every deployment is pre-visualized, every cable is counted, every system ships with a plan for what comes next.</p>
+    <!-- Left: Form -->
+    <div class="lg:col-span-7 lg:pr-12">
+      <p class="sr font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-4">Start a Project</p>
+      <h2 class="sr font-display font-bold text-primary uppercase tracking-tighter mb-12" style="font-size:clamp(40px,5vw,72px);line-height:.95;transition-delay:60ms">
+        LET'S BUILD<br/><span class="text-on-surface-variant">SOMETHING<br/>REAL.</span>
+      </h2>
+      <form class="space-y-10" onsubmit="handleSubmit(event)">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <label class="block font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-2">Name</label>
+            <input type="text" placeholder="Full name" required
+              class="w-full bg-transparent border-0 border-b border-surface-variant focus:border-primary focus:ring-0 px-0 py-3 text-primary font-body placeholder:text-surface-variant transition-colors rounded-none"/>
+          </div>
+          <div>
+            <label class="block font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-2">Email</label>
+            <input type="email" placeholder="your@email.com" required
+              class="w-full bg-transparent border-0 border-b border-surface-variant focus:border-primary focus:ring-0 px-0 py-3 text-primary font-body placeholder:text-surface-variant transition-colors rounded-none"/>
+          </div>
+        </div>
+        <div>
+          <label class="block font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-2">Project Type</label>
+          <div class="relative">
+            <select required
+              class="w-full bg-transparent border-0 border-b border-surface-variant focus:border-primary focus:ring-0 px-0 py-3 text-primary font-body appearance-none transition-colors rounded-none">
+              <option value="" disabled selected class="bg-background">Select a service</option>
+              <option value="wedding" class="bg-background">Wedding AV + Lighting</option>
+              <option value="venue" class="bg-background">Venue / Restaurant Install</option>
+              <option value="projection" class="bg-background">Projection Mapping</option>
+              <option value="led" class="bg-background">LED Architecture</option>
+              <option value="lighting" class="bg-background">Lighting Design</option>
+              <option value="dj" class="bg-background">DJ Production</option>
+              <option value="content" class="bg-background">Visual Content</option>
+              <option value="full" class="bg-background">Full Production Package</option>
+            </select>
+            <span class="material-symbols-outlined absolute right-0 bottom-3 text-surface-variant pointer-events-none">expand_more</span>
+          </div>
+        </div>
+        <div>
+          <label class="block font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-2">Event Date</label>
+          <input type="text" placeholder="Month / Year or TBD"
+            class="w-full bg-transparent border-0 border-b border-surface-variant focus:border-primary focus:ring-0 px-0 py-3 text-primary font-body placeholder:text-surface-variant transition-colors rounded-none"/>
+        </div>
+        <div>
+          <label class="block font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-2">Tell Us About Your Event</label>
+          <textarea rows="4" placeholder="Venue, guest count, vision, budget range..."
+            class="w-full bg-transparent border-0 border-b border-surface-variant focus:border-primary focus:ring-0 px-0 py-3 text-primary font-body placeholder:text-surface-variant transition-colors rounded-none resize-none"></textarea>
+        </div>
+        <div class="pt-2">
+          <button type="submit"
+            class="inline-flex items-center gap-2 border border-primary text-primary px-8 py-4 font-body text-label-sm uppercase tracking-widest hover:bg-primary hover:text-background transition-all duration-300 rounded-none">
+            Send Message
+            <span class="material-symbols-outlined" style="font-size:16px">arrow_outward</span>
+          </button>
+          <p class="mt-4 font-body text-body-md text-on-surface-variant text-sm" id="form-msg"></p>
+        </div>
+      </form>
     </div>
-    <div class="manifesto-tools reveal" style="transition-delay:160ms">
-      <span class="tool-tag">Vectorworks</span>
-      <span class="tool-tag">Capture</span>
-      <span class="tool-tag">Resolume Arena</span>
-      <span class="tool-tag">Blender</span>
-      <span class="tool-tag">TouchDesigner</span>
-      <span class="tool-tag">ProPresenter</span>
-    </div>
-    <div style="margin-top:36px" class="reveal" style="transition-delay:200ms">
-      <a href="#contact" class="btn-primary">Work With Us</a>
-    </div>
-  </div>
-</div>
-</div>
 
+    <!-- Right: Info Sidebar -->
+    <div class="lg:col-span-5 mt-16 lg:mt-0">
+      <div class="border border-outline-variant/30 bg-surface-container-lowest p-8 md:p-10 flex flex-col gap-10">
+        <div>
+          <h3 class="font-body text-label-sm uppercase tracking-widest text-primary mb-3">Get in Touch</h3>
+          <p class="font-body text-body-md text-on-surface-variant">We respond within 24 hours. For urgent inquiries, email us directly.</p>
+        </div>
+        <div class="space-y-6 border-t border-outline-variant/30 pt-8">
+          <div class="flex items-start gap-4">
+            <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">mail</span>
+            <div>
+              <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Email</p>
+              <a href="mailto:edwin@desijunctiondjs.com" class="font-body text-body-md text-primary hover:text-surface-tint transition-colors">edwin@desijunctiondjs.com</a>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">location_on</span>
+            <div>
+              <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Location</p>
+              <p class="font-body text-body-md text-primary">Houston, TX<br/><span class="text-on-surface-variant">Available Nationwide</span></p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">star</span>
+            <div>
+              <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Specialty</p>
+              <p class="font-body text-body-md text-primary">South Asian + Multicultural Weddings, Corporate Events, Venue Installs</p>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-outline-variant/30 pt-8">
+          <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-4">What happens next?</p>
+          <div class="flex flex-col gap-6">
+            <div class="flex items-start gap-4">
+              <div class="w-7 h-7 rounded-full border border-outline-variant/60 flex items-center justify-center flex-none">
+                <span class="font-body text-label-sm text-primary">1</span>
+              </div>
+              <p class="font-body text-body-md text-on-surface-variant">We review your inquiry and align with your needs.</p>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="w-7 h-7 rounded-full border border-outline-variant/60 flex items-center justify-center flex-none">
+                <span class="font-body text-label-sm text-primary">2</span>
+              </div>
+              <p class="font-body text-body-md text-on-surface-variant">We schedule a discovery call to understand your vision.</p>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="w-7 h-7 rounded-full border border-outline-variant/60 flex items-center justify-center flex-none">
+                <span class="font-body text-label-sm text-primary">3</span>
+              </div>
+              <p class="font-body text-body-md text-on-surface-variant">You receive a private proposal link — scope, timeline, fixed price.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<!-- ═══════════════════════════════════════════════════════
-     CONTACT
-════════════════════════════════════════════════════════ -->
-<div id="contact">
-<div class="section">
-  <div class="section-label reveal">06 — Start a Project</div>
-  <div class="section-h2 reveal" style="margin-bottom:clamp(44px,7vh,72px);transition-delay:60ms">
-    LET'S BUILD<br/><span style="color:var(--gray-dim)">SOMETHING<br/>REAL.</span>
   </div>
-  <div class="contact-grid">
-    <div class="reveal">
-      <div class="contact-info-item">
-        <span class="contact-info-k">Email</span>
-        <span class="contact-info-v"><a href="mailto:edwin@desijunctiondjs.com">edwin@desijunctiondjs.com</a></span>
-      </div>
-      <div class="contact-info-item">
-        <span class="contact-info-k">Location</span>
-        <span class="contact-info-v">Houston, TX · Available Nationwide</span>
-      </div>
-      <div class="contact-info-item">
-        <span class="contact-info-k">Specialty</span>
-        <span class="contact-info-v">South Asian + Multicultural Weddings, Venues, Corporate Events</span>
-      </div>
-    </div>
-    <form id="contact-form" class="reveal" style="transition-delay:80ms" onsubmit="handleContactSubmit(event)">
-      <div class="form-field">
-        <label class="form-label">Name</label>
-        <input type="text" class="form-input" placeholder="Full name" required/>
-      </div>
-      <div class="form-field">
-        <label class="form-label">Email</label>
-        <input type="email" class="form-input" placeholder="your@email.com" required/>
-      </div>
-      <div class="form-field">
-        <label class="form-label">Project Type</label>
-        <select class="form-input" required>
-          <option value="" disabled selected>Select a service</option>
-          <option>Wedding AV + Lighting</option>
-          <option>Venue / Restaurant Install</option>
-          <option>Projection Mapping</option>
-          <option>LED Video Wall</option>
-          <option>Corporate Event Production</option>
-          <option>Visual Content + Monograms</option>
-          <option>DJ + Audio Production</option>
-          <option>Maintenance Plan</option>
-          <option>Other</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label class="form-label">Tell us about the project</label>
-        <textarea class="form-input form-textarea" placeholder="Event date, venue, what you're envisioning…"></textarea>
-      </div>
-      <button type="submit" class="form-submit" id="submit-btn">Send Inquiry</button>
-    </form>
-  </div>
-</div>
-</div>
+</section>
 
-<!-- ═══════════════════════════════════════════════════════
-     FOOTER
-════════════════════════════════════════════════════════ -->
-<footer>
-  <div class="footer-inner">
-    <div>
-      <div class="footer-brand">SHIFT</div>
-      <div class="footer-meta">Desi Junction DJs · Houston, TX</div>
+<!-- ═══════════════════════════════ FOOTER ═══ -->
+<footer class="w-full py-sg px-gm border-t border-outline-variant/20 bg-background">
+  <div class="flex flex-col md:flex-row justify-between items-start gap-gg mb-16">
+    <div class="flex flex-col gap-3">
+      <div class="font-display font-extrabold text-headline-md tracking-tighter text-primary">
+        SHIFT<span class="inline-block w-[6px] h-[6px] bg-primary ml-[3px] mb-1 align-middle"></span>
+      </div>
+      <p class="font-body text-body-md text-on-surface-variant max-w-xs">Engineering the invisible. Houston's premier event production and AV design company.</p>
     </div>
-    <div class="footer-links">
-      <h4>Services</h4>
-      <a href="#services">Projection Mapping</a>
-      <a href="#services">LED Architecture</a>
-      <a href="#services">Lighting Design</a>
-      <a href="#services">DJ Production</a>
-      <a href="#services">Venue Installs</a>
-      <a href="#services">Visual Content</a>
-    </div>
-    <div class="footer-links">
-      <h4>Links</h4>
-      <a href="#process">Our Process</a>
-      <a href="#about">About SHIFT</a>
-      <a href="mailto:edwin@desijunctiondjs.com">Contact</a>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-16">
+      <div class="flex flex-col gap-3">
+        <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">Services</p>
+        <a href="#services" class="font-body text-body-md text-on-surface-variant hover:text-primary transition-colors">Wedding AV</a>
+        <a href="#services" class="font-body text-body-md text-on-surface-variant hover:text-primary transition-colors">LED Architecture</a>
+        <a href="#services" class="font-body text-body-md text-on-surface-variant hover:text-primary transition-colors">Lighting Design</a>
+        <a href="#services" class="font-body text-body-md text-on-surface-variant hover:text-primary transition-colors">DJ Production</a>
+      </div>
+      <div class="flex flex-col gap-3">
+        <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">Links</p>
+        <a href="#process"  class="font-body text-body-md text-on-surface-variant hover:text-primary transition-colors">Our Process</a>
+        <a href="#about"    class="font-body text-body-md text-on-surface-variant hover:text-primary transition-colors">About SHIFT</a>
+        <a href="#projects" class="font-body text-body-md text-on-surface-variant hover:text-primary transition-colors">Projects</a>
+        <a href="#contact"  class="font-body text-body-md text-on-surface-variant hover:text-primary transition-colors">Contact</a>
+      </div>
+      <div class="flex flex-col gap-3">
+        <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">Contact</p>
+        <a href="mailto:edwin@desijunctiondjs.com" class="font-body text-body-md text-on-surface-variant hover:text-primary transition-colors">Email Us</a>
+        <span class="font-body text-body-md text-on-surface-variant">Houston, TX</span>
+        <span class="font-body text-body-md text-on-surface-variant">Nationwide</span>
+      </div>
     </div>
   </div>
-  <div class="footer-bottom">
-    <span class="footer-copy">© 2026 SHIFT · Desi Junction DJs. All rights reserved.</span>
-    <span class="footer-copy">Engineering the invisible.</span>
+  <div class="border-t border-outline-variant/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+    <p class="font-body text-body-md text-on-surface-variant">© 2026 SHIFT · Desi Junction DJs. All rights reserved.</p>
+    <p class="font-body text-body-md text-on-surface-variant">Engineering the invisible.</p>
   </div>
 </footer>
 
-<!-- ═══════════════════════════════════════════════════════
-     SCRIPTS
-════════════════════════════════════════════════════════ -->
 <script>
-(function(){
-
-/* ── WebGL Shader Hero ──────────────────────────────── */
-const VS=`attribute vec2 a_pos;void main(){gl_Position=vec4(a_pos,0.,1.);}`;
-const FS=`
-precision highp float;
-uniform vec2 u_res;
-uniform float u_time;
-uniform vec2 u_mouse;
-
-float hash21(vec2 p){p=fract(p*vec2(234.34,435.345));p+=dot(p,p+34.23);return fract(p.x*p.y);}
-float noise(vec2 p){
-  vec2 i=floor(p),f=fract(p);
-  float a=hash21(i),b=hash21(i+vec2(1,0)),c=hash21(i+vec2(0,1)),d=hash21(i+vec2(1,1));
-  vec2 u=f*f*(3.-2.*f);
-  return mix(a,b,u.x)+(c-a)*u.y*(1.-u.x)+(d-b)*u.x*u.y;
-}
-float fbm(vec2 p){
-  float v=0.,a=.5;
-  mat2 r=mat2(.8,.6,-.6,.8);
-  for(int i=0;i<6;i++){v+=a*noise(p);p=r*p*2.+100.;a*=.5;}
-  return v;
-}
-void main(){
-  vec2 uv=gl_FragCoord.xy/u_res;
-  float ar=u_res.x/u_res.y;
-  vec2 uvA=vec2(uv.x*ar,uv.y);
-  vec2 mA=vec2(u_mouse.x*ar,u_mouse.y);
-  float t=u_time*.07;
-
-  vec2 p=uvA*2.5;
-  float n=fbm(p+t*.4+vec2(0.,t*.2));
-  float n2=fbm(p+vec2(n,n*1.1)+t*.25+3.1);
-
-  vec3 col=vec3(.005,.005,.008);
-  col+=vec3(.008,.008,.014)*n2;
-
-  vec2 l1=vec2(.25+sin(t*.7)*.28, .55+cos(t*.45)*.3); l1.x*=ar;
-  vec2 l2=vec2(.72+sin(t*.4+1.5)*.22,.28+cos(t*.6+.8)*.26); l2.x*=ar;
-  vec2 l3=vec2(.5+cos(t*.3+2.)*.38, .72+sin(t*.5+1.)*.22); l3.x*=ar;
-  vec2 l4=vec2(.12+sin(t*.55+3.2)*.18,.4+cos(t*.38+2.)*.3); l4.x*=ar;
-
-  float d1=length(uvA-l1),d2=length(uvA-l2),d3=length(uvA-l3),d4=length(uvA-l4);
-  col+=vec3(.3,.32,.38)*(0.028/(d1*d1+0.012));
-  col+=vec3(.28,.28,.36)*(0.020/(d2*d2+0.016));
-  col+=vec3(.36,.32,.28)*(0.016/(d3*d3+0.020));
-  col+=vec3(.26,.28,.32)*(0.014/(d4*d4+0.018));
-
-  float dm=length(uvA-mA);
-  col+=vec3(.5,.52,.58)*(0.012/(dm*dm+0.006));
-
-  float scan=sin(uv.y*u_res.y*.5)*.5+.5;
-  col*=1.+scan*0.018;
-
-  vec2 vig=uv*2.-1.;
-  col*=1.-dot(vig*.5,vig*.5)*.85;
-
-  col=clamp(col,0.,1.);
-  col=pow(col,vec3(.78));
-  gl_FragColor=vec4(col,1.);
-}`;
-
-const cvs=document.getElementById('shader-canvas');
-const gl=cvs.getContext('webgl',{antialias:false,alpha:false});
-if(gl){
-  function mkShader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);return s;}
-  const prog=gl.createProgram();
-  gl.attachShader(prog,mkShader(gl.VERTEX_SHADER,VS));
-  gl.attachShader(prog,mkShader(gl.FRAGMENT_SHADER,FS));
-  gl.linkProgram(prog);gl.useProgram(prog);
-  const buf=gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
-  const loc=gl.getAttribLocation(prog,'a_pos');
-  gl.enableVertexAttribArray(loc);
-  gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
-  const uRes=gl.getUniformLocation(prog,'u_res');
-  const uTime=gl.getUniformLocation(prog,'u_time');
-  const uMouse=gl.getUniformLocation(prog,'u_mouse');
-  let W=0,H=0,mx=0.5,my=0.5,raf=null;
-  const hero=document.getElementById('hero');
-  function syncSize(){
-    W=hero.clientWidth;H=hero.clientHeight;
-    const dpr=Math.min(devicePixelRatio,1.5);
-    cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);
-    cvs.style.width=W+'px';cvs.style.height=H+'px';
-    gl.viewport(0,0,cvs.width,cvs.height);
-  }
-  let t0=performance.now();
-  function frame(now){
-    if(window.scrollY>hero.offsetHeight*1.2){raf=requestAnimationFrame(frame);return;}
-    gl.uniform2f(uRes,cvs.width,cvs.height);
-    gl.uniform1f(uTime,(now-t0)/1000);
-    gl.uniform2f(uMouse,mx,my);
-    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-    raf=requestAnimationFrame(frame);
-  }
-  syncSize();
-  raf=requestAnimationFrame(frame);
-  window.addEventListener('pointermove',function(e){
-    const r=cvs.getBoundingClientRect();
-    mx=(e.clientX-r.left)/r.width;
-    my=1-(e.clientY-r.top)/r.height;
-  },{passive:true});
-  let rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(syncSize,100);});
-}
-
-/* ── Custom Cursor ────────────────────────────────── */
-const cur=document.getElementById('cursor');
-const ring=document.getElementById('cursor-ring');
-let cx=0,cy=0,rx=0,ry=0;
-const inIframe=(function(){try{return window.self!==window.top;}catch(e){return true;}}());
-if(!inIframe){
-  document.addEventListener('mousemove',function(e){cx=e.clientX;cy=e.clientY;},{passive:true});
-  (function lerp(){
-    rx+=(cx-rx)*.18;ry+=(cy-ry)*.18;
-    cur.style.left=cx+'px';cur.style.top=cy+'px';
-    ring.style.left=rx+'px';ring.style.top=ry+'px';
-    requestAnimationFrame(lerp);
-  })();
-  document.querySelectorAll('a,button,.svc-card,.project-card,[onclick]').forEach(function(el){
-    el.addEventListener('mouseenter',function(){document.body.classList.add('hovering');});
-    el.addEventListener('mouseleave',function(){document.body.classList.remove('hovering');});
-  });
-} else {
-  // Inside Google Sites iframe — disable custom cursor, restore default
-  document.documentElement.style.cursor='auto';
-  if(cur)cur.style.display='none';
-  if(ring)ring.style.display='none';
-}
-
-/* ── Text Scramble ─────────────────────────────────── */
-const CHARS='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-const target='SHIFT';
-const scEl=document.getElementById('scramble-text');
-let frame2=0,done=false;
-function scramble(){
-  if(done)return;
-  scEl.textContent=target.split('').map(function(c,i){
-    if(frame2/3>i)return c;
-    return CHARS[Math.floor(Math.random()*CHARS.length)];
-  }).join('');
-  frame2++;
-  if(frame2/3>target.length){scEl.textContent=target;done=true;}
-  else requestAnimationFrame(scramble);
-}
-setTimeout(scramble,320);
-
-/* ── Scroll Progress Bar ─────────────────────────── */
-const progBar=document.getElementById('progress');
-window.addEventListener('scroll',function(){
-  const max=document.body.scrollHeight-window.innerHeight;
-  progBar.style.width=(window.scrollY/max*100)+'%';
-},{passive:true});
-
-/* ── Nav scroll state ─────────────────────────────── */
-const nav=document.getElementById('nav');
-window.addEventListener('scroll',function(){
-  nav.classList.toggle('scrolled',window.scrollY>80);
-},{passive:true});
-
-/* ── Mobile drawer ────────────────────────────────── */
-window.toggleDrawer=function(){
+// ── MOBILE DRAWER ────────────────────────────────────────────
+function toggleDrawer() {
   document.getElementById('mobile-drawer').classList.toggle('open');
-};
-
-/* ── Scroll reveals ───────────────────────────────── */
-const io=new IntersectionObserver(function(entries){
-  entries.forEach(function(en){
-    if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}
-  });
-},{threshold:.08,rootMargin:'0px 0px -5% 0px'});
-document.querySelectorAll('.reveal,.reveal-left').forEach(function(el){io.observe(el);});
-
-/* ── Counter animation ────────────────────────────── */
-const cio=new IntersectionObserver(function(entries){
-  entries.forEach(function(en){
-    if(!en.isIntersecting)return;
-    const el=en.target;
-    const end=parseInt(el.dataset.count);
-    const suf=el.dataset.suffix||'';
-    let t0=null;
-    function step(ts){
-      if(!t0)t0=ts;
-      const p=Math.min((ts-t0)/1400,1);
-      const ease=1-Math.pow(1-p,3);
-      el.textContent=Math.round(ease*end)+suf;
-      if(p<1)requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-    cio.unobserve(el);
-  });
-},{threshold:.5});
-document.querySelectorAll('[data-count]').forEach(function(el){cio.observe(el);});
-
-/* ── Horizontal scroll drag ───────────────────────── */
-const scroller=document.getElementById('proj-scroll');
-let isDown=false,startX=0,scrollLeft=0;
-if(scroller){
-  scroller.addEventListener('mousedown',function(e){isDown=true;startX=e.pageX-scroller.offsetLeft;scrollLeft=scroller.scrollLeft;});
-  scroller.addEventListener('mouseleave',function(){isDown=false;});
-  scroller.addEventListener('mouseup',function(){isDown=false;});
-  scroller.addEventListener('mousemove',function(e){
-    if(!isDown)return;e.preventDefault();
-    const x=e.pageX-scroller.offsetLeft;
-    scroller.scrollLeft=scrollLeft-(x-startX)*1.2;
-  });
 }
 
-/* ── Contact form → mailto ────────────────────────── */
-window.handleContactSubmit=function(e){
-  e.preventDefault();
-  const f=e.target;
-  const name=f.querySelector('[type=text]').value;
-  const email=f.querySelector('[type=email]').value;
-  const type=f.querySelector('select').value;
-  const msg=f.querySelector('textarea').value;
-  const sub=encodeURIComponent('SHIFT Inquiry — '+type);
-  const body=encodeURIComponent('Name: '+name+'\nEmail: '+email+'\nProject: '+type+'\n\n'+msg);
-  const btn=document.getElementById('submit-btn');
-  btn.textContent='Opening email client…';
-  btn.classList.add('sent');
-  setTimeout(function(){
-    window.location.href='mailto:edwin@desijunctiondjs.com?subject='+sub+'&body='+body;
-    setTimeout(function(){btn.textContent='Send Inquiry';btn.classList.remove('sent');},3000);
-  },300);
-};
+// ── SCROLL PROGRESS ──────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  const s = document.documentElement;
+  const pct = (s.scrollTop / (s.scrollHeight - s.clientHeight)) * 100;
+  document.getElementById('scroll-bar').style.width = pct + '%';
+}, { passive: true });
 
-/* ── Active nav link on scroll ────────────────────── */
-const sections=['services','process','projects','about','contact'];
-const navLinks=document.querySelectorAll('.nav-links a');
-const sectionEls=sections.map(function(id){return document.getElementById(id);});
-window.addEventListener('scroll',function(){
-  const y=window.scrollY+130;
-  let cur=-1;
-  sectionEls.forEach(function(el,i){if(el&&el.offsetTop<=y)cur=i;});
-  navLinks.forEach(function(a,i){a.classList.toggle('active',i===cur);});
-},{passive:true});
+// ── SCROLL REVEAL ────────────────────────────────────────────
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); observer.unobserve(e.target); }});
+}, { threshold: 0.08 });
+document.querySelectorAll('.sr').forEach(el => observer.observe(el));
 
+// ── STAT COUNTERS ────────────────────────────────────────────
+const statObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target;
+    const target = parseInt(el.dataset.target);
+    const dur = 1800;
+    const start = performance.now();
+    const suffix = el.dataset.suffix || (target >= 100 ? '+' : '+');
+    function tick(now) {
+      const t = Math.min((now - start) / dur, 1);
+      const ease = t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
+      el.textContent = Math.floor(ease * target) + suffix;
+      if (t < 1) requestAnimationFrame(tick);
+      else el.textContent = target + suffix;
+    }
+    requestAnimationFrame(tick);
+    statObs.unobserve(el);
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll('.stat-num').forEach(el => statObs.observe(el));
+
+// ── DRAG SCROLL (PROJECTS) ───────────────────────────────────
+(function() {
+  const wrap = document.getElementById('proj-wrap');
+  if (!wrap) return;
+  let isDown = false, startX, scrollLeft;
+  wrap.addEventListener('mousedown', e => {
+    isDown = true; wrap.classList.add('grabbing');
+    startX = e.pageX - wrap.offsetLeft; scrollLeft = wrap.scrollLeft;
+  });
+  wrap.addEventListener('mouseleave', () => { isDown = false; wrap.classList.remove('grabbing'); });
+  wrap.addEventListener('mouseup', () => { isDown = false; wrap.classList.remove('grabbing'); });
+  wrap.addEventListener('mousemove', e => {
+    if (!isDown) return; e.preventDefault();
+    const x = e.pageX - wrap.offsetLeft;
+    wrap.scrollLeft = scrollLeft - (x - startX) * 1.4;
+  });
 })();
+
+// ── CONTACT FORM ─────────────────────────────────────────────
+function handleSubmit(e) {
+  e.preventDefault();
+  const f = e.target;
+  const name = f.querySelector('input[type=text]').value;
+  const email = f.querySelector('input[type=email]').value;
+  const type = f.querySelector('select').value;
+  const date = f.querySelectorAll('input[type=text]')[1]?.value || '';
+  const msg = f.querySelector('textarea').value;
+  const body = encodeURIComponent(`Name: ${name}\nService: ${type}\nEvent Date: ${date}\n\n${msg}`);
+  window.location.href = `mailto:edwin@desijunctiondjs.com?subject=SHIFT Project Inquiry - ${name}&body=${body}`;
+  document.getElementById('form-msg').textContent = 'Opening your email client...';
+}
 </script>
 </body>
 </html>
