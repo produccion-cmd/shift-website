@@ -16,6 +16,7 @@
   ╚══════════════════════════════════════════════════════════════╝
 -->
 <title>SHIFT × [ CLIENT NAME ] — [ PROJECT TYPE ]</title>
+<link rel="icon" type="image/svg+xml" href="SHIFT-ICON.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet">
@@ -32,6 +33,7 @@
     --tile:#eaeef5;
     --maxw:1080px;
   }
+  @font-face{font-family:'SHIFTBrand';src:url('fonts/shift-brand.woff2') format('woff2'),url('fonts/shift-brand.woff') format('woff');font-weight:normal;font-style:normal;font-display:swap;}
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{
@@ -74,14 +76,14 @@
   }
   .hero__kicker{margin-top:clamp(4px,2vh,18px)}
   .wordmark{
-    position:relative;display:inline-flex;align-items:flex-start;
-    font-family:'Space Grotesk',sans-serif;font-weight:500;
-    font-size:clamp(58px,13vw,150px);line-height:.9;letter-spacing:-.02em;
+    position:relative;display:inline-flex;align-items:center;gap:clamp(12px,2vw,28px);
     margin-top:.18em;
   }
+  .wordmark img{height:clamp(40px,8vw,100px);width:auto;filter:brightness(0) invert(1);}
   .wordmark .sq{
-    width:clamp(9px,1.5vw,17px);height:clamp(9px,1.5vw,17px);
-    background:var(--white);margin-left:.12em;margin-top:.05em;flex:none;
+    font-family:'SHIFTBrand',sans-serif;font-weight:normal;
+    font-size:clamp(48px,11vw,130px);line-height:.9;letter-spacing:0.5em;
+    color:var(--white);
   }
   .hero__tag{
     margin-top:1.1em;font-size:clamp(12px,1.4vw,15px);
@@ -170,8 +172,9 @@
 
   footer{border-top:1px solid var(--line-soft);padding:46px 0}
   footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
-  .fmark{display:inline-flex;align-items:flex-start;font-family:'Space Grotesk';font-weight:500;font-size:26px;letter-spacing:-.01em}
-  .fmark .sq{width:6px;height:6px;background:#fff;margin-left:4px;margin-top:3px}
+  .fmark{display:inline-flex;align-items:center;gap:10px;}
+  .fmark img{height:24px;width:auto;filter:brightness(0) invert(1);}
+  .fmark .sq{font-family:'SHIFTBrand',sans-serif;font-size:22px;line-height:1;color:#fff;letter-spacing:0.5em;}
   footer small{color:var(--dim-solid);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
 
   /* reveal */
@@ -196,7 +199,7 @@
   <canvas id="field"></canvas>
   <div class="hero__content" id="heroContent">
     <div class="hero__kicker eyebrow">Proposal —</div>
-    <div class="wordmark">SHIFT<span class="sq"></span></div>
+    <div class="wordmark"><img src="SHIFT-ICON.svg" alt=""/><span class="sq">SHIFT</span></div>
     <div class="hero__tag">
       [ PROJECT TYPE ] — [ Short Phase or Scope Label ]<br>
       <span>[ One-line description ] · [ Season or Year ]</span>
@@ -347,12 +350,12 @@
     <div class="wrap">
       <div class="eyebrow reveal">Next Step</div>
       <h2 class="lead reveal">[ Approve [ Phase ] and we schedule [ kickoff / site visit ]. ]</h2>
-      <a class="btn reveal" href="mailto:edwin@desijunctiondjs.com?subject=[ CLIENT NAME ]%20%E2%80%94%20[ PROJECT TYPE ]">
+      <a class="btn reveal" href="mailto:hello@shiftevnts.com?subject=[ CLIENT NAME ]%20%E2%80%94%20[ PROJECT TYPE ]">
         [ CTA Button Text ] <span class="arr">→</span>
       </a>
       <div class="contact reveal">
         <b>SHIFT</b><br>
-        Edwin · edwin@desijunctiondjs.com
+        Edwin · hello@shiftevnts.com
       </div>
     </div>
   </section>
@@ -361,7 +364,7 @@
 
 <footer>
   <div class="wrap">
-    <div class="fmark">SHIFT<span class="sq"></span></div>
+    <div class="fmark"><img src="SHIFT-ICON.svg" alt=""/><span class="sq">SHIFT</span></div>
     <small>[ CLIENT NAME ] · [ City, State ]</small>
   </div>
 </footer>
