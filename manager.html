@@ -27,8 +27,10 @@ header{border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-i
 .logo{font-family:'Sora',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.03em}
 .logo span{display:inline-block;width:6px;height:6px;background:var(--white);margin-left:2px;margin-bottom:4px}
 .header-badge{font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);background:var(--border);padding:5px 12px}
-.logout-btn{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);cursor:pointer;background:none;border:none;color:var(--gray)}
+.logout-btn{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);cursor:pointer;background:none;border:none}
 .logout-btn:hover{color:var(--white)}
+.open-portal-btn{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--white);padding:8px 18px;cursor:pointer;font-family:'Inter',sans-serif;transition:border-color .2s}
+.open-portal-btn:hover{border-color:#555}
 main{flex:1;max-width:900px;width:100%;margin:0 auto;padding:48px 32px}
 .section-label{font-size:10px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:20px}
 h2{font-family:'Sora',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.03em;margin-bottom:32px}
@@ -82,7 +84,10 @@ h2{font-family:'Sora',sans-serif;font-weight:800;font-size:28px;letter-spacing:-
   <header>
     <div class="logo">SHIFT<span></span></div>
     <div class="header-badge">Manager Portal</div>
-    <button class="logout-btn" onclick="doLogout()">Log Out</button>
+    <div style="display:flex;align-items:center;gap:16px">
+      <button class="open-portal-btn" id="open-portal-btn" onclick="openPortal()">View Portal ↗</button>
+      <button class="logout-btn" onclick="doLogout()">Log Out</button>
+    </div>
   </header>
   <main>
     <div class="section-label">Client Access</div>
@@ -216,6 +221,15 @@ function delHistLink(i) {
   history.splice(i, 1);
   localStorage.setItem('shift-links', JSON.stringify(history));
   renderHistory();
+}
+
+async function openPortal() {
+  // Generate a 365-day manager token
+  const exp = Math.floor(Date.now()/1000) + 365 * 86400;
+  const payload = `Manager|${exp}`;
+  const sig = (await _hmac(payload)).slice(0, 32);
+  const token = btoa(payload) + '.' + sig;
+  window.open(`${PORTAL_URL}?t=${encodeURIComponent(token)}`, '_blank');
 }
 
 // ── AUTH ────────────────────────────────────────────────────
