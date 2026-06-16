@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>SHIFT · Event Production & AV Design · Houston</title>
+<link rel="icon" type="image/svg+xml" href="SHIFT-ICON.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
@@ -105,7 +106,10 @@ tailwind.config = {
 
 <!-- ═══════════════════════════════ NAV ═══ -->
 <nav id="nav" class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gm py-5 glass-nav border-b border-outline-variant/30">
-  <a href="#hero" class="text-primary text-[28px] leading-none tracking-tight" style="font-family:'SHIFTBrand',sans-serif;">SHIFT</a>
+  <a href="#hero" class="flex items-center gap-3">
+    <img src="SHIFT-ICON.svg" alt="" class="h-8 w-auto" style="filter:brightness(0) invert(1);"/>
+    <span class="text-primary text-[26px] leading-none tracking-tight" style="font-family:'SHIFTBrand',sans-serif;">SHIFT</span>
+  </a>
   <div class="hidden md:flex items-center gap-8">
     <a href="#services" class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Services</a>
     <a href="#process"  class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Process</a>
