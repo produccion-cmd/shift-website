@@ -108,7 +108,7 @@ tailwind.config = {
 <nav id="nav" class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gm py-5 glass-nav border-b border-outline-variant/30">
   <a href="#hero" class="flex items-center gap-3">
     <img src="SHIFT-ICON.svg" alt="" class="h-8 w-auto" style="filter:brightness(0) invert(1);"/>
-    <span class="text-primary text-[26px] leading-none tracking-tight" style="font-family:'SHIFTBrand',sans-serif;">SHIFT</span>
+    <span class="text-primary text-[26px] leading-none" style="font-family:'SHIFTBrand',sans-serif;letter-spacing:0.5em;">SHIFT</span>
   </a>
   <div class="hidden md:flex items-center gap-8">
     <a href="#services" class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Services</a>
@@ -420,7 +420,7 @@ tailwind.config = {
         </p>
         <div class="flex items-center gap-4">
           <div class="w-8 h-px bg-outline-variant"></div>
-          <span class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">Desi Junction DJs · Est. 2017</span>
+          <span class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">SHIFT · Est. 2017</span>
         </div>
       </div>
     </div>
@@ -501,7 +501,7 @@ tailwind.config = {
             <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">mail</span>
             <div>
               <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Email</p>
-              <a href="mailto:edwin@desijunctiondjs.com" class="font-body text-body-md text-primary hover:text-surface-tint transition-colors">edwin@desijunctiondjs.com</a>
+              <a href="mailto:hello@shiftevnts.com" class="font-body text-body-md text-primary hover:text-surface-tint transition-colors">hello@shiftevnts.com</a>
             </div>
           </div>
           <div class="flex items-start gap-4">
@@ -552,8 +552,9 @@ tailwind.config = {
 <footer class="w-full py-sg px-gm border-t border-outline-variant/20 bg-background">
   <div class="flex flex-col md:flex-row justify-between items-start gap-gg mb-16">
     <div class="flex flex-col gap-3">
-      <div class="font-display font-extrabold text-headline-md tracking-tighter text-primary">
-        SHIFT<span class="inline-block w-[6px] h-[6px] bg-primary ml-[3px] mb-1 align-middle"></span>
+      <div class="flex items-center gap-3">
+        <img src="SHIFT-ICON.svg" alt="" class="h-8 w-auto" style="filter:brightness(0) invert(1);"/>
+        <span class="text-primary text-[26px] leading-none" style="font-family:'SHIFTBrand',sans-serif;letter-spacing:0.5em;">SHIFT</span>
       </div>
       <p class="font-body text-body-md text-on-surface-variant max-w-xs">Engineering the invisible. Houston's premier event production and AV design company.</p>
     </div>
@@ -574,14 +575,14 @@ tailwind.config = {
       </div>
       <div class="flex flex-col gap-3">
         <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">Contact</p>
-        <a href="mailto:edwin@desijunctiondjs.com" class="font-body text-body-md text-on-surface-variant hover:text-primary transition-colors">Email Us</a>
+        <a href="mailto:hello@shiftevnts.com" class="font-body text-body-md text-on-surface-variant hover:text-primary transition-colors">Email Us</a>
         <span class="font-body text-body-md text-on-surface-variant">Houston, TX</span>
         <span class="font-body text-body-md text-on-surface-variant">Nationwide</span>
       </div>
     </div>
   </div>
   <div class="border-t border-outline-variant/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-    <p class="font-body text-body-md text-on-surface-variant">© 2026 SHIFT · Desi Junction DJs. All rights reserved.</p>
+    <p class="font-body text-body-md text-on-surface-variant">© 2026 SHIFT. All rights reserved.</p>
     <p class="font-body text-body-md text-on-surface-variant">Engineering the invisible.</p>
   </div>
 </footer>
@@ -795,7 +796,7 @@ function handleSubmit(e) {
   const date = f.querySelectorAll('input[type=text]')[1]?.value || '';
   const msg = f.querySelector('textarea').value;
   const body = encodeURIComponent(`Name: ${name}\nService: ${type}\nEvent Date: ${date}\n\n${msg}`);
-  window.location.href = `mailto:edwin@desijunctiondjs.com?subject=SHIFT Project Inquiry - ${name}&body=${body}`;
+  window.location.href = `mailto:hello@shiftevnts.com?subject=SHIFT Project Inquiry - ${name}&body=${body}`;
   document.getElementById('form-msg').textContent = 'Opening your email client...';
 }
 </script>
