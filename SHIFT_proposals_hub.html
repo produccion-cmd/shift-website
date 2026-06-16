@@ -53,6 +53,7 @@ function _deny(reason) {
 window.addEventListener('DOMContentLoaded', _gateCheck);
 </script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link rel="icon" type="image/svg+xml" href="SHIFT-ICON.svg"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
@@ -88,6 +89,7 @@ tailwind.config = {
       linear-gradient(to bottom, rgba(35,36,45,.5) 1px, transparent 1px);
     background-size:48px 48px;
   }
+  @font-face{font-family:'SHIFTBrand';src:url('fonts/shift-brand.woff2') format('woff2'),url('fonts/shift-brand.woff') format('woff');font-weight:normal;font-style:normal;font-display:swap;}
   .glass-panel{backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background-color:rgba(13,14,20,.75);}
   .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;}
   .sr{opacity:0;transform:translateY(22px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1);}
@@ -113,16 +115,17 @@ tailwind.config = {
 <!-- NAV -->
 <nav class="fixed w-full top-0 z-50 border-b border-border-muted" style="background:rgba(8,8,11,0.9);backdrop-filter:blur(16px)">
   <div class="flex justify-between items-center w-full px-6 md:px-16 py-4 max-w-[1200px] mx-auto">
-    <a href="SHIFT_site.html" class="font-display font-bold text-xl tracking-tighter text-primary flex items-start gap-[3px]">
-      SHIFT<span class="w-[7px] h-[7px] bg-primary inline-block mt-[3px] ml-[2px] flex-none"></span>
+    <a href="index.html" class="flex items-center gap-3">
+      <img src="SHIFT-ICON.svg" alt="" style="height:28px;width:auto;filter:brightness(0) invert(1);"/>
+      <span style="font-family:'SHIFTBrand',sans-serif;font-size:20px;line-height:1;color:#f4f6fb;letter-spacing:0.5em;">SHIFT</span>
     </a>
     <div class="hidden md:flex items-center gap-8">
-      <a href="SHIFT_site.html#services" class="font-technical text-[11px] font-semibold text-on-surface-muted hover:text-primary transition-colors uppercase tracking-[.22em]">Services</a>
-      <a href="SHIFT_site.html#process"  class="font-technical text-[11px] font-semibold text-on-surface-muted hover:text-primary transition-colors uppercase tracking-[.22em]">Process</a>
-      <a href="SHIFT_site.html#projects" class="font-technical text-[11px] font-semibold text-on-surface-muted hover:text-primary transition-colors uppercase tracking-[.22em]">Projects</a>
+      <a href="index.html#services" class="font-technical text-[11px] font-semibold text-on-surface-muted hover:text-primary transition-colors uppercase tracking-[.22em]">Services</a>
+      <a href="index.html#process"  class="font-technical text-[11px] font-semibold text-on-surface-muted hover:text-primary transition-colors uppercase tracking-[.22em]">Process</a>
+      <a href="index.html#projects" class="font-technical text-[11px] font-semibold text-on-surface-muted hover:text-primary transition-colors uppercase tracking-[.22em]">Projects</a>
       <span class="font-technical text-[11px] font-semibold text-primary border-b border-primary pb-0.5 uppercase tracking-[.22em]">Portal</span>
     </div>
-    <a href="SHIFT_site.html#contact" class="hidden md:inline-flex bg-primary text-on-primary px-5 py-2.5 font-technical text-[11px] font-semibold uppercase tracking-[.22em] hover:bg-on-surface-muted transition-colors">
+    <a href="index.html#contact" class="hidden md:inline-flex bg-primary text-on-primary px-5 py-2.5 font-technical text-[11px] font-semibold uppercase tracking-[.22em] hover:bg-on-surface-muted transition-colors">
       Start a Project
     </a>
     <button id="menu-toggle" class="md:hidden text-primary p-1">
@@ -130,8 +133,8 @@ tailwind.config = {
     </button>
   </div>
   <div id="mobile-menu" class="md:hidden flex-col border-t border-border-muted bg-background px-6 py-6 gap-5">
-    <a href="SHIFT_site.html" class="font-technical text-[11px] font-semibold text-on-surface-muted uppercase tracking-[.22em]">← Back to Site</a>
-    <a href="SHIFT_site.html#contact" class="bg-primary text-on-primary px-5 py-3 font-technical text-[11px] font-semibold uppercase tracking-[.22em] text-center" onclick="document.getElementById('mobile-menu').classList.remove('open')">Start a Project</a>
+    <a href="index.html" class="font-technical text-[11px] font-semibold text-on-surface-muted uppercase tracking-[.22em]">← Back to Site</a>
+    <a href="index.html#contact" class="bg-primary text-on-primary px-5 py-3 font-technical text-[11px] font-semibold uppercase tracking-[.22em] text-center" onclick="document.getElementById('mobile-menu').classList.remove('open')">Start a Project</a>
   </div>
 </nav>
 
@@ -242,11 +245,11 @@ tailwind.config = {
 <!-- FOOTER -->
 <footer class="border-t border-border-muted mt-8">
   <div class="max-w-[1200px] mx-auto px-6 md:px-16 py-10 flex justify-between items-center gap-4 flex-wrap">
-    <a href="SHIFT_site.html" class="font-display font-bold text-lg tracking-tighter text-primary flex items-start gap-[3px]">
+    <a href="index.html" class="font-display font-bold text-lg tracking-tighter text-primary flex items-start gap-[3px]">
       SHIFT<span class="w-[5px] h-[5px] bg-primary inline-block mt-[4px] ml-[2px]"></span>
     </a>
-    <span class="font-technical text-[11px] text-on-surface-dim uppercase tracking-[.2em]">Desi Junction DJs · Houston, TX</span>
-    <a href="mailto:edwin@desijunctiondjs.com" class="font-technical text-[11px] text-on-surface-muted hover:text-primary transition-colors uppercase tracking-[.18em]">edwin@desijunctiondjs.com</a>
+    <span class="font-technical text-[11px] text-on-surface-dim uppercase tracking-[.2em]">SHIFT · Houston, TX</span>
+    <a href="mailto:hello@shiftevnts.com" class="font-technical text-[11px] text-on-surface-muted hover:text-primary transition-colors uppercase tracking-[.18em]">hello@shiftevnts.com</a>
   </div>
 </footer>
 
