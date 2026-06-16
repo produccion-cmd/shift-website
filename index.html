@@ -63,12 +63,16 @@ tailwind.config = {
 <style>
   .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; }
   .glass-nav { background:rgba(18,20,20,.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
-  .hero-bg {
-    background:
-      radial-gradient(ellipse 70% 60% at 60% 40%, rgba(60,60,60,.18) 0%, transparent 65%),
-      radial-gradient(ellipse 50% 80% at 10% 80%, rgba(40,40,40,.15) 0%, transparent 60%),
-      #121414;
-  }
+  /* Custom cursor */
+  #cur-dot,#cur-ring{position:fixed;pointer-events:none;z-index:9998;border-radius:50%;transition:opacity .3s;}
+  #cur-dot{width:5px;height:5px;background:#fff;transform:translate(-50%,-50%);}
+  #cur-ring{width:36px;height:36px;border:1px solid rgba(255,255,255,.35);transform:translate(-50%,-50%);transition:width .2s,height .2s,border-color .2s;}
+  body:hover #cur-dot,body:hover #cur-ring{opacity:1;}
+  #cur-dot,#cur-ring{opacity:0;}
+  /* hide on mobile */
+  @media(hover:none){#cur-dot,#cur-ring{display:none;}}
+  body{cursor:none;}
+  a,button{cursor:none;}
   .sr { opacity:0; transform:translateY(24px); transition:opacity .85s cubic-bezier(.22,1,.36,1), transform .85s cubic-bezier(.22,1,.36,1); }
   .sr.in { opacity:1; transform:none; }
   .proj-track-wrap { overflow-x:auto; cursor:grab; scrollbar-width:none; -webkit-user-select:none; user-select:none; }
@@ -83,6 +87,10 @@ tailwind.config = {
 </style>
 </head>
 <body class="bg-background text-on-background font-body antialiased overflow-x-hidden selection:bg-primary selection:text-background">
+
+<!-- Custom cursor -->
+<div id="cur-dot"></div>
+<div id="cur-ring"></div>
 
 <!-- Scroll Progress -->
 <div id="scroll-bar"></div>
@@ -122,18 +130,11 @@ tailwind.config = {
 </div>
 
 <!-- ═══════════════════════════════ HERO ═══ -->
-<section id="hero" class="relative min-h-screen flex items-end pt-24 pb-sg overflow-hidden hero-bg">
+<section id="hero" class="relative min-h-screen flex items-end pt-24 pb-sg overflow-hidden" style="background:#121414">
   <div class="absolute inset-0 z-0 pointer-events-none">
-    <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent"></div>
-    <!-- Thin grid lines -->
-    <svg class="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
-          <path d="M 80 0 L 0 0 0 80" fill="none" stroke="white" stroke-width="0.5"/>
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#grid)"/>
-    </svg>
+    <!-- Rectangle shader canvas -->
+    <canvas id="bg-canvas" class="absolute inset-0 w-full h-full"></canvas>
+    <div class="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-background to-transparent"></div>
   </div>
   <div class="relative z-10 px-gm w-full max-w-7xl mx-auto">
     <p class="sr font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-8">Houston, TX · Available Nationwide</p>
@@ -574,6 +575,146 @@ tailwind.config = {
 </footer>
 
 <script>
+// ── RECTANGLE FIELD ANIMATION ────────────────────────────────
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const COLS = 52, ROWS = 30;
+  const RECT_W_FRAC = 0.52;   // fraction of cell width
+  const RECT_H = 1.5;          // px thickness
+  const BASE_OPA = 0.042;
+  const PEAK_OPA = 0.28;
+  const RADIUS = 260;          // mouse influence radius px
+  const SPRING = 0.22;
+  const DAMP   = 0.68;
+  const IDLE_AMP = 0.035;      // idle micro-oscillation (radians)
+  const IDLE_SPD = 0.28;
+
+  let W, H, rects = [];
+  let mx = -9999, my = -9999;  // smoothed
+  let tx = -9999, ty = -9999;  // raw target
+  let t0 = performance.now();
+
+  function build() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+    const cw = W / COLS, ch = H / ROWS;
+    rects = [];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        rects.push({
+          x: (c + 0.5) * cw,
+          y: (r + 0.5) * ch,
+          w: cw * RECT_W_FRAC,
+          ang: 0, vel: 0,
+          phase: (c * 0.31 + r * 0.47)  // unique idle phase
+        });
+      }
+    }
+  }
+
+  function loop() {
+    requestAnimationFrame(loop);
+    const t = (performance.now() - t0) * 0.001;
+
+    // Smooth mouse (lerp)
+    mx += (tx - mx) * 0.09;
+    my += (ty - my) * 0.09;
+
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+    ctx.clearRect(0, 0, W, H);
+
+    for (let i = 0; i < rects.length; i++) {
+      const rec = rects[i];
+      const dx = rec.x - mx, dy = rec.y - my;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const inf = Math.max(0, 1 - dist / RADIUS);
+      const falloff = inf * inf * inf;  // cubic for sharp focus
+
+      // Target: point long axis TOWARD mouse (compass needle)
+      let target;
+      if (falloff > 0.005) {
+        target = Math.atan2(dy, dx);
+      } else {
+        // Idle: gentle slow sine oscillation per rect
+        target = Math.sin(t * IDLE_SPD + rec.phase) * IDLE_AMP;
+      }
+
+      // Spring toward target (handle angle wrap)
+      let diff = target - rec.ang;
+      // Wrap to [-PI, PI] so spring takes shortest path
+      diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+      rec.vel += diff * SPRING * (falloff > 0.005 ? 1.0 : 0.15);
+      rec.vel *= DAMP;
+      rec.ang += rec.vel;
+
+      // Opacity rises near mouse
+      const opa = BASE_OPA + falloff * (PEAK_OPA - BASE_OPA);
+
+      ctx.save();
+      ctx.translate(rec.x, rec.y);
+      ctx.rotate(rec.ang);
+      ctx.fillStyle = `rgba(255,255,255,${opa.toFixed(4)})`;
+      ctx.fillRect(-rec.w * 0.5, -RECT_H * 0.5, rec.w, RECT_H);
+      ctx.restore();
+    }
+  }
+
+  document.addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; });
+  document.addEventListener('mouseleave', () => { tx = -9999; ty = -9999; });
+  window.addEventListener('resize', build, { passive: true });
+  build();
+  loop();
+})();
+
+// ── CUSTOM CURSOR ────────────────────────────────────────────
+(function() {
+  const inIframe = (function(){ try{ return window.self !== window.top; }catch(e){ return true; }})();
+  const dot  = document.getElementById('cur-dot');
+  const ring = document.getElementById('cur-ring');
+  if (inIframe || !dot || !ring) return;
+
+  let rx = 0, ry = 0;  // ring smoothed position
+  let mx = 0, my = 0;  // raw mouse
+  let visible = false;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    if (!visible) { dot.style.opacity = '1'; ring.style.opacity = '1'; visible = true; }
+    dot.style.left = mx + 'px';
+    dot.style.top  = my + 'px';
+  });
+
+  document.addEventListener('mouseleave', () => {
+    visible = false;
+    dot.style.opacity = '0'; ring.style.opacity = '0';
+  });
+
+  // Hover state — grow ring over links/buttons
+  document.querySelectorAll('a,button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      ring.style.width = '56px'; ring.style.height = '56px';
+      ring.style.borderColor = 'rgba(255,255,255,.6)';
+    });
+    el.addEventListener('mouseleave', () => {
+      ring.style.width = '36px'; ring.style.height = '36px';
+      ring.style.borderColor = 'rgba(255,255,255,.35)';
+    });
+  });
+
+  // Lag ring with RAF
+  (function lagRing() {
+    requestAnimationFrame(lagRing);
+    rx += (mx - rx) * 0.11;
+    ry += (my - ry) * 0.11;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+  })();
+})();
+
 // ── MOBILE DRAWER ────────────────────────────────────────────
 function toggleDrawer() {
   document.getElementById('mobile-drawer').classList.toggle('open');
