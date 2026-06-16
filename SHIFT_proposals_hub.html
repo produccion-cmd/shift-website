@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SHIFT · Client Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode:"class",
+  theme:{
+    extend:{
+      colors:{
+        "background":       "#08080b",
+        "background-panel": "#0d0e14",
+        "surface-charcoal": "#131316",
+        "border-muted":     "#23242d",
+        "border-soft":      "#16171e",
+        "on-surface":       "#f4f6fb",
+        "on-surface-muted": "#8b8c99",
+        "on-surface-dim":   "#545662",
+        "primary":          "#f4f6fb",
+        "on-primary":       "#08080b",
+      },
+      fontFamily:{
+        display:  ["Space Grotesk","sans-serif"],
+        body:     ["Inter","sans-serif"],
+        technical:["Space Grotesk","sans-serif"],
+      }
+    }
+  }
+}
+</script>
+<style>
+  .blueprint-grid{
+    background-image:
+      linear-gradient(to right,  rgba(35,36,45,.5) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(35,36,45,.5) 1px, transparent 1px);
+    background-size:48px 48px;
+  }
+  .glass-panel{backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background-color:rgba(13,14,20,.75);}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24;}
+  .sr{opacity:0;transform:translateY(22px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1);}
+  .sr.in{opacity:1;transform:none;}
+  #mobile-menu{display:none;}
+  #mobile-menu.open{display:flex;}
+  ::selection{background:#fff;color:#000;}
+</style>
+</head>
+<body class="bg-background text-on-surface font-body antialiased overflow-x-hidden">
+
+<!-- NAV -->
+<nav class="fixed w-full top-0 z-50 border-b border-border-muted" style="background:rgba(8,8,11,0.9);backdrop-filter:blur(16px)">
+  <div class="flex justify-between items-center w-full px-6 md:px-16 py-4 max-w-[1200px] mx-auto">
+    <a href="SHIFT_site.html" class="font-display font-bold text-xl tracking-tighter text-primary flex items-start gap-[3px]">
+      SHIFT<span class="w-[7px] h-[7px] bg-primary inline-block mt-[3px] ml-[2px] flex-none"></span>
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="SHIFT_site.html#services" class="font-technical text-[11px] font-semibold text-on-surface-muted hover:text-primary transition-colors uppercase tracking-[.22em]">Services</a>
+      <a href="SHIFT_site.html#process"  class="font-technical text-[11px] font-semibold text-on-surface-muted hover:text-primary transition-colors uppercase tracking-[.22em]">Process</a>
+      <a href="SHIFT_site.html#projects" class="font-technical text-[11px] font-semibold text-on-surface-muted hover:text-primary transition-colors uppercase tracking-[.22em]">Projects</a>
+      <span class="font-technical text-[11px] font-semibold text-primary border-b border-primary pb-0.5 uppercase tracking-[.22em]">Portal</span>
+    </div>
+    <a href="SHIFT_site.html#contact" class="hidden md:inline-flex bg-primary text-on-primary px-5 py-2.5 font-technical text-[11px] font-semibold uppercase tracking-[.22em] hover:bg-on-surface-muted transition-colors">
+      Start a Project
+    </a>
+    <button id="menu-toggle" class="md:hidden text-primary p-1">
+      <span class="material-symbols-outlined text-2xl">menu</span>
+    </button>
+  </div>
+  <div id="mobile-menu" class="md:hidden flex-col border-t border-border-muted bg-background px-6 py-6 gap-5">
+    <a href="SHIFT_site.html" class="font-technical text-[11px] font-semibold text-on-surface-muted uppercase tracking-[.22em]">← Back to Site</a>
+    <a href="SHIFT_site.html#contact" class="bg-primary text-on-primary px-5 py-3 font-technical text-[11px] font-semibold uppercase tracking-[.22em] text-center" onclick="document.getElementById('mobile-menu').classList.remove('open')">Start a Project</a>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<header class="relative pt-24 pb-0 border-b border-border-muted blueprint-grid overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none" style="background:linear-gradient(180deg,rgba(8,8,11,.9) 0%,rgba(8,8,11,0) 60%)"></div>
+  <div class="relative max-w-[1200px] mx-auto px-6 md:px-16 pt-12 pb-10">
+    <p class="font-technical text-[11px] font-semibold text-on-surface-muted uppercase tracking-[.26em] mb-4 sr">Client Portal</p>
+    <h1 class="font-display font-bold text-primary tracking-tighter sr" style="font-size:clamp(42px,8vw,96px);line-height:.92;letter-spacing:-.04em;transition-delay:60ms">
+      SHIFT<span class="w-[12px] h-[12px] bg-primary inline-block ml-[6px] mb-1 align-baseline"></span>
+    </h1>
+    <p class="font-technical text-[11px] font-semibold text-on-surface-muted uppercase tracking-[.22em] mt-3 sr" style="transition-delay:100ms" id="currentDate"></p>
+  </div>
+</header>
+
+<!-- TOOLBAR -->
+<div class="border-b border-border-muted sticky top-[57px] z-30 bg-background/95" style="backdrop-filter:blur(12px)">
+  <div class="max-w-[1200px] mx-auto px-6 md:px-16 py-4 flex justify-between items-center gap-4 flex-wrap">
+    <p class="font-technical text-[11px] text-on-surface-muted uppercase tracking-[.18em]">
+      <b class="text-primary font-semibold" id="visibleCount">3</b> proposals · <span id="approvedCount">1</span> approved
+    </p>
+    <div class="flex gap-2 flex-wrap">
+      <button class="filter-btn active px-3 py-1.5 font-technical text-[10px] font-bold uppercase tracking-[.2em] border border-border-muted text-primary bg-primary text-on-primary transition-all" data-filter="all">All</button>
+      <button class="filter-btn px-3 py-1.5 font-technical text-[10px] font-bold uppercase tracking-[.2em] border border-border-muted text-on-surface-dim hover:text-primary hover:border-primary transition-all" data-filter="draft">Draft</button>
+      <button class="filter-btn px-3 py-1.5 font-technical text-[10px] font-bold uppercase tracking-[.2em] border border-border-muted text-on-surface-dim hover:text-primary hover:border-primary transition-all" data-filter="sent">Sent</button>
+      <button class="filter-btn px-3 py-1.5 font-technical text-[10px] font-bold uppercase tracking-[.2em] border border-border-muted text-on-surface-dim hover:text-primary hover:border-primary transition-all" data-filter="viewed">Viewed</button>
+      <button class="filter-btn px-3 py-1.5 font-technical text-[10px] font-bold uppercase tracking-[.2em] border border-border-muted text-on-surface-dim hover:text-primary hover:border-primary transition-all" data-filter="approved">Approved</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROPOSALS GRID -->
+<main class="max-w-[1200px] mx-auto px-6 md:px-16 py-12">
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-px bg-border-muted border border-border-muted" id="proposalsGrid">
+
+    <!-- CARD: Beyond Restaurant — Approved -->
+    <a href="SHIFT_BEYOND_landing.html" class="proposal-card bg-background-panel flex flex-col gap-5 p-7 hover:bg-[#0f1018] transition-colors group" data-status="approved" style="transition-delay:0ms">
+      <div class="flex justify-between items-start gap-3">
+        <div>
+          <h3 class="font-display font-medium text-xl text-primary tracking-tight leading-tight">Beyond Restaurant</h3>
+          <p class="font-technical text-[12px] text-on-surface-muted mt-1 tracking-[.04em]">Immersive Projection System</p>
+        </div>
+        <span class="flex-none px-2.5 py-1 font-technical text-[9.5px] font-bold uppercase tracking-[.2em] border text-[#5fba8a] border-[#5fba8a]/40 bg-[#5fba8a]/07">Approved</span>
+      </div>
+      <p class="font-body text-sm text-on-surface-muted leading-relaxed">Technical design phase for full venue projection — Vectorworks design, Capture previsualization, fixed installation quote.</p>
+      <div class="grid grid-cols-3 gap-3 pt-4 border-t border-border-soft">
+        <div><p class="font-technical text-[9.5px] font-bold uppercase tracking-[.22em] text-on-surface-dim mb-1">Value</p><p class="font-display text-sm font-medium text-primary">$1,150</p></div>
+        <div><p class="font-technical text-[9.5px] font-bold uppercase tracking-[.22em] text-on-surface-dim mb-1">Sent</p><p class="font-display text-sm font-medium text-primary">Jun 2026</p></div>
+        <div><p class="font-technical text-[9.5px] font-bold uppercase tracking-[.22em] text-on-surface-dim mb-1">City</p><p class="font-display text-sm font-medium text-primary">Houston</p></div>
+      </div>
+      <div class="flex items-center gap-2 font-technical text-[10.5px] uppercase tracking-[.18em] text-on-surface-dim group-hover:text-primary transition-colors mt-auto">
+        View Proposal <span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+      </div>
+    </a>
+
+    <!-- CARD: Placeholder — Sent -->
+    <div class="proposal-card bg-background-panel flex flex-col gap-5 p-7 hover:bg-[#0f1018] transition-colors group cursor-pointer" data-status="sent">
+      <div class="flex justify-between items-start gap-3">
+        <div>
+          <h3 class="font-display font-medium text-xl text-primary tracking-tight leading-tight">[ Client Name ]</h3>
+          <p class="font-technical text-[12px] text-on-surface-muted mt-1 tracking-[.04em]">[ Project Type ]</p>
+        </div>
+        <span class="flex-none px-2.5 py-1 font-technical text-[9.5px] font-bold uppercase tracking-[.2em] border text-[#c8a84b] border-[#c8a84b]/40 bg-[#c8a84b]/07">Sent</span>
+      </div>
+      <p class="font-body text-sm text-on-surface-muted leading-relaxed">[ Brief description of scope. Replace with real client details. ]</p>
+      <div class="grid grid-cols-3 gap-3 pt-4 border-t border-border-soft">
+        <div><p class="font-technical text-[9.5px] font-bold uppercase tracking-[.22em] text-on-surface-dim mb-1">Value</p><p class="font-display text-sm font-medium text-primary">$—</p></div>
+        <div><p class="font-technical text-[9.5px] font-bold uppercase tracking-[.22em] text-on-surface-dim mb-1">Sent</p><p class="font-display text-sm font-medium text-primary">[ Date ]</p></div>
+        <div><p class="font-technical text-[9.5px] font-bold uppercase tracking-[.22em] text-on-surface-dim mb-1">City</p><p class="font-display text-sm font-medium text-primary">—</p></div>
+      </div>
+      <div class="flex items-center gap-2 font-technical text-[10.5px] uppercase tracking-[.18em] text-on-surface-dim group-hover:text-primary transition-colors mt-auto">
+        View Proposal <span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+      </div>
+    </div>
+
+    <!-- CARD: Template — Draft -->
+    <a href="SHIFT_proposal_template.html" class="proposal-card bg-background-panel flex flex-col gap-5 p-7 hover:bg-[#0f1018] transition-colors group" data-status="draft">
+      <div class="flex justify-between items-start gap-3">
+        <div>
+          <h3 class="font-display font-medium text-xl text-primary tracking-tight leading-tight">Proposal Template</h3>
+          <p class="font-technical text-[12px] text-on-surface-muted mt-1 tracking-[.04em]">Reusable Starting Point</p>
+        </div>
+        <span class="flex-none px-2.5 py-1 font-technical text-[9.5px] font-bold uppercase tracking-[.2em] border text-on-surface-dim border-border-muted">Draft</span>
+      </div>
+      <p class="font-body text-sm text-on-surface-muted leading-relaxed">Duplicate this template, fill in the brackets, and you have a client-ready proposal in minutes. Same SHIFT design system.</p>
+      <div class="grid grid-cols-3 gap-3 pt-4 border-t border-border-soft">
+        <div><p class="font-technical text-[9.5px] font-bold uppercase tracking-[.22em] text-on-surface-dim mb-1">Type</p><p class="font-display text-sm font-medium text-primary">Template</p></div>
+        <div><p class="font-technical text-[9.5px] font-bold uppercase tracking-[.22em] text-on-surface-dim mb-1">Sections</p><p class="font-display text-sm font-medium text-primary">7</p></div>
+        <div><p class="font-technical text-[9.5px] font-bold uppercase tracking-[.22em] text-on-surface-dim mb-1">Status</p><p class="font-display text-sm font-medium text-primary">Ready</p></div>
+      </div>
+      <div class="flex items-center gap-2 font-technical text-[10.5px] uppercase tracking-[.18em] text-on-surface-dim group-hover:text-primary transition-colors mt-auto">
+        Open Template <span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+      </div>
+    </a>
+
+    <!-- ADD NEW -->
+    <div class="bg-background flex flex-col items-center justify-center gap-3 p-10 cursor-pointer group border border-dashed border-border-muted hover:border-on-surface-muted transition-colors min-h-[280px]"
+      onclick="alert('Duplicate SHIFT_proposal_template.html, fill in the brackets, then add a new card here.')">
+      <div class="w-10 h-10 border border-border-muted flex items-center justify-center group-hover:border-on-surface-muted transition-colors">
+        <span class="material-symbols-outlined text-on-surface-dim group-hover:text-on-surface-muted transition-colors text-xl">add</span>
+      </div>
+      <span class="font-technical text-[10.5px] font-bold uppercase tracking-[.22em] text-on-surface-dim group-hover:text-on-surface-muted transition-colors">New Proposal</span>
+    </div>
+
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="border-t border-border-muted mt-8">
+  <div class="max-w-[1200px] mx-auto px-6 md:px-16 py-10 flex justify-between items-center gap-4 flex-wrap">
+    <a href="SHIFT_site.html" class="font-display font-bold text-lg tracking-tighter text-primary flex items-start gap-[3px]">
+      SHIFT<span class="w-[5px] h-[5px] bg-primary inline-block mt-[4px] ml-[2px]"></span>
+    </a>
+    <span class="font-technical text-[11px] text-on-surface-dim uppercase tracking-[.2em]">Desi Junction DJs · Houston, TX</span>
+    <a href="mailto:edwin@desijunctiondjs.com" class="font-technical text-[11px] text-on-surface-muted hover:text-primary transition-colors uppercase tracking-[.18em]">edwin@desijunctiondjs.com</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // Date
+  const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const d=new Date(); document.getElementById('currentDate').textContent=m[d.getMonth()]+' '+d.getFullYear();
+
+  // Mobile menu
+  document.getElementById('menu-toggle').addEventListener('click',function(){
+    document.getElementById('mobile-menu').classList.toggle('open');
+  });
+
+  // Scroll reveals
+  const io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});
+  },{threshold:.1});
+  document.querySelectorAll('.sr').forEach(function(el){io.observe(el);});
+
+  // Filters
+  const btns=document.querySelectorAll('.filter-btn');
+  const cards=document.querySelectorAll('.proposal-card[data-status]');
+  const vc=document.getElementById('visibleCount');
+  const ac=document.getElementById('approvedCount');
+
+  function recount(visible){
+    let v=0,a=0;
+    visible.forEach(function(c){v++;if(c.dataset.status==='approved')a++;});
+    vc.textContent=v; ac.textContent=a;
+  }
+
+  btns.forEach(function(btn){
+    btn.addEventListener('click',function(){
+      btns.forEach(function(b){
+        b.classList.remove('active','bg-primary','text-on-primary');
+        b.classList.add('text-on-surface-dim','border-border-muted');
+      });
+      btn.classList.add('active','bg-primary','text-on-primary');
+      btn.classList.remove('text-on-surface-dim','border-border-muted');
+      const f=btn.dataset.filter;
+      const vis=[];
+      cards.forEach(function(c){
+        if(f==='all'||c.dataset.status===f){c.style.display='';vis.push(c);}
+        else c.style.display='none';
+      });
+      recount(vis);
+    });
+  });
+  recount(Array.from(cards));
+})();
+</script>
+</body>
+</html>

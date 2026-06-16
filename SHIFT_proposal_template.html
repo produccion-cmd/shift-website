@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  SHIFT · PROPOSAL TEMPLATE                                  ║
+  ║  How to use:                                                 ║
+  ║  1. Duplicate this file and rename it, e.g.                 ║
+  ║     SHIFT_ClientName_ProjectType.html                        ║
+  ║  2. Find every [ BRACKET ] and replace with real content     ║
+  ║  3. Delete any sections you don't need                       ║
+  ║  4. Host it anywhere (Netlify drop, GitHub Pages, etc.)      ║
+  ║  5. Add it to SHIFT_proposals_hub.html as a new card         ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
+<title>SHIFT × [ CLIENT NAME ] — [ PROJECT TYPE ]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08080b;
+    --panel:#0d0e14;
+    --line:#23242d;
+    --line-soft:#16171e;
+    --white:#f4f6fb;
+    --mute:#8b8c99;
+    --dim:#54566280;
+    --dim-solid:#545662;
+    --tile:#eaeef5;
+    --maxw:1080px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--white);
+    font-family:'Inter',system-ui,sans-serif;
+    font-weight:450;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  ::selection{background:#fff;color:#000}
+
+  .eyebrow{
+    font-family:'Inter',sans-serif;
+    font-size:11px;font-weight:600;
+    letter-spacing:.26em;text-transform:uppercase;
+    color:var(--mute);
+  }
+  .display{font-family:'Space Grotesk',sans-serif;font-weight:500;letter-spacing:-.01em}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;height:100svh;min-height:620px;
+    overflow:hidden;
+  }
+  #field{position:absolute;inset:0;z-index:1;display:block}
+  .hero::after{
+    content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+    background:
+      radial-gradient(120% 80% at 0% 0%, rgba(8,8,11,.92) 0%, rgba(8,8,11,0) 42%),
+      radial-gradient(60% 50% at 100% 100%, rgba(8,8,11,.8) 0%, rgba(8,8,11,0) 55%),
+      linear-gradient(180deg, rgba(8,8,11,.55) 0%, rgba(8,8,11,0) 22%);
+  }
+  .hero__content{
+    position:absolute;inset:0;z-index:3;
+    padding:clamp(28px,5vw,64px);
+    display:flex;flex-direction:column;
+    will-change:transform,opacity;
+  }
+  .hero__kicker{margin-top:clamp(4px,2vh,18px)}
+  .wordmark{
+    position:relative;display:inline-flex;align-items:flex-start;
+    font-family:'Space Grotesk',sans-serif;font-weight:500;
+    font-size:clamp(58px,13vw,150px);line-height:.9;letter-spacing:-.02em;
+    margin-top:.18em;
+  }
+  .wordmark .sq{
+    width:clamp(9px,1.5vw,17px);height:clamp(9px,1.5vw,17px);
+    background:var(--white);margin-left:.12em;margin-top:.05em;flex:none;
+  }
+  .hero__tag{
+    margin-top:1.1em;font-size:clamp(12px,1.4vw,15px);
+    letter-spacing:.12em;text-transform:uppercase;color:var(--white);font-weight:500;
+  }
+  .hero__tag span{color:var(--mute)}
+  .hero__meta{
+    margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;
+    gap:24px;flex-wrap:wrap;
+  }
+  .hero__meta .date{font-family:'Space Grotesk',sans-serif;letter-spacing:.22em;font-size:13px;color:var(--white)}
+  .hero__contact{text-align:right;font-size:12.5px;line-height:1.7;color:var(--mute);letter-spacing:.04em}
+  .hero__contact b{color:var(--white);font-weight:600;letter-spacing:.12em;display:block;text-transform:uppercase;font-size:11px;margin-bottom:2px}
+  .scrollcue{
+    position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:3;
+    font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim-solid);
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    transition:opacity .4s;
+  }
+  .scrollcue i{width:1px;height:30px;background:linear-gradient(var(--dim-solid),transparent);animation:drift 2s ease-in-out infinite}
+  @keyframes drift{0%,100%{transform:scaleY(.5);opacity:.4}50%{transform:scaleY(1);opacity:1}}
+
+  /* ---------- SECTIONS ---------- */
+  main{position:relative;z-index:4;background:var(--bg)}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 clamp(24px,5vw,56px)}
+  section{padding:clamp(80px,13vh,150px) 0;border-top:1px solid var(--line-soft)}
+  .lead{
+    font-family:'Space Grotesk',sans-serif;font-weight:500;
+    font-size:clamp(28px,5vw,52px);line-height:1.04;letter-spacing:-.02em;
+    max-width:18ch;margin-top:.5em;
+  }
+  .para{font-size:clamp(15px,2.1vw,18px);color:var(--mute);max-width:60ch;margin-top:1.4em;line-height:1.6}
+  .para.fg{color:var(--white)}
+  .hl{margin-top:2em;padding-top:1.6em;border-top:1px solid var(--line);font-size:clamp(15px,2.1vw,18px);max-width:62ch;line-height:1.55}
+  .hl b{font-weight:600}
+  .hl .m{color:var(--mute)}
+
+  /* dash list */
+  .dlist{list-style:none;margin-top:2em;display:grid;gap:1.05em;max-width:62ch}
+  .dlist li{display:grid;grid-template-columns:24px 1fr;font-size:clamp(15px,2vw,17.5px)}
+  .dlist li::before{content:"—";color:var(--mute)}
+
+  /* two-column layout */
+  .grid{display:grid;grid-template-columns:1.25fr .9fr;gap:clamp(28px,5vw,60px);align-items:start;margin-top:1em}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+
+  /* info card */
+  .card{
+    border:1px solid var(--line);background:var(--panel);
+    padding:clamp(24px,3vw,34px);border-radius:2px;
+  }
+  .card .row{padding:14px 0;border-top:1px solid var(--line-soft)}
+  .card .row:first-of-type{padding-top:0;border-top:0}
+  .card .k{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);font-weight:600}
+  .card .v{margin-top:.5em;font-size:15px;color:var(--white);line-height:1.5}
+  .price{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(34px,5vw,44px);letter-spacing:-.02em;line-height:1}
+  .price small{font-family:'Inter';font-weight:500;font-size:15px;color:var(--mute);margin-left:.4em;letter-spacing:.04em}
+
+  .note{font-size:14px;color:var(--mute);margin-top:1.8em;max-width:60ch;line-height:1.6}
+  .note.it{font-style:italic;color:var(--white)}
+
+  /* big stat */
+  .stat{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(46px,8vw,76px);letter-spacing:-.03em;line-height:1;margin-top:.4em}
+  .stat small{font-family:'Inter';font-weight:500;font-size:clamp(16px,2.4vw,22px);color:var(--mute);letter-spacing:0}
+  .stat-sub{font-family:'Space Grotesk';letter-spacing:.16em;text-transform:uppercase;font-size:11px;color:var(--dim-solid);margin-top:1.2em}
+
+  /* big price */
+  .big-price{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(64px,15vw,168px);letter-spacing:-.04em;line-height:.92;margin-top:.18em}
+  .big-price small{font-family:'Inter';font-weight:500;font-size:clamp(20px,4vw,34px);color:var(--mute);letter-spacing:0}
+
+  /* CTA */
+  .cta{text-align:left}
+  .cta .lead{max-width:22ch}
+  .btn{
+    display:inline-flex;align-items:center;gap:14px;margin-top:2.2em;
+    padding:17px 30px;border:1px solid var(--white);color:var(--white);
+    text-decoration:none;font-family:'Space Grotesk';font-weight:500;font-size:15px;
+    letter-spacing:.04em;border-radius:2px;
+    transition:background .25s,color .25s,transform .25s;
+  }
+  .btn:hover{background:var(--white);color:#000;transform:translateY(-2px)}
+  .btn .arr{transition:transform .25s}
+  .btn:hover .arr{transform:translateX(4px)}
+  .cta .contact{margin-top:2.4em;font-size:13px;color:var(--mute);letter-spacing:.04em;line-height:1.8}
+  .cta .contact b{color:var(--white);font-weight:600}
+
+  footer{border-top:1px solid var(--line-soft);padding:46px 0}
+  footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  .fmark{display:inline-flex;align-items:flex-start;font-family:'Space Grotesk';font-weight:500;font-size:26px;letter-spacing:-.01em}
+  .fmark .sq{width:6px;height:6px;background:#fff;margin-left:4px;margin-top:3px}
+  footer small{color:var(--dim-solid);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .reveal{opacity:1;transform:none;transition:none}
+    .scrollcue i{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HERO
+     • Replace [ CLIENT NAME ] with the company/person name
+     • Replace [ PROJECT TYPE ] and the sub-line as needed
+     ═══════════════════════════════════════════════════════════ -->
+<header class="hero" id="hero">
+  <canvas id="field"></canvas>
+  <div class="hero__content" id="heroContent">
+    <div class="hero__kicker eyebrow">Proposal —</div>
+    <div class="wordmark">SHIFT<span class="sq"></span></div>
+    <div class="hero__tag">
+      [ PROJECT TYPE ] — [ Short Phase or Scope Label ]<br>
+      <span>[ One-line description ] · [ Season or Year ]</span>
+    </div>
+    <div class="hero__meta">
+      <div class="date">[ MON YYYY ]</div>
+      <div class="hero__contact">
+        <b>[ CLIENT NAME ]</b>
+        [ City, State ]<br>
+        [ Contact Name ] · [ Email ]
+      </div>
+    </div>
+  </div>
+  <div class="scrollcue" id="cue"><span>Scroll</span><i></i></div>
+</header>
+
+<main>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTION 01 — THE VISION
+       What is this project about? What's the big idea?
+       ═══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="wrap">
+      <div class="eyebrow reveal">01 — The Vision</div>
+      <h2 class="lead reveal">[ One powerful sentence about the project. ]</h2>
+      <p class="para reveal">[ Two or three sentences describing the experience or outcome. What will the client see, feel, or have when this is done? Keep it focused on them. ]</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTION 02 — WHY THIS APPROACH
+       Justify your process. Why does it start here?
+       ═══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="wrap">
+      <div class="eyebrow reveal">02 — Why We Start Here</div>
+      <p class="para fg reveal" style="margin-top:1.4em">[ Explain the problem with skipping this phase or doing it wrong. What goes wrong without proper planning? ]</p>
+      <p class="para reveal">[ What happens when it's done poorly — wasted budget, wrong equipment, missed mark. ]</p>
+      <p class="hl reveal"><b>[ SHIFT's specific approach or tool. ]</b> <span class="m">[ What the client gets from this: certainty, a real preview, a fixed number. ]</span></p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTION 03 — SCOPE / PHASE
+       What is included in this proposal?
+       ═══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="wrap">
+      <div class="eyebrow reveal">03 — Scope · [ Phase Name ]</div>
+      <div class="grid">
+        <div class="reveal">
+          <ul class="dlist">
+            <!-- Add or remove deliverables as needed -->
+            <li>[ Deliverable 1 ]</li>
+            <li>[ Deliverable 2 ]</li>
+            <li>[ Deliverable 3 ]</li>
+            <li>[ Deliverable 4 ]</li>
+            <li>[ Deliverable 5 ]</li>
+          </ul>
+        </div>
+        <div class="card reveal">
+          <div class="row">
+            <div class="k">Deliverable</div>
+            <div class="v">[ What they receive at the end of this phase. ]</div>
+          </div>
+          <div class="row">
+            <div class="k">Timeline</div>
+            <div class="v">[ X ] business days from [ kickoff / site visit / deposit ].</div>
+          </div>
+          <div class="row">
+            <div class="k">Investment</div>
+            <div class="v price">$[ AMOUNT ]<small>USD</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTION 04 — WHAT COMES NEXT  (optional — delete if N/A)
+       Show the path forward. Makes clients think long-term.
+       ═══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="wrap">
+      <div class="eyebrow reveal">04 — What Comes Next</div>
+      <p class="para fg reveal" style="margin-top:1.4em">[ One sentence describing the next phase — priced directly from this one. ]</p>
+      <ul class="dlist reveal">
+        <li>[ Next-phase deliverable 1 ]</li>
+        <li>[ Next-phase deliverable 2 ]</li>
+        <li>[ Next-phase deliverable 3 ]</li>
+        <li>[ Next-phase deliverable 4 ]</li>
+      </ul>
+      <p class="note reveal">[ Full specs and files delivered with the installation contract. ]</p>
+      <p class="note it reveal">[ This phase credits toward installation if client moves forward within [ X ] days. ]</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTION 05 — ONGOING / RETAINER  (optional — delete if N/A)
+       Monthly or recurring service offering.
+       ═══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="wrap">
+      <div class="eyebrow reveal">05 — Ongoing Support · Optional</div>
+      <h2 class="lead reveal" style="max-width:22ch">[ One sentence describing the ongoing service. ]</h2>
+      <p class="para reveal">[ What's included per visit or per month. ]</p>
+      <div class="stat reveal">$[ X ] <small>/ [ month / visit ]</small></div>
+      <div class="stat-sub reveal">[ Cadence or commitment — e.g. "Up to 2 hrs on-site · 6x per year" ]</div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTION 06 — NOT INCLUDED
+       Protect yourself. List exclusions clearly.
+       ═══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="wrap">
+      <div class="eyebrow reveal">06 — Not Included</div>
+      <ul class="dlist reveal" style="margin-top:2.4em;max-width:70ch">
+        <li>[ Exclusion 1 — hardware, physical equipment, etc. ]</li>
+        <li>[ Exclusion 2 — third-party licenses or subscriptions ]</li>
+        <li>[ Exclusion 3 — electrical / construction / permits ]</li>
+        <li>[ Exclusion 4 — additional content beyond initial package ]</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTION 07 — INVESTMENT
+       Big number. Clear value.
+       ═══════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="wrap">
+      <div class="eyebrow reveal">07 — Investment</div>
+      <div class="reveal" style="color:var(--mute);font-size:14px;letter-spacing:.04em;margin-top:1.6em">[ Phase Name ] — [ Short description ]</div>
+      <div class="big-price reveal">$[ AMOUNT ] <small>USD</small></div>
+      <p class="note reveal">[ Credit note or guarantee — e.g. "Credits toward installation if you move forward within [ X ] days." ]</p>
+      <p class="hl reveal">[ What they take away: a measured design, a real preview, a fixed installation number. ]</p>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       CTA — NEXT STEP
+       Clear, single action.
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="cta">
+    <div class="wrap">
+      <div class="eyebrow reveal">Next Step</div>
+      <h2 class="lead reveal">[ Approve [ Phase ] and we schedule [ kickoff / site visit ]. ]</h2>
+      <a class="btn reveal" href="mailto:edwin@desijunctiondjs.com?subject=[ CLIENT NAME ]%20%E2%80%94%20[ PROJECT TYPE ]">
+        [ CTA Button Text ] <span class="arr">→</span>
+      </a>
+      <div class="contact reveal">
+        <b>SHIFT</b><br>
+        Edwin · edwin@desijunctiondjs.com
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fmark">SHIFT<span class="sq"></span></div>
+    <small>[ CLIENT NAME ] · [ City, State ]</small>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cvs = document.getElementById('field');
+  const ctx = cvs.getContext('2d');
+  const hero = document.getElementById('hero');
+  const heroContent = document.getElementById('heroContent');
+  const cue = document.getElementById('cue');
+
+  let W=0,H=0,DPR=1,tiles=[],raf=null,t0=performance.now();
+  const mouse={x:-9999,y:-9999,active:false};
+
+  function build(){
+    DPR=Math.min(window.devicePixelRatio||1,2);
+    W=hero.clientWidth;H=hero.clientHeight;
+    cvs.width=Math.round(W*DPR);cvs.height=Math.round(H*DPR);
+    cvs.style.width=W+'px';cvs.style.height=H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    tiles.length=0;
+    const gap=W<640?30:38,mx=W<640?18:44;
+    const yStart=H*0.30;
+    for(let y=yStart;y<H-mx*0.6;y+=gap)
+      for(let x=mx;x<W-mx;x+=gap)
+        tiles.push({x:x+(Math.random()-.5)*4,y:y+(Math.random()-.5)*4,len:15+Math.random()*9,ph:Math.random()*6.28});
+  }
+
+  function scrollP(){return Math.min(1,Math.max(0,window.scrollY/(hero.offsetHeight||1)));}
+
+  const COS=Math.cos(-0.7853981634),SIN=Math.sin(-0.7853981634);
+
+  function paint(time,sp){
+    ctx.clearRect(0,0,W,H);
+    const fieldAlpha=Math.max(0,1-sp*1.25);
+    if(fieldAlpha<=0)return false;
+    const px=mouse.active?(mouse.x-W/2)*0.012:0,py=mouse.active?(mouse.y-H*0.66)*0.012:0;
+    const R=150,R2=R*R,w=4.5;
+    for(let i=0;i<tiles.length;i++){
+      const tl=tiles[i];let ox=0,oy=0,boost=0;
+      if(mouse.active){
+        const dx=tl.x-mouse.x,dy=tl.y-mouse.y,d2=dx*dx+dy*dy;
+        if(d2<R2){const d=Math.sqrt(d2)||1,f=1-d/R;boost=f*.7;const push=f*f*46;ox+=dx/d*push;oy+=dy/d*push;}
+      }
+      if(sp>0){ox+=(tl.x-W*0.5)*0.18*sp;oy+=(tl.y-H*0.66)*0.18*sp-sp*60;}
+      const wave=Math.sin((tl.x+tl.y)*0.012-time*0.0011+tl.ph);
+      let b=0.15+0.26*(wave*.5+.5)+boost;if(b>1)b=1;
+      const cx=tl.x+ox+px,cy=tl.y+oy+py,l=tl.len,hw=w/2,hl=l/2;
+      ctx.globalAlpha=fieldAlpha*b;ctx.fillStyle='#eaeef5';
+      ctx.beginPath();
+      ctx.moveTo(cx+(-hw*COS-(-hl)*SIN),cy+(-hw*SIN+(-hl)*COS));
+      ctx.lineTo(cx+(hw*COS-(-hl)*SIN),cy+(hw*SIN+(-hl)*COS));
+      ctx.lineTo(cx+(hw*COS-(hl)*SIN),cy+(hw*SIN+(hl)*COS));
+      ctx.lineTo(cx+(-hw*COS-(hl)*SIN),cy+(-hw*SIN+(hl)*COS));
+      ctx.closePath();ctx.fill();
+    }
+    ctx.globalAlpha=1;return true;
+  }
+
+  function frame(now){
+    const sp=scrollP();
+    const alive=paint(now-t0,sp);
+    heroContent.style.transform='translateY('+(sp*-70)+'px)';
+    heroContent.style.opacity=String(Math.max(0,1-sp*1.3));
+    if(cue)cue.style.opacity=String(Math.max(0,1-sp*4));
+    if(alive){raf=requestAnimationFrame(frame);}else{raf=null;}
+  }
+
+  function kick(){if(!raf&&!reduce)raf=requestAnimationFrame(frame);}
+
+  function paintStatic(){
+    ctx.clearRect(0,0,W,H);
+    const w=4.5;
+    for(let i=0;i<tiles.length;i++){
+      const tl=tiles[i];
+      const wave=Math.sin((tl.x+tl.y)*0.012+tl.ph);
+      let b=0.15+0.26*(wave*.5+.5);
+      const hw=w/2,hl=tl.len/2,cx=tl.x,cy=tl.y;
+      ctx.globalAlpha=b;ctx.fillStyle='#eaeef5';
+      ctx.beginPath();
+      ctx.moveTo(cx+(-hw*COS-(-hl)*SIN),cy+(-hw*SIN+(-hl)*COS));
+      ctx.lineTo(cx+(hw*COS-(-hl)*SIN),cy+(hw*SIN+(-hl)*COS));
+      ctx.lineTo(cx+(hw*COS-(hl)*SIN),cy+(hw*SIN+(hl)*COS));
+      ctx.lineTo(cx+(-hw*COS-(hl)*SIN),cy+(-hw*SIN+(hl)*COS));
+      ctx.closePath();ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }
+
+  window.addEventListener('pointermove',function(e){
+    const r=cvs.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;mouse.active=true;kick();
+  },{passive:true});
+  document.addEventListener('mouseleave',function(){mouse.active=false;});
+  window.addEventListener('scroll',kick,{passive:true});
+  let rt;
+  window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){build();if(reduce)paintStatic();else kick();},150);});
+
+  const io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});
+  },{threshold:.16,rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el,i){
+    el.style.transitionDelay=((i%6)*55)+'ms';
+    io.observe(el);
+  });
+
+  build();
+  if(reduce){paintStatic();}else{raf=requestAnimationFrame(frame);}
+})();
+</script>
+</body>
+</html>
