@@ -61,6 +61,14 @@ tailwind.config = {
 }
 </script>
 <style>
+  @font-face {
+    font-family: 'SHIFTBrand';
+    src: url('fonts/shift-brand.woff2') format('woff2'),
+         url('fonts/shift-brand.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
   .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 300,'GRAD' 0,'opsz' 24; }
   .glass-nav { background:rgba(18,20,20,.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
   /* Custom cursor */
@@ -97,9 +105,7 @@ tailwind.config = {
 
 <!-- ═══════════════════════════════ NAV ═══ -->
 <nav id="nav" class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gm py-5 glass-nav border-b border-outline-variant/30">
-  <a href="#hero" class="flex items-center">
-    <img src="SHIFT.svg" alt="SHIFT" class="h-10 w-auto" style="filter:brightness(0) invert(1);" />
-  </a>
+  <a href="#hero" class="text-primary text-[28px] leading-none tracking-tight" style="font-family:'SHIFTBrand',sans-serif;">SHIFT</a>
   <div class="hidden md:flex items-center gap-8">
     <a href="#services" class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Services</a>
     <a href="#process"  class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Process</a>
