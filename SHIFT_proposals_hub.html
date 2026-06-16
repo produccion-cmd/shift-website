@@ -110,6 +110,14 @@ tailwind.config = {
   ::selection{background:#fff;color:#000;}
   #mobile-drawer{display:none;}
   #mobile-drawer.open{display:flex;}
+  /* PROPOSAL MODAL */
+  #proposal-modal{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;background:#121414;}
+  #proposal-modal.open{display:flex;}
+  #proposal-modal-bar{flex:none;display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid #444748;background:rgba(18,20,20,.95);backdrop-filter:blur(16px);z-index:1;}
+  #proposal-modal-bar .modal-back{display:flex;align-items:center;gap:8px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#c4c7c8;cursor:pointer;border:none;background:none;}
+  #proposal-modal-bar .modal-back:hover{color:#fff;}
+  #proposal-modal-bar .modal-title{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#8e9192;}
+  #proposal-modal-iframe{flex:1;border:none;width:100%;height:100%;}
 </style>
 </head>
 <body class="bg-background text-on-surface font-body antialiased overflow-x-hidden">
@@ -200,7 +208,7 @@ tailwind.config = {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-outline-variant/20 border border-outline-variant/20" id="proposalsGrid">
 
       <!-- CARD: Beyond Restaurant — Approved -->
-      <a href="SHIFT_BEYOND_landing.html" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group" data-status="approved">
+      <div onclick="openProposal('SHIFT_BEYOND_landing.html','Beyond Restaurant — Propuesta Integral')" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group cursor-pointer" data-status="approved">
         <div class="flex justify-between items-start gap-3">
           <div>
             <h3 class="font-display font-semibold text-primary text-xl tracking-tight">Beyond Restaurant</h3>
@@ -215,9 +223,9 @@ tailwind.config = {
           <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">City</p><p class="font-display text-sm font-semibold text-primary">Houston</p></div>
         </div>
         <div class="flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors mt-auto">
-          View Proposal <span class="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">arrow_forward</span>
+          Ver Propuesta <span class="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">arrow_forward</span>
         </div>
-      </a>
+      </div>
 
       <!-- CARD: Template -->
       <a href="SHIFT_proposal_template.html" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group" data-status="draft">
@@ -490,6 +498,44 @@ function switchTab(id, btn) {
   btn.classList.add('active','text-primary','border-primary');
   btn.classList.remove('text-on-surface-variant','border-transparent');
 }
+
+function openProposal(url, title) {
+  var modal = document.getElementById('proposal-modal');
+  var iframe = document.getElementById('proposal-modal-iframe');
+  var titleEl = document.getElementById('proposal-modal-title');
+  iframe.src = url;
+  if(titleEl) titleEl.textContent = title || '';
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeProposal() {
+  var modal = document.getElementById('proposal-modal');
+  var iframe = document.getElementById('proposal-modal-iframe');
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+  setTimeout(function(){ iframe.src = ''; }, 300);
+}
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') closeProposal();
+});
 </script>
+
+<!-- PROPOSAL MODAL -->
+<div id="proposal-modal">
+  <div id="proposal-modal-bar">
+    <button class="modal-back" onclick="closeProposal()">
+      <span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>
+      Volver al Portal
+    </button>
+    <span class="modal-title" id="proposal-modal-title"></span>
+    <button class="modal-back" onclick="closeProposal()">
+      <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+    </button>
+  </div>
+  <iframe id="proposal-modal-iframe" src="" title="Propuesta"></iframe>
+</div>
+
 </body>
 </html>
