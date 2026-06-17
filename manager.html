@@ -194,6 +194,54 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .dash-qa-btn.primary:hover{opacity:.85}
 /* Empty state */
 .dash-empty{font-size:12px;color:var(--dim);padding:12px 0}
+/* ── INVOICE TRACKER ─────────────────────────────────────── */
+.inv-subnav{display:flex;border-bottom:1px solid var(--border);padding:0 28px;flex-shrink:0;background:var(--bg)}
+.inv-snav-btn{padding:13px 18px;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Inter',sans-serif;transition:color .15s,border-color .15s;white-space:nowrap}
+.inv-snav-btn:hover{color:var(--gray)}
+.inv-snav-btn.active{color:var(--white);border-bottom-color:var(--white)}
+.inv-badge{display:inline-block;background:#ff6b6b;color:#000;font-size:8px;font-weight:800;padding:1px 5px;margin-left:6px;vertical-align:middle;border-radius:0}
+.ledger-wrap{flex:1;overflow-y:auto;padding:32px;max-width:960px;width:100%;margin:0 auto}
+.ledger-topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:22px}
+.ledger-h2{font-family:'Sora',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.02em}
+.ledger-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:20px}
+@media(max-width:640px){.ledger-stats{grid-template-columns:repeat(2,1fr)}}
+.ledger-stat{background:var(--bg);padding:16px 18px;text-align:center}
+.ledger-stat-n{font-family:'Sora',sans-serif;font-weight:800;font-size:20px}
+.ledger-stat-lbl{font-size:9px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-top:5px}
+.lsn-total{color:var(--white)}
+.lsn-outstanding{color:#c8a84b}
+.lsn-overdue{color:#ff6b6b}
+.lsn-paid{color:#4ade80}
+.ledger-filters{display:flex;gap:0;border:1px solid var(--border);margin-bottom:20px;overflow:hidden}
+.ledger-flt{flex:1;padding:9px 8px;font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;background:transparent;border:none;border-right:1px solid var(--border);color:var(--dim);cursor:pointer;font-family:'Inter',sans-serif;transition:color .15s,background .15s;text-align:center}
+.ledger-flt:last-child{border-right:none}
+.ledger-flt:hover{color:var(--gray)}
+.ledger-flt.on{background:#111;color:var(--white)}
+.ledger-item{border:1px solid var(--border);margin-bottom:8px;padding:18px 20px}
+.ledger-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+.ledger-num{font-family:'Sora',sans-serif;font-weight:700;font-size:14px}
+.ledger-client{font-size:12px;color:var(--gray);margin-top:3px}
+.ledger-amount{font-family:'Sora',sans-serif;font-weight:800;font-size:20px;text-align:right;line-height:1}
+.ledger-dates{font-size:10.5px;color:var(--dim);text-align:right;margin-top:4px}
+.ledger-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.inv-pill{font-size:8.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:4px 9px}
+.inv-pill-sent{color:#888;border:1px solid #2a2a2a}
+.inv-pill-paid{color:#4ade80;border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.06)}
+.inv-pill-overdue{color:#ff6b6b;border:1px solid rgba(255,107,107,.3);background:rgba(255,107,107,.06)}
+.ledger-paid-on{font-size:11px;color:#4ade80;margin-left:8px}
+.ledger-acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.lact{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--gray);padding:7px 12px;cursor:pointer;font-family:'Inter',sans-serif;transition:border-color .15s,color .15s;white-space:nowrap}
+.lact:hover{border-color:#555;color:var(--white)}
+.lact-pay{border-color:rgba(74,222,128,.3);color:#4ade80}
+.lact-pay:hover{border-color:#4ade80}
+.lact-del{border-color:transparent;color:var(--dim)}
+.lact-del:hover{color:var(--red)}
+.pay-confirm-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pay-date-in{background:transparent;border:1px solid var(--border);color:var(--white);font-family:'Inter',sans-serif;font-size:12px;padding:7px 10px;outline:none}
+.pay-date-in:focus{border-color:#4ade80}
+.pay-ok{background:#4ade80;color:#000;border:none;font-family:'Inter',sans-serif;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:8px 14px;cursor:pointer}
+.pay-cancel{background:transparent;border:1px solid var(--border);color:var(--dim);font-family:'Inter',sans-serif;font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:7px 12px;cursor:pointer}
+.ledger-empty{font-size:13px;color:var(--dim);padding:48px 0;text-align:center;line-height:1.9}
 /* ── CRM ──────────────────────────────────────────────────── */
 .crm-layout{display:flex;flex:1;overflow:hidden;min-height:0}
 .crm-list-pane{width:310px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
@@ -380,7 +428,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         </div>
         <div class="dash-kpi">
           <div class="dash-kpi-n" id="dk-revenue">—</div>
-          <div class="dash-kpi-lbl">Revenue Tracked</div>
+          <div class="dash-kpi-lbl" id="dk-revenue-lbl">Outstanding</div>
           <div class="dash-kpi-sub" id="dk-revenue-sub"></div>
         </div>
         <div class="dash-kpi">
@@ -525,6 +573,15 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 
   <!-- TAB: INVOICES -->
   <div class="tab-panel" id="tab-invoices">
+
+    <!-- sub-nav -->
+    <div class="inv-subnav">
+      <button class="inv-snav-btn active" id="inv-build-btn" onclick="switchInvView('build')">Build</button>
+      <button class="inv-snav-btn" id="inv-track-btn" onclick="switchInvView('track')">Tracker <span id="inv-overdue-badge" style="display:none" class="inv-badge"></span></button>
+    </div>
+
+    <!-- build view -->
+    <div id="inv-build-view" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
     <div class="builder">
       <div class="builder-form" id="invoice-form-pane">
         <div class="f-section-label" style="margin-top:0;padding-top:0;border-top:none;font-size:10px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:18px;">Invoice Details</div>
@@ -612,6 +669,31 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       <div class="section-label">Saved Clients</div>
       <div id="clients-list"></div>
     </div>
+    </div><!-- /inv-build-view -->
+
+    <!-- tracker view -->
+    <div id="inv-tracker-view" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+      <div class="ledger-wrap">
+        <div class="ledger-topbar">
+          <div class="ledger-h2">Invoice Tracker</div>
+          <button class="inv-snav-btn" style="border:1px solid var(--border);padding:9px 18px;margin:0" onclick="switchInvView('build')">+ New Invoice</button>
+        </div>
+        <div class="ledger-stats">
+          <div class="ledger-stat"><div class="ledger-stat-n lsn-total" id="ls-total">$0</div><div class="ledger-stat-lbl">Total Invoiced</div></div>
+          <div class="ledger-stat"><div class="ledger-stat-n lsn-outstanding" id="ls-outstanding">$0</div><div class="ledger-stat-lbl">Outstanding</div></div>
+          <div class="ledger-stat"><div class="ledger-stat-n lsn-overdue" id="ls-overdue">$0</div><div class="ledger-stat-lbl">Overdue</div></div>
+          <div class="ledger-stat"><div class="ledger-stat-n lsn-paid" id="ls-paid">$0</div><div class="ledger-stat-lbl">Collected</div></div>
+        </div>
+        <div class="ledger-filters">
+          <button class="ledger-flt on" data-f="all" onclick="ledgerFilter(this,'all')">All</button>
+          <button class="ledger-flt" data-f="sent" onclick="ledgerFilter(this,'sent')">Sent</button>
+          <button class="ledger-flt" data-f="overdue" onclick="ledgerFilter(this,'overdue')">Overdue</button>
+          <button class="ledger-flt" data-f="paid" onclick="ledgerFilter(this,'paid')">Paid</button>
+        </div>
+        <div id="ledger-list"></div>
+      </div>
+    </div><!-- /inv-tracker-view -->
+
   </div>
 
   <!-- TAB: CLIENTS (CRM) -->
@@ -811,11 +893,17 @@ function renderDashboard() {
   document.getElementById('dk-pipeline').textContent = leads + active;
   document.getElementById('dk-pipeline-sub').textContent = `${leads} lead${leads!==1?'s':''} · ${active} active`;
 
-  // KPI: revenue
-  const rev = crm.reduce((s,c) => s+(c.totalRevenue||0), 0);
-  const invoiceCount = crm.reduce((s,c) => s+(c.invoiceCount||0), 0);
-  document.getElementById('dk-revenue').textContent = rev >= 1000 ? '$' + (rev/1000).toFixed(rev%1000===0?0:1) + 'k' : '$' + rev.toLocaleString();
-  document.getElementById('dk-revenue-sub').textContent = `${invoiceCount} invoice${invoiceCount!==1?'s':''} tracked`;
+  // KPI: revenue / outstanding
+  const outstanding = _ledgerOutstanding();
+  const overdueAmt  = _ledgerOverdueAmt();
+  const invoiceRecords = _invoicesLoad();
+  const paidAmt = invoiceRecords.filter(r=>_invoiceStatus(r)==='paid').reduce((s,r)=>s+(r.amount||0),0);
+  const fmtMoney = v => v >= 1000 ? '$'+(v/1000).toFixed(v%1000===0?0:1)+'k' : '$'+v.toLocaleString();
+  document.getElementById('dk-revenue').textContent = fmtMoney(outstanding);
+  document.getElementById('dk-revenue').style.color = overdueAmt > 0 ? '#c8a84b' : 'var(--white)';
+  document.getElementById('dk-revenue-sub').textContent = overdueAmt > 0
+    ? `${fmtMoney(overdueAmt)} overdue`
+    : invoiceRecords.length ? `${fmtMoney(paidAmt)} collected` : 'No invoices yet';
 
   // KPI: active links
   const activeLinks = links.filter(l => nowSec < l.exp);
@@ -918,6 +1006,7 @@ function doLogin() {
     loadGHToken();
     crmInit();
     renderDashboard();
+    _refreshOverdueBadge();
   } else {
     document.getElementById('login-err').textContent = 'Incorrect password.';
     document.getElementById('pw').value = '';
@@ -933,7 +1022,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { initForms(); renderHistory(); loadGHToken(); crmInit(); renderDashboard(); });
+  document.addEventListener('DOMContentLoaded', () => { initForms(); renderHistory(); loadGHToken(); crmInit(); renderDashboard(); _refreshOverdueBadge(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -1639,6 +1728,175 @@ function _crmOnInvoicePublish(d, invoiceNum, amount) {
   _crmSave(contacts);
 }
 
+// ── INVOICE TRACKER ──────────────────────────────────────────
+let _ledgerFilter = 'all';
+
+function _invoicesLoad() { return JSON.parse(localStorage.getItem('shift-invoices')||'[]'); }
+function _invoicesSave(r) { localStorage.setItem('shift-invoices', JSON.stringify(r)); }
+
+function _invoiceStatus(inv) {
+  if (inv.status === 'paid') return 'paid';
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (inv.dueDate && new Date(inv.dueDate+' 00:00') < today) return 'overdue';
+  return 'sent';
+}
+
+function saveInvoiceRecord(d, url) {
+  const records = _invoicesLoad();
+  records.unshift({
+    id: 'inv_'+Date.now(),
+    invoiceNum: d.invoiceNum,
+    client: d.client,
+    company: d.company||'',
+    amount: d.total,
+    date: d.date,
+    dueDate: d.dueDate,
+    status: 'sent',
+    paidDate: null,
+    url, created: Date.now()
+  });
+  _invoicesSave(records.slice(0,200));
+  _refreshOverdueBadge();
+}
+
+function switchInvView(v) {
+  const isBuild = v === 'build';
+  document.getElementById('inv-build-view').style.display = isBuild ? 'flex' : 'none';
+  document.getElementById('inv-tracker-view').style.display = isBuild ? 'none' : 'flex';
+  document.getElementById('inv-build-btn').classList.toggle('active', isBuild);
+  document.getElementById('inv-track-btn').classList.toggle('active', !isBuild);
+  if (!isBuild) renderLedger();
+}
+
+function ledgerFilter(btn, f) {
+  _ledgerFilter = f;
+  document.querySelectorAll('.ledger-flt').forEach(b => b.classList.toggle('on', b === btn));
+  renderLedger();
+}
+
+function renderLedger() {
+  const all = _invoicesLoad();
+  const now = Date.now();
+
+  // Stats (always over all records regardless of filter)
+  const fmtD = v => v >= 1000 ? '$'+(v/1000).toFixed(v%1000===0?0:1)+'k' : '$'+v.toLocaleString();
+  let total=0, outstanding=0, overdue=0, paid=0;
+  all.forEach(inv => {
+    const s = _invoiceStatus(inv);
+    const a = inv.amount||0;
+    total += a;
+    if (s === 'paid') paid += a;
+    else if (s === 'overdue') { outstanding += a; overdue += a; }
+    else outstanding += a;
+  });
+  document.getElementById('ls-total').textContent = fmtD(total);
+  document.getElementById('ls-outstanding').textContent = fmtD(outstanding);
+  document.getElementById('ls-overdue').textContent = fmtD(overdue);
+  document.getElementById('ls-paid').textContent = fmtD(paid);
+
+  // Filter
+  const filtered = _ledgerFilter === 'all' ? all : all.filter(inv => _invoiceStatus(inv) === _ledgerFilter);
+
+  const el = document.getElementById('ledger-list');
+  if (!filtered.length) {
+    el.innerHTML = `<div class="ledger-empty">No invoices${_ledgerFilter!=='all'?' with status "'+_ledgerFilter+'"':''} yet.<br>${_ledgerFilter==='all'?'Publish your first invoice using the Builder tab.':''}</div>`;
+    return;
+  }
+
+  const fmtDate = iso => {
+    if (!iso) return '—';
+    const d = new Date(iso+' 00:00');
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  };
+
+  el.innerHTML = filtered.map(inv => {
+    const s = _invoiceStatus(inv);
+    const pillCls = `inv-pill inv-pill-${s}`;
+    const pillLbl = s.charAt(0).toUpperCase()+s.slice(1);
+    const paidLine = s==='paid'&&inv.paidDate ? `<span class="ledger-paid-on">· Paid ${fmtDate(inv.paidDate)}</span>` : '';
+    const actionsHTML = s !== 'paid'
+      ? `<div class="pay-confirm-row" id="pay-row-${inv.id}" style="display:none">
+           <input type="date" class="pay-date-in" id="pay-date-${inv.id}" value="${todayISO()}"/>
+           <button class="pay-ok" onclick="confirmPay('${inv.id}')">Mark Paid</button>
+           <button class="pay-cancel" onclick="cancelPay('${inv.id}')">Cancel</button>
+         </div>
+         <div class="ledger-acts" id="act-row-${inv.id}">
+           <button class="lact lact-pay" onclick="showPayConfirm('${inv.id}')">Mark as Paid</button>
+           ${inv.url?`<a href="${inv.url}" target="_blank"><button class="lact">Open ↗</button></a>`:''}
+           <button class="lact lact-del" onclick="removeInvoiceRecord('${inv.id}')">✕</button>
+         </div>`
+      : `<div class="ledger-acts">
+           ${inv.url?`<a href="${inv.url}" target="_blank"><button class="lact">Open ↗</button></a>`:''}
+           <button class="lact lact-del" onclick="removeInvoiceRecord('${inv.id}')">✕</button>
+         </div>`;
+
+    return `<div class="ledger-item" id="ledger-item-${inv.id}">
+      <div class="ledger-top">
+        <div>
+          <div class="ledger-num">${esc(inv.invoiceNum)}</div>
+          <div class="ledger-client">${esc(inv.client)}${inv.company&&inv.company!==inv.client?' · '+esc(inv.company):''}</div>
+        </div>
+        <div>
+          <div class="ledger-amount">$${(inv.amount||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+          <div class="ledger-dates">Issued ${fmtDate(inv.date)} · Due ${fmtDate(inv.dueDate)}</div>
+        </div>
+      </div>
+      <div class="ledger-foot">
+        <div style="display:flex;align-items:center">
+          <span class="${pillCls}">${pillLbl}</span>${paidLine}
+        </div>
+        ${actionsHTML}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showPayConfirm(id) {
+  document.getElementById('act-row-'+id).style.display = 'none';
+  document.getElementById('pay-row-'+id).style.display = 'flex';
+}
+function cancelPay(id) {
+  document.getElementById('pay-row-'+id).style.display = 'none';
+  document.getElementById('act-row-'+id).style.display = 'flex';
+}
+function confirmPay(id) {
+  const records = _invoicesLoad();
+  const inv = records.find(r => r.id === id);
+  if (!inv) return;
+  inv.status = 'paid';
+  inv.paidDate = document.getElementById('pay-date-'+id).value || todayISO();
+  _invoicesSave(records);
+  _refreshOverdueBadge();
+  renderLedger();
+  renderDashboard();
+  toast('Marked as paid ✓', 'ok');
+}
+function removeInvoiceRecord(id) {
+  _invoicesSave(_invoicesLoad().filter(r => r.id !== id));
+  _refreshOverdueBadge();
+  renderLedger();
+  renderDashboard();
+}
+
+function _refreshOverdueBadge() {
+  const count = _invoicesLoad().filter(inv => _invoiceStatus(inv) === 'overdue').length;
+  const badge = document.getElementById('inv-overdue-badge');
+  if (!badge) return;
+  badge.style.display = count ? '' : 'none';
+  badge.textContent = count;
+}
+
+function _ledgerOutstanding() {
+  return _invoicesLoad()
+    .filter(inv => _invoiceStatus(inv) !== 'paid')
+    .reduce((s, inv) => s + (inv.amount||0), 0);
+}
+function _ledgerOverdueAmt() {
+  return _invoicesLoad()
+    .filter(inv => _invoiceStatus(inv) === 'overdue')
+    .reduce((s, inv) => s + (inv.amount||0), 0);
+}
+
 // ── CLIENT HISTORY ───────────────────────────────────────────
 function _clientKey(name, company) {
   return (name + '|' + (company||'')).toLowerCase().trim();
@@ -1770,6 +2028,7 @@ async function publishInvoice() {
     localStorage.setItem('shift-invoice-counter', String(counter));
     _saveClientOnPublish(d, d.invoiceNum);
     _crmOnInvoicePublish(d, d.invoiceNum, d.total);
+    saveInvoiceRecord(d, url);
     try {
       await autoUpdateHub(card, '<!-- INVOICES_INSERT -->', token);
       toast('Hub updated with new card ✓', 'ok');
