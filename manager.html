@@ -319,7 +319,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       <div class="section-label">Client Access</div>
       <div class="link-h2">Generate Portal Link</div>
       <div class="form-grid-2">
-        <div><label class="f-label" for="client-name">Client Name</label><input class="f-input" type="text" id="client-name" placeholder="e.g. Alex Padilla"/></div>
+        <div><label class="f-label" for="client-name">Client Name</label><input class="f-input" type="text" id="client-name" placeholder="Client Name"/></div>
         <div><label class="f-label" for="expiry-days">Link Expires In</label>
           <select class="f-select" id="expiry-days">
             <option value="7">7 days</option>
@@ -351,8 +351,8 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         <div class="f-section-label" style="margin-top:0;padding-top:0;border-top:none;font-size:10px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:18px;">Client & Proposal Info</div>
 
         <div class="f-grid">
-          <div class="f-row"><label class="f-label">Client Name *</label><input class="f-input" id="p-client" placeholder="Alex Padilla" oninput="scheduleProposalPreview()"/></div>
-          <div class="f-row"><label class="f-label">Company</label><input class="f-input" id="p-company" placeholder="Beyond Restaurant" oninput="scheduleProposalPreview()"/></div>
+          <div class="f-row"><label class="f-label">Client Name *</label><input class="f-input" id="p-client" placeholder="Client Name" oninput="scheduleProposalPreview()"/></div>
+          <div class="f-row"><label class="f-label">Company</label><input class="f-input" id="p-company" placeholder="Company" oninput="scheduleProposalPreview()"/></div>
         </div>
         <div class="f-grid">
           <div class="f-row"><label class="f-label">City</label><input class="f-input" id="p-city" placeholder="Houston, TX" oninput="scheduleProposalPreview()"/></div>
@@ -444,7 +444,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
             </select>
             <button class="cp-save" onclick="saveCurrentClient()">Save Client</button>
           </div>
-          <div class="f-row"><label class="f-label">Client Name *</label><input class="f-input" id="i-client" placeholder="Alex Padilla" oninput="scheduleInvoicePreview()"/></div>
+          <div class="f-row"><label class="f-label">Client Name *</label><input class="f-input" id="i-client" placeholder="Client Name" oninput="scheduleInvoicePreview()"/></div>
           <div class="f-row"><label class="f-label">Company</label><input class="f-input" id="i-company" placeholder="Stage Directions Inc" oninput="scheduleInvoicePreview()"/></div>
           <div class="f-row"><label class="f-label">Street Address</label><input class="f-input" id="i-addr" placeholder="8311 Hempstead Rd" oninput="scheduleInvoicePreview()"/></div>
           <div class="f-grid">
@@ -538,7 +538,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         <div class="crm-edit-inner" id="crm-edit-view" style="display:none">
           <div class="crm-edit-h2" id="crm-edit-title">New Client</div>
           <div class="f-grid">
-            <div class="f-row"><label class="f-label">Name *</label><input class="f-input" id="ce-name" placeholder="Alex Padilla"/></div>
+            <div class="f-row"><label class="f-label">Name *</label><input class="f-input" id="ce-name" placeholder="Client Name"/></div>
             <div class="f-row"><label class="f-label">Company</label><input class="f-input" id="ce-company" placeholder="Stage Directions Inc"/></div>
           </div>
           <div class="f-grid">
