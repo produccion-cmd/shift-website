@@ -1157,27 +1157,30 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
           <div class="f-row"><label class="f-label">Invoice #</label><div class="inv-num-row"><input class="f-input" id="i-num" placeholder="AV2613" oninput="scheduleInvoicePreview()"/><button class="inv-autonumber-btn" onclick="_setNextInvoiceNum()" title="Suggest next number">↻</button></div></div>
           <div class="f-row"><label class="f-label">PO # (Optional)</label><input class="f-input" id="i-po" placeholder="PO-12345" oninput="scheduleInvoicePreview()"/></div>
         </div>
-        <div class="f-row">
-          <label class="f-label">Language</label>
+
+        <div class="f-grid">
+          <div class="f-row">
+            <label class="f-label">Language</label>
             <select class="f-select" id="i-lang" onchange="scheduleInvoicePreview()">
               <option value="es">Español</option>
               <option value="en">English</option>
             </select>
           </div>
+          <div class="f-row">
+            <label class="f-label">Payment Terms</label>
+            <select class="f-select" id="i-payment-terms" onchange="applyPaymentTerms();scheduleInvoicePreview()">
+              <option value="">— Select terms —</option>
+              <option value="Net 14">Net 14</option>
+              <option value="Net 30">Net 30</option>
+              <option value="Due on receipt">Due on receipt</option>
+              <option value="50% deposit">50% deposit</option>
+            </select>
+          </div>
         </div>
+
         <div class="f-grid">
           <div class="f-row"><label class="f-label">Invoice Date</label><input class="f-input" type="date" id="i-date" oninput="scheduleInvoicePreview()"/></div>
           <div class="f-row"><label class="f-label">Due Date</label><input class="f-input" type="date" id="i-due" oninput="scheduleInvoicePreview()"/></div>
-        </div>
-        <div class="f-row">
-          <label class="f-label">Payment Terms</label>
-          <select class="f-select" id="i-payment-terms" onchange="applyPaymentTerms();scheduleInvoicePreview()">
-            <option value="">— Select terms —</option>
-            <option value="Net 14">Net 14</option>
-            <option value="Net 30">Net 30</option>
-            <option value="Due on receipt">Due on receipt</option>
-            <option value="50% deposit">50% deposit</option>
-          </select>
         </div>
 
         <div class="f-section">
