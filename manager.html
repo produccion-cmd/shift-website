@@ -94,6 +94,21 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .add-row-btn{margin-top:10px;width:100%;background:transparent;border:1px dashed var(--border2);color:var(--dim);padding:11px;font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:border-color .2s,color .2s}
 .add-row-btn:hover{border-color:#555;color:var(--white)}
 
+/* CLIENT PICKER */
+.client-picker{display:flex;gap:8px;margin-bottom:14px}
+.client-picker .f-select{flex:1;color:var(--gray)}
+.cp-save{white-space:nowrap;background:transparent;border:1px solid var(--border);color:var(--dim);font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;padding:11px 16px;cursor:pointer;transition:border-color .2s,color .2s;flex-shrink:0}
+.cp-save:hover{border-color:#555;color:var(--white)}
+/* CLIENTS ROSTER */
+.clients-section{padding:36px 32px 48px;border-top:1px solid var(--border);max-width:820px;width:100%;margin:0 auto}
+.client-card{border:1px solid var(--border);padding:16px 20px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.client-card-name{font-family:'Sora',sans-serif;font-weight:600;font-size:14px}
+.client-card-meta{font-size:11px;color:var(--dim);margin-top:3px;line-height:1.5}
+.client-card-actions{display:flex;gap:8px;flex-shrink:0}
+.cc-load{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--gray);padding:8px 14px;cursor:pointer;font-family:'Inter',sans-serif;transition:border-color .2s,color .2s}
+.cc-load:hover{border-color:#555;color:var(--white)}
+.cc-del{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;background:transparent;border:1px solid transparent;color:var(--dim);padding:8px 10px;cursor:pointer;font-family:'Inter',sans-serif}
+.cc-del:hover{color:var(--red)}
 /* INVOICE LINE ITEMS */
 .items-table{width:100%;border-collapse:collapse;margin-top:4px}
 .items-table th{font-size:9.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);padding:0 8px 10px;text-align:left;border-bottom:1px solid var(--border)}
@@ -327,6 +342,12 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 
         <div class="f-section">
           <div class="f-section-label">Bill To</div>
+          <div class="client-picker">
+            <select class="f-select" id="client-picker" onchange="loadClientFromPicker(this.value)">
+              <option value="">— Load saved client —</option>
+            </select>
+            <button class="cp-save" onclick="saveCurrentClient()">Save Client</button>
+          </div>
           <div class="f-row"><label class="f-label">Client Name *</label><input class="f-input" id="i-client" placeholder="Alex Padilla" oninput="scheduleInvoicePreview()"/></div>
           <div class="f-row"><label class="f-label">Company</label><input class="f-input" id="i-company" placeholder="Stage Directions Inc" oninput="scheduleInvoicePreview()"/></div>
           <div class="f-row"><label class="f-label">Street Address</label><input class="f-input" id="i-addr" placeholder="8311 Hempstead Rd" oninput="scheduleInvoicePreview()"/></div>
@@ -382,6 +403,11 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       <button class="action-btn btn-pdf" onclick="downloadInvoicePDF()">↓ PDF / Print</button>
       <button class="action-btn btn-secondary" onclick="openInvoicePreview()">↗ Open Preview</button>
       <button class="action-btn btn-primary" onclick="publishInvoice()">↑ Publish to Portal</button>
+    </div>
+
+    <div class="clients-section">
+      <div class="section-label">Saved Clients</div>
+      <div id="clients-list"></div>
     </div>
   </div>
 
@@ -634,6 +660,8 @@ function initForms() {
   document.getElementById('i-date').value = todayISO();
   document.getElementById('i-due').value = addDaysISO(30);
   if (!document.querySelector('#invoice-items tr')) addInvoiceItem();
+  renderClientPicker();
+  renderClientCards();
 }
 
 function addService() {
@@ -868,6 +896,121 @@ async function downloadInvoicePDF() {
   const win = window.open(URL.createObjectURL(new Blob([generateInvoiceHTML(d)],{type:'text/html'})),'_blank');
   if (win) setTimeout(()=>win.print(),1200);
 }
+// ── CLIENT HISTORY ───────────────────────────────────────────
+function _clientKey(name, company) {
+  return (name + '|' + (company||'')).toLowerCase().trim();
+}
+
+function saveCurrentClient(silent) {
+  const d = getInvoiceData();
+  if (!d.client) { if (!silent) toast('Enter a client name first', 'err'); return; }
+  const clients = JSON.parse(localStorage.getItem('shift-clients')||'[]');
+  const key = _clientKey(d.client, d.company);
+  const idx = clients.findIndex(c => _clientKey(c.name, c.company) === key);
+  const entry = { name:d.client, company:d.company, addr:d.addr, city:d.city, country:d.country, email:d.email, updated:Date.now() };
+  if (idx >= 0) {
+    entry.lastInvoice = clients[idx].lastInvoice;
+    entry.invoiceCount = clients[idx].invoiceCount || 0;
+    clients[idx] = entry;
+  } else {
+    entry.invoiceCount = 0;
+    clients.unshift(entry);
+  }
+  localStorage.setItem('shift-clients', JSON.stringify(clients.slice(0,100)));
+  if (!silent) toast('Client saved ✓', 'ok');
+  renderClientPicker();
+  renderClientCards();
+}
+
+function _saveClientOnPublish(d, invoiceNum) {
+  const clients = JSON.parse(localStorage.getItem('shift-clients')||'[]');
+  const key = _clientKey(d.client, d.company);
+  const idx = clients.findIndex(c => _clientKey(c.name, c.company) === key);
+  const entry = { name:d.client, company:d.company, addr:d.addr, city:d.city, country:d.country, email:d.email, lastInvoice:invoiceNum, updated:Date.now() };
+  if (idx >= 0) {
+    entry.invoiceCount = (clients[idx].invoiceCount || 0) + 1;
+    clients[idx] = entry;
+  } else {
+    entry.invoiceCount = 1;
+    clients.unshift(entry);
+  }
+  localStorage.setItem('shift-clients', JSON.stringify(clients.slice(0,100)));
+  renderClientPicker();
+  renderClientCards();
+}
+
+function loadClientFromPicker(val) {
+  if (!val) return;
+  const clients = JSON.parse(localStorage.getItem('shift-clients')||'[]');
+  const c = clients[parseInt(val)];
+  if (!c) return;
+  document.getElementById('i-client').value = c.name || '';
+  document.getElementById('i-company').value = c.company || '';
+  document.getElementById('i-addr').value = c.addr || '';
+  document.getElementById('i-city').value = c.city || '';
+  document.getElementById('i-country').value = c.country || '';
+  document.getElementById('i-email').value = c.email || '';
+  document.getElementById('client-picker').value = '';
+  scheduleInvoicePreview();
+}
+
+function loadClientCard(i) {
+  const clients = JSON.parse(localStorage.getItem('shift-clients')||'[]');
+  const c = clients[i];
+  if (!c) return;
+  document.getElementById('i-client').value = c.name || '';
+  document.getElementById('i-company').value = c.company || '';
+  document.getElementById('i-addr').value = c.addr || '';
+  document.getElementById('i-city').value = c.city || '';
+  document.getElementById('i-country').value = c.country || '';
+  document.getElementById('i-email').value = c.email || '';
+  scheduleInvoicePreview();
+  document.getElementById('invoice-form-pane').scrollTop = 0;
+  switchTab('invoices');
+  toast('Client loaded ✓', 'ok');
+}
+
+function deleteClient(i) {
+  const clients = JSON.parse(localStorage.getItem('shift-clients')||'[]');
+  clients.splice(i, 1);
+  localStorage.setItem('shift-clients', JSON.stringify(clients));
+  renderClientPicker();
+  renderClientCards();
+}
+
+function renderClientPicker() {
+  const sel = document.getElementById('client-picker');
+  if (!sel) return;
+  const clients = JSON.parse(localStorage.getItem('shift-clients')||'[]');
+  sel.innerHTML = '<option value="">— Load saved client —</option>' +
+    clients.map((c, i) => `<option value="${i}">${esc(c.name)}${c.company ? ' — ' + esc(c.company) : ''}</option>`).join('');
+}
+
+function renderClientCards() {
+  const el = document.getElementById('clients-list');
+  if (!el) return;
+  const clients = JSON.parse(localStorage.getItem('shift-clients')||'[]');
+  if (!clients.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--dim);padding:20px 0">No saved clients yet. Clients are saved automatically when you publish an invoice, or use "Save Client" above.</div>';
+    return;
+  }
+  el.innerHTML = clients.map((c, i) => {
+    const updated = new Date(c.updated).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const addrLine = [c.addr, c.city, c.country].filter(Boolean).join(', ') || 'No address on file';
+    return `<div class="client-card">
+      <div style="min-width:0;flex:1">
+        <div class="client-card-name">${esc(c.name)}${c.company?'<span style="font-weight:400;color:var(--gray)"> · '+esc(c.company)+'</span>':''}</div>
+        <div class="client-card-meta">${addrLine}</div>
+        <div class="client-card-meta">${c.email||'No email'} · ${c.invoiceCount||0} invoice${(c.invoiceCount||0)===1?'':'s'}${c.lastInvoice?' · Last: <b style="color:var(--gray)">'+esc(c.lastInvoice)+'</b>':''} · Updated ${updated}</div>
+      </div>
+      <div class="client-card-actions">
+        <button class="cc-load" onclick="loadClientCard(${i})">Load</button>
+        <button class="cc-del" onclick="deleteClient(${i})" title="Remove">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 async function publishInvoice() {
   const d = getInvoiceData();
   if (!d.client) { toast('Enter a client name','err'); return; }
@@ -882,6 +1025,7 @@ async function publishInvoice() {
     const card = buildInvoiceCard(d, filename);
     const counter = parseInt(localStorage.getItem('shift-invoice-counter')||'2612') + 1;
     localStorage.setItem('shift-invoice-counter', String(counter));
+    _saveClientOnPublish(d, d.invoiceNum);
     try {
       await autoUpdateHub(card, '<!-- INVOICES_INSERT -->', token);
       toast('Hub updated with new card ✓', 'ok');
