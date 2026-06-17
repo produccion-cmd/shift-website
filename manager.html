@@ -514,6 +514,35 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .rcp-foot{padding:14px 24px;border-top:1px solid var(--border);flex-shrink:0;text-align:right}
 .rcp-done-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:11px 24px;border:none;cursor:pointer}
 .rcp-done-btn:hover{opacity:.85}
+
+/* ── QUICK QUOTE ─────────────────────────────────────────── */
+.qq-wrap{flex:1;overflow-y:auto;padding:40px 32px 60px;max-width:820px;width:100%;margin:0 auto}
+.qq-h2{font-family:'Sora',sans-serif;font-weight:800;font-size:26px;letter-spacing:-.03em;margin-bottom:6px}
+.qq-sub{font-size:12px;color:var(--gray);margin-bottom:32px;line-height:1.6}
+.qq-amount-wrap{display:flex;align-items:center;border:1px solid var(--border);background:var(--surface);padding:4px 14px;margin-bottom:0}
+.qq-dollar{font-family:'Sora',sans-serif;font-weight:800;font-size:32px;color:var(--dim);margin-right:4px;line-height:1}
+.qq-amount-input{flex:1;background:transparent;border:none;color:var(--white);font-family:'Sora',sans-serif;font-size:36px;font-weight:800;padding:14px 0;outline:none;letter-spacing:-.03em;-moz-appearance:textfield}
+.qq-amount-input::-webkit-outer-spin-button,.qq-amount-input::-webkit-inner-spin-button{-webkit-appearance:none}
+.qq-gen-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;padding:15px 32px;border:none;cursor:pointer;transition:opacity .2s;margin-top:4px}
+.qq-gen-btn:hover{opacity:.85}
+.qq-result{margin-top:28px;border:1px solid var(--border);padding:24px;display:none}
+.qq-url-box{font-size:12px;color:var(--gray);word-break:break-all;background:#0a0a0a;border:1px solid var(--border);padding:12px 14px;margin-bottom:14px;line-height:1.6}
+.qq-copy-btn{font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--white);padding:10px 20px;cursor:pointer;transition:border-color .2s,color .2s}
+.qq-copy-btn.copied{border-color:var(--green);color:var(--green)}
+.qq-expiry-note{font-size:12px;color:var(--dim);margin-top:10px}
+.qq-history{margin-top:48px;border-top:1px solid var(--border);padding-top:36px}
+.qq-hist-item{border:1px solid var(--border);padding:16px 20px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.qq-hist-name{font-family:'Sora',sans-serif;font-weight:600;font-size:14px}
+.qq-hist-num{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:2px}
+.qq-hist-meta{font-size:11px;color:var(--dim);margin-top:3px}
+.qq-hist-meta .expired{color:var(--red)}
+.qq-hist-amount{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;flex-shrink:0}
+.qq-hist-actions{display:flex;gap:8px;flex-shrink:0;align-items:center}
+.qq-hist-copy,.qq-hist-del{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--gray);padding:7px 12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.qq-hist-copy:hover{border-color:#555;color:var(--white)}
+.qq-hist-del{border-color:transparent;color:var(--dim)}
+.qq-hist-del:hover{color:var(--red)}
+.qq-hist-copy.copied{border-color:var(--green);color:var(--green)}
 </style>
 </head>
 <body>
@@ -544,6 +573,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
   <nav class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
     <button class="tab-btn" onclick="switchTab('links')">Portal Links</button>
+    <button class="tab-btn" onclick="switchTab('quickquote')">Quick Quote</button>
     <button class="tab-btn" onclick="switchTab('proposals')">Proposals</button>
     <button class="tab-btn" onclick="switchTab('invoices')">Invoices</button>
     <button class="tab-btn" onclick="switchTab('contracts')">Contracts</button>
@@ -642,6 +672,65 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       <div class="history-section">
         <div class="section-label">Generated Links</div>
         <div id="history-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: QUICK QUOTE -->
+  <div class="tab-panel" id="tab-quickquote">
+    <div class="qq-wrap">
+      <div class="section-label">Quick Quote</div>
+      <div class="qq-h2">Send a Quote in 60 Seconds</div>
+      <div class="qq-sub">No proposal needed — just a total, a description, and an expiry. Generates a private token-gated link instantly.</div>
+
+      <div class="form-grid-2">
+        <div><label class="f-label" for="qq-client">Client Name *</label>
+          <input class="f-input" id="qq-client" placeholder="e.g. Priya & Raj Wedding"/>
+        </div>
+        <div><label class="f-label" for="qq-num">Quote # (optional)</label>
+          <input class="f-input" id="qq-num" placeholder="e.g. QQ-001"/>
+        </div>
+      </div>
+
+      <div class="f-row" style="margin-bottom:16px">
+        <label class="f-label">Total Amount (USD) *</label>
+        <div class="qq-amount-wrap">
+          <span class="qq-dollar">$</span>
+          <input class="qq-amount-input" type="number" id="qq-amount" placeholder="0" min="0" step="any"/>
+        </div>
+      </div>
+
+      <div class="form-grid-2" style="margin-bottom:16px">
+        <div><label class="f-label" for="qq-valid">Valid Until *</label>
+          <input class="f-input" type="date" id="qq-valid"/>
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button class="btn-secondary action-btn" style="width:100%;justify-content:center;display:flex" onclick="rcOpenPicker('quickquote')">↓ Add from Rate Card</button>
+        </div>
+      </div>
+
+      <div class="f-row" style="margin-bottom:16px">
+        <label class="f-label" for="qq-desc">Scope of Work (optional)</label>
+        <textarea class="f-textarea" id="qq-desc" placeholder="Brief description of services included…" rows="3"></textarea>
+      </div>
+
+      <div class="f-row" style="margin-bottom:20px">
+        <label class="f-label" for="qq-notes">Notes &amp; Terms (optional)</label>
+        <textarea class="f-textarea" id="qq-notes" placeholder="Payment terms, inclusions, exclusions…" rows="2"></textarea>
+      </div>
+
+      <button class="qq-gen-btn" onclick="generateQuote()">Generate Quote Link</button>
+
+      <div class="qq-result" id="qq-result">
+        <div class="result-label">Shareable Quote Link</div>
+        <div class="qq-url-box" id="qq-url-box"></div>
+        <button class="qq-copy-btn" id="qq-copy-btn" onclick="copyQuoteLink()">Copy Link</button>
+        <div class="qq-expiry-note" id="qq-expiry-note"></div>
+      </div>
+
+      <div class="qq-history">
+        <div class="section-label">Quote History</div>
+        <div id="qq-history-list"></div>
       </div>
     </div>
   </div>
@@ -1235,6 +1324,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 // ── CONSTANTS ────────────────────────────────────────────────
 const _SK = 'SHIFTportal#2026$key!xK9mPq3';
 const PORTAL_URL = 'https://shiftevnts.com/SHIFT_proposals_hub.html';
+const QUOTE_URL  = 'https://shiftevnts.com/SHIFT_quick_quote.html';
 const SITE_URL   = 'https://shiftevnts.com';
 const REPO       = 'produccion-cmd/shift-website';
 let MANAGER_PW   = localStorage.getItem('shift-mgr-pw') || 'SHIFT2026';
@@ -1383,7 +1473,7 @@ function _timeAgo(ts) {
 // ── TAB SYSTEM ──────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    const names = ['dashboard','links','proposals','invoices','contracts','pipeline','ratecards','clients','settings'];
+    const names = ['dashboard','links','quickquote','proposals','invoices','contracts','pipeline','ratecards','clients','settings'];
     b.classList.toggle('active', names[i] === name);
   });
   document.querySelectorAll('.tab-panel').forEach(p => {
@@ -1394,6 +1484,7 @@ function switchTab(name) {
   if (name === 'contracts') renderContractHistory();
   if (name === 'pipeline') renderPipeline();
   if (name === 'ratecards') renderRateCard();
+  if (name === 'quickquote') { initQuoteForm(); renderQuoteHistory(); }
 }
 
 // ── AUTH ────────────────────────────────────────────────────
@@ -1411,6 +1502,7 @@ function doLogin() {
     renderDashboard();
     _refreshOverdueBadge();
     initContractForm();
+    initQuoteForm();
   } else {
     document.getElementById('login-err').textContent = 'Incorrect password.';
     document.getElementById('pw').value = '';
@@ -1426,7 +1518,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { initForms(); renderHistory(); loadGHToken(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); initContractForm(); });
+  document.addEventListener('DOMContentLoaded', () => { initForms(); renderHistory(); loadGHToken(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); initContractForm(); initQuoteForm(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -2303,7 +2395,7 @@ let _rcPickerTarget = 'invoice';
 function rcOpenPicker(target) {
   _rcPickerTarget = target;
   document.getElementById('rcp-ctx').textContent =
-    target === 'invoice' ? 'Adding to Invoice' : 'Adding to Proposal';
+    target === 'invoice' ? 'Adding to Invoice' : target === 'quickquote' ? 'Adding to Quick Quote' : 'Adding to Proposal';
   document.getElementById('rcp-search').value = '';
   renderRCPicker();
   document.getElementById('rcp-modal').classList.add('open');
@@ -2347,7 +2439,15 @@ function rcInsert(id, btn) {
   const s = _rcLoad().find(x => x.id === id);
   if (!s) return;
 
-  if (_rcPickerTarget === 'invoice') {
+  if (_rcPickerTarget === 'quickquote') {
+    const amtEl  = document.getElementById('qq-amount');
+    const descEl = document.getElementById('qq-desc');
+    const cur = parseFloat(amtEl.value||'0') + (s.price||0);
+    amtEl.value = cur.toFixed(2);
+    const line = s.name + (s.unit ? ' (per '+s.unit+')' : '');
+    descEl.value = descEl.value ? descEl.value + '\n' + line : line;
+
+  } else if (_rcPickerTarget === 'invoice') {
     // Add a pre-filled row to the invoice items table
     const tbody = document.getElementById('invoice-items');
     const tr = document.createElement('tr');
@@ -2385,6 +2485,128 @@ function rcInsert(id, btn) {
 }
 
 document.addEventListener('keydown', e => { if (e.key==='Escape') { closeRCModal(); closeRCPicker(); } });
+
+// ── QUICK QUOTE ───────────────────────────────────────────────
+function _quotesLoad() { return JSON.parse(localStorage.getItem('shift-quotes')||'[]'); }
+function _quotesSave(d) { localStorage.setItem('shift-quotes', JSON.stringify(d)); }
+
+function _nextQuoteNum() {
+  let n = parseInt(localStorage.getItem('shift-quote-counter')||'0',10) + 1;
+  localStorage.setItem('shift-quote-counter', String(n));
+  return 'QQ-' + String(n).padStart(3,'0');
+}
+
+function initQuoteForm() {
+  const vld = document.getElementById('qq-valid');
+  if (vld && !vld.value) {
+    const d = new Date(); d.setDate(d.getDate()+14);
+    vld.value = d.toISOString().slice(0,10);
+  }
+  const numEl = document.getElementById('qq-num');
+  if (numEl && !numEl.value) {
+    const n = parseInt(localStorage.getItem('shift-quote-counter')||'0',10) + 1;
+    numEl.placeholder = 'QQ-' + String(n).padStart(3,'0');
+  }
+}
+
+async function generateQuote() {
+  const client = document.getElementById('qq-client').value.trim();
+  const validUntil = document.getElementById('qq-valid').value;
+  const amount = parseFloat(document.getElementById('qq-amount').value||'0');
+  const desc   = document.getElementById('qq-desc').value.trim();
+  const notes  = document.getElementById('qq-notes').value.trim();
+  let   num    = document.getElementById('qq-num').value.trim();
+
+  if (!client) { toast('Enter a client name','err'); document.getElementById('qq-client').focus(); return; }
+  if (!validUntil) { toast('Select a valid-until date','err'); document.getElementById('qq-valid').focus(); return; }
+  if (!amount || amount <= 0) { toast('Enter an amount','err'); document.getElementById('qq-amount').focus(); return; }
+
+  if (!num) { num = _nextQuoteNum(); document.getElementById('qq-num').value = num; }
+
+  const exp = Math.floor(new Date(validUntil + 'T23:59:59').getTime() / 1000);
+  const payload = `${client}|${exp}`;
+  const sig = (await _hmac(payload)).slice(0, 32);
+  const token = toBase64(payload) + '.' + sig;
+
+  const qData = { num, amount: amount.toFixed(2), validUntil };
+  if (desc)  qData.desc  = desc;
+  if (notes) qData.notes = notes;
+  const q = encodeURIComponent(toBase64(JSON.stringify(qData)));
+  const url = `${QUOTE_URL}?t=${encodeURIComponent(token)}&q=${q}`;
+
+  document.getElementById('qq-url-box').textContent = url;
+  const res = document.getElementById('qq-result');
+  res.style.display = 'block';
+  res.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  document.getElementById('qq-copy-btn').textContent = 'Copy Link';
+  document.getElementById('qq-copy-btn').classList.remove('copied');
+  const expDate = new Date(exp*1000).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('qq-expiry-note').textContent = `Valid Until: ${expDate}`;
+
+  const history = _quotesLoad();
+  history.unshift({ num, client, amount: amount.toFixed(2), validUntil, exp, url, created: Date.now() });
+  _quotesSave(history.slice(0,100));
+  renderQuoteHistory();
+  toast(`Quote ${num} generated ✓`, 'ok');
+}
+
+function copyQuoteLink(url, btn) {
+  const theUrl = url || document.getElementById('qq-url-box').textContent;
+  const theBtn = btn || document.getElementById('qq-copy-btn');
+  navigator.clipboard.writeText(theUrl).then(() => {
+    theBtn.textContent = 'Copied ✓';
+    theBtn.classList.add('copied');
+    setTimeout(() => { theBtn.textContent = 'Copy Link'; theBtn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function renderQuoteHistory() {
+  const list = document.getElementById('qq-history-list');
+  if (!list) return;
+  const history = _quotesLoad();
+  if (!history.length) {
+    list.innerHTML = '<div class="history-empty">No quotes generated yet.</div>';
+    return;
+  }
+  list.innerHTML = history.map((item, i) => {
+    const isExpired = Date.now()/1000 > item.exp;
+    const expDate = new Date(item.exp*1000).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const createdDate = new Date(item.created).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    return `<div class="qq-hist-item">
+      <div>
+        <div class="qq-hist-name">${esc(item.client)}</div>
+        <div class="qq-hist-num">${esc(item.num)}</div>
+        <div class="qq-hist-meta">Created ${createdDate} · <span class="${isExpired?'expired':''}">Valid Until ${expDate}${isExpired?' (expired)':''}</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+        <div class="qq-hist-amount">$${parseFloat(item.amount).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+        <div class="qq-hist-actions">
+          <button class="qq-hist-copy" id="qqhb-${i}" onclick="copyQuoteHistLink(${i})">${isExpired?'Expired':'Copy'}</button>
+          <button class="qq-hist-del" onclick="deleteQuoteRecord(${i})">✕</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function copyQuoteHistLink(i) {
+  const history = _quotesLoad();
+  const item = history[i];
+  if (!item || Date.now()/1000 > item.exp) return;
+  const btn = document.getElementById(`qqhb-${i}`);
+  navigator.clipboard.writeText(item.url).then(() => {
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function deleteQuoteRecord(i) {
+  const history = _quotesLoad();
+  history.splice(i, 1);
+  _quotesSave(history);
+  renderQuoteHistory();
+}
 
 // ── PIPELINE ─────────────────────────────────────────────────
 const PIPE_STAGES = [
