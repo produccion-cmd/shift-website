@@ -544,6 +544,30 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .qq-hist-del:hover{color:var(--red)}
 .qq-hist-copy.copied{border-color:var(--green);color:var(--green)}
 
+/* ── CRM PICKER (shared across forms) ───────────────────────── */
+.crm-pick-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.crm-pick-lbl{font-size:9.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);white-space:nowrap;flex-shrink:0}
+.crm-pick-sel{flex:1;background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'Inter',sans-serif;font-size:12.5px;padding:9px 12px;outline:none;cursor:pointer;transition:border-color .15s}
+.crm-pick-sel:focus{border-color:#444}
+.crm-pick-sel option{background:#111;color:#fff}
+/* ── CRM PROFILE ACTIVITY ────────────────────────────────────── */
+.crm-act-section{margin-top:28px;border-top:1px solid var(--border);padding-top:20px}
+.crm-act-lbl{font-size:9.5px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
+.crm-act-empty{font-size:12px;color:var(--dim);padding:8px 0;line-height:1.7}
+.crm-act-item{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .12s}
+.crm-act-item:last-child{border-bottom:none}
+.crm-act-item:hover{opacity:.8}
+.crm-act-badge{width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:800;letter-spacing:.1em;border:1px solid}
+.crm-act-badge-inv{color:#4ade80;border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.06)}
+.crm-act-badge-prop{color:#60a5fa;border-color:rgba(96,165,250,.3);background:rgba(96,165,250,.06)}
+.crm-act-badge-ctr{color:#c084fc;border-color:rgba(192,132,252,.3);background:rgba(192,132,252,.07)}
+.crm-act-badge-quote{color:#c8a84b;border-color:rgba(200,168,75,.3);background:rgba(200,168,75,.06)}
+.crm-act-badge-ev{color:#888;border-color:#2a2a2a;background:transparent}
+.crm-act-body{flex:1;min-width:0}
+.crm-act-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crm-act-meta{font-size:10.5px;color:var(--dim);margin-top:2px}
+.crm-act-amount{font-family:'Sora',sans-serif;font-weight:700;font-size:14px;flex-shrink:0;text-align:right}
+
 /* ── EVENTS CALENDAR ─────────────────────────────────────── */
 .cal-wrap{flex:1;overflow-y:auto;padding:40px 32px 60px;max-width:960px;width:100%;margin:0 auto}
 .cal-topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:32px}
@@ -732,6 +756,13 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       <div class="qq-h2">Send a Quote in 60 Seconds</div>
       <div class="qq-sub">No proposal needed — just a total, a description, and an expiry. Generates a private token-gated link instantly.</div>
 
+      <div class="crm-pick-row" style="margin-bottom:14px">
+        <span class="crm-pick-lbl">Load from CRM</span>
+        <select class="crm-pick-sel" id="qq-client-picker" onchange="pickFromCRM('qq-client-picker','qq-client','qq-client-id')">
+          <option value="">— Pick a client —</option>
+        </select>
+      </div>
+      <input type="hidden" id="qq-client-id"/>
       <div class="form-grid-2">
         <div><label class="f-label" for="qq-client">Client Name *</label>
           <input class="f-input" id="qq-client" placeholder="e.g. Priya & Raj Wedding"/>
@@ -790,6 +821,13 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       <div class="builder-form" id="proposal-form-pane">
         <div class="f-section-label" style="margin-top:0;padding-top:0;border-top:none;font-size:10px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:18px;">Client & Proposal Info</div>
 
+        <div class="crm-pick-row" style="margin-bottom:14px">
+          <span class="crm-pick-lbl">Load from CRM</span>
+          <select class="crm-pick-sel" id="p-client-picker" onchange="pickFromCRM('p-client-picker','p-client','p-client-id','proposal')">
+            <option value="">— Pick a client —</option>
+          </select>
+        </div>
+        <input type="hidden" id="p-client-id"/>
         <div class="f-grid">
           <div class="f-row"><label class="f-label">Client Name *</label><input class="f-input" id="p-client" placeholder="Client Name" oninput="scheduleProposalPreview()"/></div>
           <div class="f-row"><label class="f-label">Company</label><input class="f-input" id="p-company" placeholder="Company" oninput="scheduleProposalPreview()"/></div>
@@ -890,12 +928,13 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 
         <div class="f-section">
           <div class="f-section-label">Bill To</div>
-          <div class="client-picker">
-            <select class="f-select" id="client-picker" onchange="loadClientFromPicker(this.value)">
-              <option value="">— Load saved client —</option>
+          <div class="crm-pick-row">
+            <span class="crm-pick-lbl">Load from CRM</span>
+            <select class="crm-pick-sel" id="client-picker" onchange="pickFromCRM('client-picker','i-client','i-client-id','invoice')">
+              <option value="">— Pick a client —</option>
             </select>
-            <button class="cp-save" onclick="saveCurrentClient()">Save Client</button>
           </div>
+          <input type="hidden" id="i-client-id"/>
           <div class="f-row"><label class="f-label">Client Name *</label><input class="f-input" id="i-client" placeholder="Client Name" oninput="scheduleInvoicePreview()"/></div>
           <div class="f-row"><label class="f-label">Company</label><input class="f-input" id="i-company" placeholder="Stage Directions Inc" oninput="scheduleInvoicePreview()"/></div>
           <div class="f-row"><label class="f-label">Street Address</label><input class="f-input" id="i-addr" placeholder="8311 Hempstead Rd" oninput="scheduleInvoicePreview()"/></div>
@@ -1555,7 +1594,7 @@ function switchTab(name) {
   if (name === 'contracts') renderContractHistory();
   if (name === 'pipeline') renderPipeline();
   if (name === 'ratecards') renderRateCard();
-  if (name === 'quickquote') { initQuoteForm(); renderQuoteHistory(); }
+  if (name === 'quickquote') { initQuoteForm(); renderQuoteHistory(); _populateCRMPickers(); }
   if (name === 'calendar')   renderCalendar();
 }
 
@@ -1714,7 +1753,7 @@ function initForms() {
   document.getElementById('i-date').value = todayISO();
   document.getElementById('i-due').value = addDaysISO(30);
   if (!document.querySelector('#invoice-items tr')) addInvoiceItem();
-  renderClientPicker();
+  _populateCRMPickers();
   renderClientCards();
 }
 
@@ -1758,6 +1797,7 @@ function getProposalData() {
     });
   });
   return {
+    clientId: document.getElementById('p-client-id')?.value||'',
     client: document.getElementById('p-client').value.trim(),
     company: document.getElementById('p-company').value.trim(),
     city: document.getElementById('p-city').value.trim(),
@@ -1909,6 +1949,7 @@ function getInvoiceData() {
     lang: document.getElementById('i-lang').value,
     date: document.getElementById('i-date').value,
     dueDate: document.getElementById('i-due').value,
+    clientId: document.getElementById('i-client-id')?.value||'',
     client: document.getElementById('i-client').value.trim(),
     company: document.getElementById('i-company').value.trim(),
     addr: document.getElementById('i-addr').value.trim(),
@@ -2094,8 +2135,12 @@ function showCRMProfile(id) {
     <div class="crm-quick">
       <button class="crm-q-btn primary" onclick="crmNewInvoice('${id}')">New Invoice</button>
       <button class="crm-q-btn" onclick="crmNewProposal('${id}')">New Proposal</button>
+      <button class="crm-q-btn" onclick="crmNewQuote('${id}')">Quick Quote</button>
+      <button class="crm-q-btn" onclick="crmNewEvent('${id}')">Add Event</button>
       ${c.email?`<button class="crm-q-btn" onclick="navigator.clipboard.writeText('${esc(c.email)}').then(()=>toast('Email copied','ok'))">Copy Email</button>`:''}
     </div>
+
+    ${_renderClientActivity(id, c.name)}
 
     <div class="crm-section-lbl">Notes</div>
     <div class="crm-note-row">
@@ -2264,12 +2309,9 @@ function crmNewInvoice(id) {
   const c = _crmById(id);
   if (!c) return;
   switchTab('invoices');
-  document.getElementById('i-client').value = c.name;
-  document.getElementById('i-company').value = c.company||'';
-  document.getElementById('i-addr').value = c.addr||'';
-  document.getElementById('i-city').value = c.city||'';
-  document.getElementById('i-country').value = c.country||'';
-  document.getElementById('i-email').value = c.email||'';
+  const set = (eid,v) => { const el=document.getElementById(eid); if(el) el.value=v||''; };
+  set('i-client-id', c.id); set('i-client', c.name); set('i-company', c.company);
+  set('i-addr', c.addr); set('i-city', c.city); set('i-country', c.country); set('i-email', c.email);
   scheduleInvoicePreview();
   toast(`${c.name} loaded into Invoice builder`, 'ok');
 }
@@ -2278,11 +2320,32 @@ function crmNewProposal(id) {
   const c = _crmById(id);
   if (!c) return;
   switchTab('proposals');
-  document.getElementById('p-client').value = c.name;
-  document.getElementById('p-company').value = c.company||'';
-  if (document.getElementById('p-city')) document.getElementById('p-city').value = c.city||'';
+  const set = (eid,v) => { const el=document.getElementById(eid); if(el) el.value=v||''; };
+  set('p-client-id', c.id); set('p-client', c.name); set('p-company', c.company); set('p-city', c.city);
   scheduleProposalPreview();
   toast(`${c.name} loaded into Proposal builder`, 'ok');
+}
+
+function crmNewQuote(id) {
+  const c = _crmById(id);
+  if (!c) return;
+  switchTab('quickquote');
+  setTimeout(() => {
+    const set = (eid,v) => { const el=document.getElementById(eid); if(el) el.value=v||''; };
+    set('qq-client-id', c.id); set('qq-client', c.name);
+    initQuoteForm();
+  }, 50);
+  toast(`${c.name} loaded into Quick Quote`, 'ok');
+}
+
+function crmNewEvent(id) {
+  const c = _crmById(id);
+  if (!c) return;
+  calOpenAdd();
+  setTimeout(() => {
+    const set = (eid,v) => { const el=document.getElementById(eid); if(el) el.value=v||''; };
+    set('cal-ev-client-id', c.id); set('cal-ev-client-in', c.name);
+  }, 80);
 }
 
 // Update CRM when an invoice is published
@@ -2558,6 +2621,102 @@ function rcInsert(id, btn) {
 
 document.addEventListener('keydown', e => { if (e.key==='Escape') { closeRCModal(); closeRCPicker(); } });
 
+// ── CRM CLIENT PICKER (shared) ────────────────────────────────
+function _populateCRMPickers() {
+  const clients = _crmLoad();
+  const opts = '<option value="">— Pick a client —</option>' +
+    clients.map(c => `<option value="${c.id}">${esc(c.name)}${c.company?' — '+esc(c.company):''}</option>`).join('');
+  ['client-picker','p-client-picker','qq-client-picker','cal-ev-client-picker','c-client-picker'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = opts.replace('— Pick a client —', id === 'client-picker' ? '— Pick a client —' : '— Pick a client —');
+  });
+}
+
+function pickFromCRM(selId, nameId, hiddenId, context) {
+  const sel = document.getElementById(selId);
+  if (!sel || !sel.value) return;
+  const c = _crmById(sel.value);
+  if (!c) return;
+  // Fill name field
+  const nameEl = document.getElementById(nameId);
+  if (nameEl) nameEl.value = c.name;
+  // Store clientId
+  if (hiddenId) { const h = document.getElementById(hiddenId); if (h) h.value = c.id; }
+  // Fill additional fields based on context
+  if (context === 'invoice') {
+    const fill = (id,v) => { const el=document.getElementById(id); if(el&&v) el.value=v; };
+    fill('i-company', c.company); fill('i-addr', c.addr); fill('i-city', c.city);
+    fill('i-country', c.country); fill('i-email', c.email);
+    scheduleInvoicePreview();
+  } else if (context === 'proposal') {
+    const fill = (id,v) => { const el=document.getElementById(id); if(el&&v) el.value=v; };
+    fill('p-company', c.company); fill('p-city', c.city);
+    scheduleProposalPreview();
+  }
+  sel.value = '';
+  toast(`${c.name} loaded`, 'ok');
+}
+
+// ── CLIENT ACTIVITY (used in CRM profile) ─────────────────────
+function _getClientActivity(clientId, clientName) {
+  const nameKey = (clientName||'').toLowerCase().trim();
+  const match = r => r.clientId === clientId || (r.client||'').toLowerCase().trim() === nameKey;
+  const _fd = s => s ? new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+  const acts = [];
+
+  _invoicesLoad().forEach(inv => {
+    if (!match(inv)) return;
+    acts.push({ type:'invoice', date: inv.dueDate||inv.date||'', label: inv.num||'Invoice',
+      sub: inv.dueDate ? 'Due '+_fd(inv.dueDate) : _fd(inv.date),
+      amount: inv.total||inv.amount||0, status: inv.status, id: inv.id });
+  });
+
+  (JSON.parse(localStorage.getItem('shift-contracts')||'[]')).forEach(ctr => {
+    if (!match(ctr)) return;
+    acts.push({ type:'contract', date: ctr.eventDate||'', label: ctr.eventName||ctr.contractNum||'Contract',
+      sub: ctr.eventDate ? 'Event '+_fd(ctr.eventDate) : '', amount: ctr.amount||0, status: ctr.status, id: ctr.id });
+  });
+
+  _quotesLoad().forEach(q => {
+    if (!match(q)) return;
+    acts.push({ type:'quote', date: q.validUntil||'', label: q.num||'Quote',
+      sub: q.validUntil ? 'Valid Until '+_fd(q.validUntil) : '', amount: parseFloat(q.amount)||0, id: q.id });
+  });
+
+  _eventsLoad().forEach(ev => {
+    if (ev.clientId !== clientId && (ev.client||'').toLowerCase().trim() !== nameKey) return;
+    acts.push({ type:'event', date: ev.date||'', label: ev.title||'Event',
+      sub: ev.type ? ev.type.charAt(0).toUpperCase()+ev.type.slice(1) : 'Event', amount: 0, id: ev.id });
+  });
+
+  return acts.sort((a,b) => {
+    const da = a.date ? new Date(a.date+'T12:00:00') : 0;
+    const db = b.date ? new Date(b.date+'T12:00:00') : 0;
+    return db - da;
+  });
+}
+
+function _renderClientActivity(clientId, clientName) {
+  const acts = _getClientActivity(clientId, clientName);
+  const BADGE = { invoice:'INV', contract:'CTR', quote:'QQ', event:'EVT', proposal:'PROP' };
+  const BADGE_CLASS = { invoice:'crm-act-badge-inv', contract:'crm-act-badge-ctr', quote:'crm-act-badge-quote', event:'crm-act-badge-ev', proposal:'crm-act-badge-prop' };
+  const NAV = { invoice:`switchTab('invoices')`, contract:`switchTab('contracts')`, quote:`switchTab('quickquote')`, event:`switchTab('calendar')`, proposal:`switchTab('proposals')` };
+  const fmtAmt = n => n>0 ? '$'+parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
+  const items = acts.map(a => `
+    <div class="crm-act-item" onclick="${NAV[a.type]||''}">
+      <div class="crm-act-badge ${BADGE_CLASS[a.type]||'crm-act-badge-ev'}">${BADGE[a.type]||'EV'}</div>
+      <div class="crm-act-body">
+        <div class="crm-act-title">${esc(a.label)}</div>
+        <div class="crm-act-meta">${esc(a.sub||'')}${a.status?' · '+a.status:''}</div>
+      </div>
+      ${a.amount>0?`<div class="crm-act-amount">${fmtAmt(a.amount)}</div>`:''}
+    </div>`).join('');
+  return `<div class="crm-act-section">
+    <div class="crm-act-lbl">Activity${acts.length?' ('+acts.length+')':''}</div>
+    ${acts.length ? items : '<div class="crm-act-empty">No records linked to this client yet.<br>Create an invoice, proposal, quote, or event using the buttons above.</div>'}
+  </div>`;
+}
+
 // ── QUICK QUOTE ───────────────────────────────────────────────
 function _quotesLoad() { return JSON.parse(localStorage.getItem('shift-quotes')||'[]'); }
 function _quotesSave(d) { localStorage.setItem('shift-quotes', JSON.stringify(d)); }
@@ -2615,8 +2774,9 @@ async function generateQuote() {
   const expDate = new Date(exp*1000).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   document.getElementById('qq-expiry-note').textContent = `Valid Until: ${expDate}`;
 
+  const clientId = (document.getElementById('qq-client-id')?.value)||'';
   const history = _quotesLoad();
-  history.unshift({ num, client, amount: amount.toFixed(2), validUntil, exp, url, created: Date.now() });
+  history.unshift({ num, client, clientId, amount: amount.toFixed(2), validUntil, exp, url, created: Date.now() });
   _quotesSave(history.slice(0,100));
   renderQuoteHistory();
   toast(`Quote ${num} generated ✓`, 'ok');
@@ -3461,22 +3621,30 @@ function _clientKey(name, company) {
 function saveCurrentClient(silent) {
   const d = getInvoiceData();
   if (!d.client) { if (!silent) toast('Enter a client name first', 'err'); return; }
-  const clients = JSON.parse(localStorage.getItem('shift-clients')||'[]');
-  const key = _clientKey(d.client, d.company);
-  const idx = clients.findIndex(c => _clientKey(c.name, c.company) === key);
-  const entry = { name:d.client, company:d.company, addr:d.addr, city:d.city, country:d.country, email:d.email, updated:Date.now() };
-  if (idx >= 0) {
-    entry.lastInvoice = clients[idx].lastInvoice;
-    entry.invoiceCount = clients[idx].invoiceCount || 0;
-    clients[idx] = entry;
-  } else {
-    entry.invoiceCount = 0;
-    clients.unshift(entry);
+  const contacts = _crmLoad();
+  const existingId = document.getElementById('i-client-id')?.value;
+  let c = existingId ? contacts.find(x => x.id === existingId) : null;
+  if (!c) {
+    const key = (d.client+'|'+(d.company||'')).toLowerCase().trim();
+    c = contacts.find(x => (x.name+'|'+(x.company||'')).toLowerCase().trim() === key);
   }
-  localStorage.setItem('shift-clients', JSON.stringify(clients.slice(0,100)));
-  if (!silent) toast('Client saved ✓', 'ok');
-  renderClientPicker();
-  renderClientCards();
+  if (c) {
+    c.addr = d.addr||c.addr; c.city = d.city||c.city; c.country = d.country||c.country;
+    c.email = d.email||c.email; c.updated = Date.now();
+    _crmSave(contacts);
+    if (!silent) toast('CRM updated ✓', 'ok');
+  } else {
+    const newC = { id:'crm_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+      name:d.client, company:d.company||'', email:d.email||'', phone:'',
+      addr:d.addr||'', city:d.city||'', country:d.country||'', website:'',
+      status:'active', tags:[], notes:[], invoiceCount:0, totalRevenue:0, lastInvoice:'',
+      created:Date.now(), updated:Date.now() };
+    contacts.unshift(newC);
+    _crmSave(contacts);
+    document.getElementById('i-client-id').value = newC.id;
+    if (!silent) toast('Client added to CRM ✓', 'ok');
+  }
+  _populateCRMPickers();
 }
 
 function _saveClientOnPublish(d, invoiceNum) {
@@ -3497,18 +3665,7 @@ function _saveClientOnPublish(d, invoiceNum) {
 }
 
 function loadClientFromPicker(val) {
-  if (!val) return;
-  const clients = JSON.parse(localStorage.getItem('shift-clients')||'[]');
-  const c = clients[parseInt(val)];
-  if (!c) return;
-  document.getElementById('i-client').value = c.name || '';
-  document.getElementById('i-company').value = c.company || '';
-  document.getElementById('i-addr').value = c.addr || '';
-  document.getElementById('i-city').value = c.city || '';
-  document.getElementById('i-country').value = c.country || '';
-  document.getElementById('i-email').value = c.email || '';
-  document.getElementById('client-picker').value = '';
-  scheduleInvoicePreview();
+  pickFromCRM('client-picker','i-client','i-client-id','invoice');
 }
 
 function loadClientCard(i) {
@@ -3535,13 +3692,7 @@ function deleteClient(i) {
   renderClientCards();
 }
 
-function renderClientPicker() {
-  const sel = document.getElementById('client-picker');
-  if (!sel) return;
-  const clients = JSON.parse(localStorage.getItem('shift-clients')||'[]');
-  sel.innerHTML = '<option value="">— Load saved client —</option>' +
-    clients.map((c, i) => `<option value="${i}">${esc(c.name)}${c.company ? ' — ' + esc(c.company) : ''}</option>`).join('');
-}
+function renderClientPicker() { _populateCRMPickers(); }
 
 function renderClientCards() {
   const el = document.getElementById('clients-list');
@@ -4179,9 +4330,11 @@ function calOpenAdd() {
   document.getElementById('cal-modal-title').textContent = 'Add Event';
   document.getElementById('cal-ev-title-in').value = '';
   document.getElementById('cal-ev-client-in').value = '';
+  document.getElementById('cal-ev-client-id').value = '';
   document.getElementById('cal-ev-date-in').value = todayISO();
   document.getElementById('cal-ev-type-in').value = 'show';
   document.getElementById('cal-ev-notes-in').value = '';
+  _populateCRMPickers();
   document.getElementById('cal-modal').classList.add('open');
   setTimeout(() => document.getElementById('cal-ev-title-in').focus(), 50);
 }
@@ -4213,7 +4366,8 @@ function calSave() {
     const idx = events.findIndex(e => e.id === _calEditId);
     if (idx > -1) events[idx] = { ...events[idx], title, client, date, type, notes };
   } else {
-    events.push({ id:'ev_'+Date.now()+'_'+Math.random().toString(36).slice(2,5), title, client, date, type, notes, created: Date.now() });
+    const clientId = (document.getElementById('cal-ev-client-id')?.value)||'';
+  events.push({ id:'ev_'+Date.now()+'_'+Math.random().toString(36).slice(2,5), title, client, clientId, date, type, notes, created: Date.now() });
   }
   _eventsSave(events);
   calCloseModal();
@@ -4237,7 +4391,14 @@ document.addEventListener('keydown', e => { if (e.key==='Escape') calCloseModal(
     <div class="f-row"><label class="f-label">Event Title *</label>
       <input class="f-input" id="cal-ev-title-in" placeholder="e.g. Hernandez Wedding · Show Day"/>
     </div>
-    <div class="f-grid" style="margin-top:14px">
+    <div class="crm-pick-row" style="margin-top:14px;margin-bottom:6px">
+      <span class="crm-pick-lbl">Load from CRM</span>
+      <select class="crm-pick-sel" id="cal-ev-client-picker" onchange="pickFromCRM('cal-ev-client-picker','cal-ev-client-in','cal-ev-client-id')">
+        <option value="">— Pick a client —</option>
+      </select>
+    </div>
+    <input type="hidden" id="cal-ev-client-id"/>
+    <div class="f-grid" style="margin-top:0">
       <div class="f-row"><label class="f-label">Client</label>
         <input class="f-input" id="cal-ev-client-in" placeholder="Client name"/>
       </div>
