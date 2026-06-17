@@ -739,6 +739,12 @@ async function publishProposal() {
     await publishToGitHub(filename, html, `Proposal: ${d.client} - ${d.company||d.title}`, token);
     const url = `${SITE_URL}/${filename}`;
     const card = buildProposalCard(d, filename);
+    try {
+      await autoUpdateHub(card, '<!-- PROPOSALS_INSERT -->', token);
+      toast('Hub updated with new card ✓', 'ok');
+    } catch(hubErr) {
+      console.warn('Hub update skipped:', hubErr.message);
+    }
     showPublishModal('Proposal Published', url, card);
   } catch(e) {
     toast('Publish failed: ' + e.message, 'err');
@@ -746,14 +752,28 @@ async function publishProposal() {
 }
 function buildProposalCard(d, filename) {
   const total = d.services.reduce((s,x)=>s+(x.price||0),0);
-  const label = d.lang === 'es' ? 'Propuesta' : 'Proposal';
-  return `<div onclick="openProposal('${filename}','${esc(d.company||d.client)} — ${esc(d.title)}')" style="cursor:pointer;border:1px solid #1e1e22;padding:24px;transition:border-color .2s" onmouseenter="this.style.borderColor='#333'" onmouseleave="this.style.borderColor='#1e1e22'">
-  <div style="font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:#545460;margin-bottom:10px">${label}</div>
-  <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;margin-bottom:6px">${esc(d.company||d.client)}</div>
-  <div style="font-size:13px;color:#8a8a96;margin-bottom:14px">${esc(d.title)}</div>
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <span style="font-size:12px;color:#545460">${esc(d.city||'Houston, TX')}</span>
-    <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:15px">$${fmtPrice(total)}</span>
+  const dateLabel = (() => {
+    if (!d.proposalDate) return '';
+    const dt = new Date(d.proposalDate + 'T12:00:00');
+    return dt.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+  })();
+  const viewLabel = d.lang === 'es' ? 'Ver Propuesta' : 'View Proposal';
+  return `<div onclick="openProposal('${filename}','${esc(d.company||d.client)} — ${esc(d.title)}')" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group cursor-pointer" data-status="sent">
+  <div class="flex justify-between items-start gap-3">
+    <div>
+      <h3 class="font-display font-semibold text-primary text-xl tracking-tight">${esc(d.company||d.client)}</h3>
+      <p class="font-body text-sm text-on-surface-variant mt-1">${esc(d.title)}</p>
+    </div>
+    <span class="flex-none font-body text-label-sm uppercase px-3 py-1 border status-sent">Sent</span>
+  </div>
+  ${d.subtitle?`<p class="font-body text-sm text-on-surface-variant leading-relaxed">${esc(d.subtitle)}</p>`:''}
+  <div class="grid grid-cols-3 gap-4 pt-5 border-t border-outline-variant/20">
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Value</p><p class="font-display text-sm font-semibold text-primary">$${fmtPrice(total)}</p></div>
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Sent</p><p class="font-display text-sm font-semibold text-primary">${esc(dateLabel||'—')}</p></div>
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">City</p><p class="font-display text-sm font-semibold text-primary">${esc(d.city||'—')}</p></div>
+  </div>
+  <div class="flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors mt-auto">
+    ${viewLabel} <span class="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">arrow_forward</span>
   </div>
 </div>`;
 }
@@ -858,22 +878,62 @@ async function publishInvoice() {
     const card = buildInvoiceCard(d, filename);
     const counter = parseInt(localStorage.getItem('shift-invoice-counter')||'0') + 1;
     localStorage.setItem('shift-invoice-counter', String(counter));
+    try {
+      await autoUpdateHub(card, '<!-- INVOICES_INSERT -->', token);
+      toast('Hub updated with new card ✓', 'ok');
+    } catch(hubErr) {
+      console.warn('Hub update skipped:', hubErr.message);
+    }
     showPublishModal('Invoice Published', url, card);
   } catch(e) {
     toast('Publish failed: ' + e.message, 'err');
   }
 }
 function buildInvoiceCard(d, filename) {
-  const label = d.lang === 'es' ? 'Factura' : 'Invoice';
-  return `<div onclick="openProposal('${filename}','${esc(d.company||d.client)} — ${esc(d.invoiceNum)}')" style="cursor:pointer;border:1px solid #1e1e22;padding:24px;transition:border-color .2s" onmouseenter="this.style.borderColor='#333'" onmouseleave="this.style.borderColor='#1e1e22'">
-  <div style="font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:#545460;margin-bottom:10px">${label} · ${esc(d.invoiceNum)}</div>
-  <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:18px;margin-bottom:6px">${esc(d.company||d.client)}</div>
-  <div style="font-size:13px;color:#8a8a96;margin-bottom:14px">Due: ${esc(d.dueDate)}</div>
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <span style="font-size:12px;color:#545460">${esc(d.city||'')}</span>
-    <span style="font-family:'Sora',sans-serif;font-weight:700;font-size:15px">$${fmtPrice(d.total)}</span>
+  const viewLabel = d.lang === 'es' ? 'Ver Factura' : 'View Invoice';
+  const dueFmt = (() => {
+    if (!d.dueDate) return '—';
+    const dt = new Date(d.dueDate + 'T12:00:00');
+    return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  })();
+  return `<div onclick="openProposal('${filename}','${esc(d.invoiceNum)} — ${esc(d.company||d.client)}')" class="portal-card bg-background flex flex-col gap-4 p-8 group cursor-pointer">
+  <div class="flex justify-between items-start gap-3">
+    <div>
+      <h3 class="font-display font-semibold text-primary text-xl tracking-tight">${esc(d.invoiceNum)}</h3>
+      <p class="font-body text-sm text-on-surface-variant mt-1">${esc(d.company||d.client)}</p>
+    </div>
+    <span class="flex-none font-body text-label-sm uppercase px-3 py-1 border status-pending">Pending</span>
+  </div>
+  <div class="grid grid-cols-3 gap-4 pt-5 border-t border-outline-variant/20">
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Amount</p><p class="font-display text-sm font-semibold text-primary">$${fmtPrice(d.total)}</p></div>
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Due</p><p class="font-display text-sm font-semibold text-primary">${esc(dueFmt)}</p></div>
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Client</p><p class="font-display text-sm font-semibold text-primary">${esc(d.client)}</p></div>
+  </div>
+  <div class="flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors mt-auto">
+    ${viewLabel} <span class="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">arrow_forward</span>
   </div>
 </div>`;
+}
+
+// ── HUB AUTO-UPDATE ──────────────────────────────────────────
+async function autoUpdateHub(cardHTML, marker, token) {
+  const apiUrl = `https://api.github.com/repos/${REPO}/contents/SHIFT_proposals_hub.html`;
+  const headers = { 'Authorization': 'token '+token, 'Accept': 'application/vnd.github+json' };
+  const res = await fetch(apiUrl, { headers });
+  if (!res.ok) throw new Error('Could not fetch hub: ' + res.status);
+  const j = await res.json();
+  // Decode hub content
+  const hubHTML = new TextDecoder().decode(Uint8Array.from(atob(j.content.replace(/\s/g,'')), c => c.charCodeAt(0)));
+  // Insert card before marker
+  if (!hubHTML.includes(marker)) throw new Error('Insertion marker not found in hub');
+  const updated = hubHTML.replace(marker, cardHTML + '\n' + marker);
+  // Push updated hub
+  const content = toBase64(updated);
+  const putRes = await fetch(apiUrl, {
+    method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: 'Hub: add new card via manager', content, sha: j.sha })
+  });
+  if (!putRes.ok) { const e = await putRes.json(); throw new Error(e.message || putRes.status); }
 }
 
 // ── GITHUB PUBLISH ───────────────────────────────────────────
