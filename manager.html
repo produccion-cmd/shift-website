@@ -544,6 +544,24 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .qq-hist-del:hover{color:var(--red)}
 .qq-hist-copy.copied{border-color:var(--green);color:var(--green)}
 
+/* ── QUICK TASK FAB ─────────────────────────────────────────── */
+#qt-fab{position:fixed;bottom:28px;right:28px;z-index:900;display:none}
+.qt-fab-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;padding:13px 22px;border:none;cursor:pointer;display:flex;align-items:center;gap:7px;transition:opacity .15s;box-shadow:0 6px 28px rgba(0,0,0,.8)}
+.qt-fab-btn:hover{opacity:.85}
+.qt-fab-icon{font-size:15px;line-height:1;font-weight:400}
+#qt-modal{display:none;position:fixed;inset:0;z-index:1002;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:24px}
+.qt-box{background:#111;border:1px solid var(--border2);padding:28px;width:100%;max-width:440px}
+.qt-box-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.qt-box-title{font-family:'Sora',sans-serif;font-weight:700;font-size:15px;letter-spacing:-.01em}
+.qt-box-close{background:none;border:none;color:var(--dim);font-size:14px;cursor:pointer;padding:3px 6px;font-family:'Inter',sans-serif;transition:color .12s}
+.qt-box-close:hover{color:var(--white)}
+.qt-client-tag{font-size:11px;color:var(--gray);margin-bottom:14px;padding:8px 12px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:space-between}
+.qt-client-tag span{color:var(--dim);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+.qt-field{margin-bottom:14px}
+.qt-field label{display:block;font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+.qt-submit{width:100%;background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:14px;border:none;cursor:pointer;margin-top:4px;transition:opacity .15s}
+.qt-submit:hover{opacity:.85}
+
 /* ── TASKS ───────────────────────────────────────────────────── */
 .task-widget{margin-top:12px}
 .task-add-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
@@ -1923,8 +1941,72 @@ function crmAddTask(clientId) {
   renderDashboardTasks();
 }
 
+// ── QUICK TASK FAB ─────────────────────────────────────────
+let _qtCtxId = '';
+let _qtCtxName = '';
+
+function openQuickTask() {
+  _qtCtxId = ''; _qtCtxName = '';
+
+  // Detect client context from the active tab
+  if (_currentTab === 'clients' && _crmSelected) {
+    const c = _crmById(_crmSelected);
+    if (c) { _qtCtxId = c.id; _qtCtxName = c.name; }
+  } else if (_currentTab === 'productions' && _selectedProdId) {
+    const p = (JSON.parse(localStorage.getItem('shift-productions')||'[]')).find(x=>x.id===_selectedProdId);
+    if (p) { _qtCtxId = p.clientId||''; _qtCtxName = p.client||''; }
+  } else {
+    const pickerMap = { invoices:'client-picker', proposals:'p-client-picker', quickquote:'qq-client-picker', contracts:'c-client-picker', calendar:'cal-ev-client-picker' };
+    const sel = document.getElementById(pickerMap[_currentTab]);
+    if (sel && sel.value) { const c = _crmById(sel.value); if (c) { _qtCtxId = c.id; _qtCtxName = c.name; } }
+  }
+
+  // Show/hide client UI
+  const tag = document.getElementById('qt-client-tag');
+  const field = document.getElementById('qt-client-field');
+  if (_qtCtxId || _qtCtxName) {
+    document.getElementById('qt-client-name').textContent = _qtCtxName;
+    tag.style.display = ''; field.style.display = 'none';
+  } else {
+    tag.style.display = 'none'; field.style.display = '';
+    const crm = JSON.parse(localStorage.getItem('shift-crm')||'[]');
+    document.getElementById('qt-client-sel').innerHTML = '<option value="">— No client —</option>' +
+      crm.map(c=>`<option value="${c.id}">${esc(c.name)}${c.company?' — '+esc(c.company):''}</option>`).join('');
+  }
+
+  document.getElementById('qt-task-text').value = '';
+  document.getElementById('qt-task-date').value = '';
+  document.getElementById('qt-modal').style.display = 'flex';
+  setTimeout(()=>document.getElementById('qt-task-text').focus(), 60);
+}
+
+function closeQuickTask() {
+  document.getElementById('qt-modal').style.display = 'none';
+}
+
+function submitQuickTask() {
+  const text = document.getElementById('qt-task-text').value.trim();
+  if (!text) { document.getElementById('qt-task-text').focus(); return; }
+  const dueDate = document.getElementById('qt-task-date').value;
+  let clientId = _qtCtxId, clientName = _qtCtxName;
+  if (!clientId) {
+    const sel = document.getElementById('qt-client-sel');
+    if (sel && sel.value) { const c = _crmById(sel.value); if (c) { clientId = c.id; clientName = c.name; } }
+  }
+  const tasks = _tasksLoad();
+  tasks.unshift({ id:'task-'+Date.now(), text, dueDate, clientId, client: clientName, done: false, created: Date.now() });
+  _tasksSave(tasks);
+  closeQuickTask();
+  toast('Task saved','ok');
+  renderDashboardTasks();
+  _refreshTaskBadge();
+  if (_crmSelected) { const el = document.getElementById(`crm-task-list-${_crmSelected}`); if (el) renderCRMTasks(_crmSelected); }
+}
+
 // ── TAB SYSTEM ──────────────────────────────────────────────
+let _currentTab = 'dashboard';
 function switchTab(name) {
+  _currentTab = name;
   document.querySelectorAll('.tab-btn').forEach((b,i) => {
     const names = ['dashboard','productions','links','quickquote','proposals','invoices','contracts','pipeline','calendar','ratecards','clients','settings'];
     b.classList.toggle('active', names[i] === name);
@@ -1943,12 +2025,14 @@ function switchTab(name) {
 }
 
 // ── AUTH ────────────────────────────────────────────────────
+function _showFAB(v) { const f=document.getElementById('qt-fab'); if(f) f.style.display=v?'block':'none'; }
 function doLogin() {
   const pw = document.getElementById('pw').value;
   if (pw === MANAGER_PW) {
     sessionStorage.setItem('shift-mgr','1');
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
+    _showFAB(true);
     initForms();
     renderHistory();
     loadGHToken();
@@ -1966,6 +2050,7 @@ function doLogin() {
 function doLogout() {
   sessionStorage.removeItem('shift-mgr');
   sessionStorage.removeItem('shift-gh-token');
+  _showFAB(false);
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
   document.getElementById('pw').value = '';
@@ -1973,7 +2058,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { initForms(); renderHistory(); loadGHToken(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); });
+  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -5347,6 +5432,37 @@ function crmNewProduction(id) {
       <button class="cal-cancel-btn" onclick="calCloseModal()">Cancel</button>
       <button class="cal-save-btn" onclick="calSave()">Save Event</button>
     </div>
+  </div>
+</div>
+
+<!-- QUICK TASK FAB -->
+<div id="qt-fab">
+  <button class="qt-fab-btn" onclick="openQuickTask()"><span class="qt-fab-icon">+</span> Task</button>
+</div>
+
+<!-- QUICK TASK MODAL -->
+<div id="qt-modal" onclick="if(event.target===this)closeQuickTask()">
+  <div class="qt-box">
+    <div class="qt-box-hd">
+      <div class="qt-box-title">Quick Task</div>
+      <button class="qt-box-close" onclick="closeQuickTask()">✕</button>
+    </div>
+    <div id="qt-client-tag" class="qt-client-tag" style="display:none">
+      <span>Client</span><strong id="qt-client-name"></strong>
+    </div>
+    <div class="qt-field" id="qt-client-field">
+      <label>Client (optional)</label>
+      <select class="f-input" id="qt-client-sel" style="width:100%"><option value="">— No client —</option></select>
+    </div>
+    <div class="qt-field">
+      <label>Task</label>
+      <input class="f-input" id="qt-task-text" placeholder="e.g. Call back Thursday, Send contract…" style="width:100%" onkeydown="if(event.key==='Enter')submitQuickTask()"/>
+    </div>
+    <div class="qt-field">
+      <label>Due Date <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+      <input class="f-input" id="qt-task-date" type="date" style="width:100%"/>
+    </div>
+    <button class="qt-submit" onclick="submitQuickTask()">Save Task</button>
   </div>
 </div>
 
