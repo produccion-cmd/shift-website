@@ -543,6 +543,54 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .qq-hist-del{border-color:transparent;color:var(--dim)}
 .qq-hist-del:hover{color:var(--red)}
 .qq-hist-copy.copied{border-color:var(--green);color:var(--green)}
+
+/* ── EVENTS CALENDAR ─────────────────────────────────────── */
+.cal-wrap{flex:1;overflow-y:auto;padding:40px 32px 60px;max-width:960px;width:100%;margin:0 auto}
+.cal-topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:32px}
+.cal-h2{font-family:'Sora',sans-serif;font-weight:800;font-size:26px;letter-spacing:-.03em;margin-bottom:4px}
+.cal-sub{font-size:12px;color:var(--gray);line-height:1.6}
+.cal-topbar-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cal-filter-row{display:flex;gap:0;border:1px solid var(--border);overflow:hidden}
+.cal-flt{padding:8px 14px;font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;background:transparent;border:none;border-right:1px solid var(--border);color:var(--dim);cursor:pointer;font-family:'Inter',sans-serif;transition:color .12s,background .12s;white-space:nowrap}
+.cal-flt:last-child{border-right:none}
+.cal-flt:hover{color:var(--gray)}
+.cal-flt.on{background:#111;color:var(--white)}
+.cal-body{display:flex;flex-direction:column;gap:0}
+.cal-month-hd{font-size:9.5px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);padding:18px 0 10px;border-top:1px solid var(--border);margin-top:10px}
+.cal-month-hd:first-child{border-top:none;margin-top:0;padding-top:0}
+.cal-event{display:flex;align-items:flex-start;gap:0;border:1px solid var(--border);margin-bottom:6px;overflow:hidden;transition:border-color .12s}
+.cal-event:hover{border-color:#333}
+.cal-event-date-col{width:70px;flex-shrink:0;padding:14px 12px;text-align:center;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface)}
+.cal-ev-day{font-family:'Sora',sans-serif;font-weight:800;font-size:22px;line-height:1;letter-spacing:-.02em}
+.cal-ev-dow{font-size:8.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-top:3px}
+.cal-ev-today{color:var(--gold)}
+.cal-event-body{flex:1;padding:14px 16px;min-width:0}
+.cal-ev-title{font-family:'Sora',sans-serif;font-weight:600;font-size:14px;line-height:1.3}
+.cal-ev-client{font-size:11.5px;color:var(--gray);margin-top:3px}
+.cal-ev-meta{font-size:10.5px;color:var(--dim);margin-top:5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cal-ev-type{font-size:8.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:3px 8px;border:1px solid}
+.cal-type-show{color:#60a5fa;border-color:rgba(96,165,250,.3);background:rgba(96,165,250,.06)}
+.cal-type-loadin{color:#c8a84b;border-color:rgba(200,168,75,.3);background:rgba(200,168,75,.06)}
+.cal-type-pickup{color:#c084fc;border-color:rgba(192,132,252,.3);background:rgba(192,132,252,.07)}
+.cal-type-invoice{color:#4ade80;border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.06)}
+.cal-type-proposal{color:#888;border-color:#2a2a2a}
+.cal-type-other{color:#555;border-color:#222}
+.cal-ev-actions{display:flex;gap:6px;flex-shrink:0;padding:0 14px;align-self:center}
+.cal-ev-del{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;background:transparent;border:1px solid transparent;color:var(--dim);padding:6px 10px;cursor:pointer;font-family:'Inter',sans-serif;transition:color .12s}
+.cal-ev-del:hover{color:var(--red)}
+.cal-ev-edit{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--gray);padding:6px 12px;cursor:pointer;font-family:'Inter',sans-serif;transition:border-color .12s,color .12s}
+.cal-ev-edit:hover{border-color:#555;color:var(--white)}
+.cal-empty{font-size:13px;color:var(--dim);padding:48px 0;text-align:center;line-height:1.9}
+/* Past event dimming */
+.cal-event.past{opacity:.45}
+/* Add event modal */
+.cal-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:24px}
+.cal-modal.open{display:flex}
+.cal-modal-box{background:#0d0d0d;border:1px solid var(--border);padding:32px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.cal-modal-h{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.02em;margin-bottom:24px}
+.cal-modal-foot{display:flex;gap:10px;margin-top:24px;justify-content:flex-end}
+.cal-save-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:12px 24px;border:none;cursor:pointer}
+.cal-cancel-btn{background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;padding:11px 20px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -578,6 +626,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
     <button class="tab-btn" onclick="switchTab('invoices')">Invoices</button>
     <button class="tab-btn" onclick="switchTab('contracts')">Contracts</button>
     <button class="tab-btn" onclick="switchTab('pipeline')">Pipeline</button>
+    <button class="tab-btn" onclick="switchTab('calendar')">Calendar</button>
     <button class="tab-btn" onclick="switchTab('ratecards')">Rate Card</button>
     <button class="tab-btn" onclick="switchTab('clients')">Clients</button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
@@ -1154,6 +1203,28 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
     </div>
   </div>
 
+  <!-- TAB: CALENDAR -->
+  <div class="tab-panel" id="tab-calendar">
+    <div class="cal-wrap">
+      <div class="cal-topbar">
+        <div>
+          <div class="cal-h2">Events Calendar</div>
+          <div class="cal-sub" id="cal-sub"></div>
+        </div>
+        <div class="cal-topbar-right">
+          <div class="cal-filter-row">
+            <button class="cal-flt on" id="calf-30"  onclick="setCalFilter(30)">30 days</button>
+            <button class="cal-flt"    id="calf-60"  onclick="setCalFilter(60)">60 days</button>
+            <button class="cal-flt"    id="calf-90"  onclick="setCalFilter(90)">90 days</button>
+            <button class="cal-flt"    id="calf-all" onclick="setCalFilter(0)">All</button>
+          </div>
+          <button class="crm-new-btn" onclick="calOpenAdd()">+ Add Event</button>
+        </div>
+      </div>
+      <div class="cal-body" id="cal-body"></div>
+    </div>
+  </div>
+
   <!-- TAB: SETTINGS -->
   <div class="tab-panel" id="tab-settings">
     <div class="settings-content">
@@ -1473,7 +1544,7 @@ function _timeAgo(ts) {
 // ── TAB SYSTEM ──────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    const names = ['dashboard','links','quickquote','proposals','invoices','contracts','pipeline','ratecards','clients','settings'];
+    const names = ['dashboard','links','quickquote','proposals','invoices','contracts','pipeline','calendar','ratecards','clients','settings'];
     b.classList.toggle('active', names[i] === name);
   });
   document.querySelectorAll('.tab-panel').forEach(p => {
@@ -1485,6 +1556,7 @@ function switchTab(name) {
   if (name === 'pipeline') renderPipeline();
   if (name === 'ratecards') renderRateCard();
   if (name === 'quickquote') { initQuoteForm(); renderQuoteHistory(); }
+  if (name === 'calendar')   renderCalendar();
 }
 
 // ── AUTH ────────────────────────────────────────────────────
@@ -4001,6 +4073,195 @@ table thead th{border-bottom-color:#ccc!important}tr td{border-bottom-color:#eee
 </div>
 </body></html>`;
 }
+
+// ── EVENTS CALENDAR ───────────────────────────────────────────
+function _eventsLoad() { return JSON.parse(localStorage.getItem('shift-events')||'[]'); }
+function _eventsSave(d) { localStorage.setItem('shift-events', JSON.stringify(d)); }
+
+let _calDays = 30;
+function setCalFilter(days) {
+  _calDays = days;
+  ['30','60','90','all'].forEach(v => {
+    document.getElementById('calf-'+v)?.classList.toggle('on', (days===30&&v==='30')||(days===60&&v==='60')||(days===90&&v==='90')||(days===0&&v==='all'));
+  });
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const body = document.getElementById('cal-body');
+  if (!body) return;
+
+  const now   = new Date(); now.setHours(0,0,0,0);
+  const cutoff = _calDays > 0 ? new Date(now.getTime() + _calDays*86400000) : null;
+
+  // Build unified event list
+  const events = [];
+
+  // Manual events
+  _eventsLoad().forEach(e => {
+    const dt = new Date(e.date + 'T12:00:00');
+    if (cutoff && dt > cutoff) return;
+    events.push({ date: dt, title: e.title, client: e.client||'', type: e.type||'other', id: e.id, manual: true, notes: e.notes||'' });
+  });
+
+  // From contracts (eventDate)
+  (JSON.parse(localStorage.getItem('shift-contracts')||'[]')).forEach(c => {
+    if (!c.eventDate) return;
+    const dt = new Date(c.eventDate + 'T12:00:00');
+    if (cutoff && dt > cutoff) return;
+    events.push({ date: dt, title: c.eventName || 'Event', client: c.client, type: 'show', id: 'ctr_'+c.id, manual: false });
+  });
+
+  // From invoices (dueDate = payment due, show if has a future due date)
+  _invoicesLoad().forEach(inv => {
+    if (!inv.dueDate || inv.status === 'paid') return;
+    const dt = new Date(inv.dueDate + 'T12:00:00');
+    if (cutoff && dt > cutoff) return;
+    events.push({ date: dt, title: (inv.num||'Invoice') + ' Due', client: inv.client, type: 'invoice', id: 'inv_'+inv.id, manual: false });
+  });
+
+  // Sort by date ascending
+  events.sort((a,b) => a.date - b.date);
+
+  const rangeLabel = _calDays > 0 ? `Next ${_calDays} days` : 'All upcoming events';
+  document.getElementById('cal-sub').textContent = `${events.length} event${events.length!==1?'s':''} · ${rangeLabel}`;
+
+  if (!events.length) {
+    body.innerHTML = `<div class="cal-empty">No events in this range.<br>Add one manually or create a contract with an event date.</div>`;
+    return;
+  }
+
+  const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const TYPE_LABELS = { show:'Show Day', loadin:'Load In', pickup:'Pickup', invoice:'Invoice Due', proposal:'Proposal', other:'Other' };
+
+  let html = '';
+  let lastMonth = -1;
+
+  events.forEach(ev => {
+    const m = ev.date.getMonth();
+    const y = ev.date.getFullYear();
+    if (m !== lastMonth) {
+      html += `<div class="cal-month-hd">${MONTHS[m]} ${y}</div>`;
+      lastMonth = m;
+    }
+    const isPast   = ev.date < now;
+    const isToday  = ev.date.toDateString() === now.toDateString();
+    const day      = ev.date.getDate();
+    const dow      = DOW[ev.date.getDay()];
+    const typeClass= `cal-type-${ev.type}`;
+    const typeLabel= TYPE_LABELS[ev.type] || ev.type;
+    const delBtn   = ev.manual
+      ? `<button class="cal-ev-del" onclick="calDelete('${ev.id}')">✕</button><button class="cal-ev-edit" onclick="calOpenEdit('${ev.id}')">Edit</button>`
+      : '';
+    html += `<div class="cal-event${isPast?' past':''}">
+      <div class="cal-event-date-col">
+        <div class="cal-ev-day${isToday?' cal-ev-today':''}">${day}</div>
+        <div class="cal-ev-dow${isToday?' cal-ev-today':''}">${dow}</div>
+      </div>
+      <div class="cal-event-body">
+        <div class="cal-ev-title">${esc(ev.title)}</div>
+        ${ev.client?`<div class="cal-ev-client">${esc(ev.client)}</div>`:''}
+        <div class="cal-ev-meta">
+          <span class="cal-ev-type ${typeClass}">${typeLabel}</span>
+          ${ev.notes?`<span>${esc(ev.notes)}</span>`:''}
+        </div>
+      </div>
+      ${delBtn?`<div class="cal-ev-actions">${delBtn}</div>`:''}
+    </div>`;
+  });
+  body.innerHTML = html;
+}
+
+let _calEditId = null;
+function calOpenAdd() {
+  _calEditId = null;
+  document.getElementById('cal-modal-title').textContent = 'Add Event';
+  document.getElementById('cal-ev-title-in').value = '';
+  document.getElementById('cal-ev-client-in').value = '';
+  document.getElementById('cal-ev-date-in').value = todayISO();
+  document.getElementById('cal-ev-type-in').value = 'show';
+  document.getElementById('cal-ev-notes-in').value = '';
+  document.getElementById('cal-modal').classList.add('open');
+  setTimeout(() => document.getElementById('cal-ev-title-in').focus(), 50);
+}
+function calOpenEdit(id) {
+  const ev = _eventsLoad().find(e => e.id === id);
+  if (!ev) return;
+  _calEditId = id;
+  document.getElementById('cal-modal-title').textContent = 'Edit Event';
+  document.getElementById('cal-ev-title-in').value  = ev.title;
+  document.getElementById('cal-ev-client-in').value = ev.client||'';
+  document.getElementById('cal-ev-date-in').value   = ev.date;
+  document.getElementById('cal-ev-type-in').value   = ev.type||'show';
+  document.getElementById('cal-ev-notes-in').value  = ev.notes||'';
+  document.getElementById('cal-modal').classList.add('open');
+}
+function calCloseModal() { document.getElementById('cal-modal').classList.remove('open'); }
+
+function calSave() {
+  const title  = document.getElementById('cal-ev-title-in').value.trim();
+  const client = document.getElementById('cal-ev-client-in').value.trim();
+  const date   = document.getElementById('cal-ev-date-in').value;
+  const type   = document.getElementById('cal-ev-type-in').value;
+  const notes  = document.getElementById('cal-ev-notes-in').value.trim();
+  if (!title) { toast('Enter an event title','err'); document.getElementById('cal-ev-title-in').focus(); return; }
+  if (!date)  { toast('Select a date','err'); return; }
+
+  const events = _eventsLoad();
+  if (_calEditId) {
+    const idx = events.findIndex(e => e.id === _calEditId);
+    if (idx > -1) events[idx] = { ...events[idx], title, client, date, type, notes };
+  } else {
+    events.push({ id:'ev_'+Date.now()+'_'+Math.random().toString(36).slice(2,5), title, client, date, type, notes, created: Date.now() });
+  }
+  _eventsSave(events);
+  calCloseModal();
+  renderCalendar();
+  toast(_calEditId ? 'Event updated' : 'Event added', 'ok');
+}
+
+function calDelete(id) {
+  if (!confirm('Remove this event?')) return;
+  _eventsSave(_eventsLoad().filter(e => e.id !== id));
+  renderCalendar();
+}
+
+document.addEventListener('keydown', e => { if (e.key==='Escape') calCloseModal(); });
 </script>
+
+<!-- CALENDAR MODAL -->
+<div class="cal-modal" id="cal-modal">
+  <div class="cal-modal-box">
+    <div class="cal-modal-h" id="cal-modal-title">Add Event</div>
+    <div class="f-row"><label class="f-label">Event Title *</label>
+      <input class="f-input" id="cal-ev-title-in" placeholder="e.g. Hernandez Wedding · Show Day"/>
+    </div>
+    <div class="f-grid" style="margin-top:14px">
+      <div class="f-row"><label class="f-label">Client</label>
+        <input class="f-input" id="cal-ev-client-in" placeholder="Client name"/>
+      </div>
+      <div class="f-row"><label class="f-label">Date *</label>
+        <input class="f-input" type="date" id="cal-ev-date-in"/>
+      </div>
+    </div>
+    <div class="f-row" style="margin-top:14px"><label class="f-label">Event Type</label>
+      <select class="f-select" id="cal-ev-type-in">
+        <option value="show">Show Day</option>
+        <option value="loadin">Load In</option>
+        <option value="pickup">Pickup</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="f-row" style="margin-top:14px"><label class="f-label">Notes (optional)</label>
+      <input class="f-input" id="cal-ev-notes-in" placeholder="Venue, call time, notes…"/>
+    </div>
+    <div class="cal-modal-foot">
+      <button class="cal-cancel-btn" onclick="calCloseModal()">Cancel</button>
+      <button class="cal-save-btn" onclick="calSave()">Save Event</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
