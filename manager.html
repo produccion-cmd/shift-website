@@ -589,6 +589,18 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 /* CRM profile task section */
 .crm-task-add{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
 .crm-task-add .f-input{padding:8px 11px;font-size:12.5px}
+/* Email templates */
+.etpl-name-row{display:flex;gap:10px;align-items:center;margin-bottom:18px}
+.etpl-name-row .f-input{max-width:280px}
+.etpl-list{display:flex;flex-direction:column;gap:10px}
+.etpl-card{border:1px solid var(--border);padding:18px 20px}
+.etpl-card-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:9px}
+.etpl-title{font-family:'Sora',sans-serif;font-weight:700;font-size:13px;margin-bottom:3px}
+.etpl-subj{font-size:10.5px;color:var(--dim);letter-spacing:.02em}
+.etpl-body{font-size:12px;color:var(--gray);line-height:1.7;white-space:pre-wrap;background:var(--surface);padding:11px 13px;border:1px solid var(--border);max-height:110px;overflow-y:auto}
+.etpl-copy{font-size:9.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--gray);padding:8px 14px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.etpl-copy:hover{border-color:#555;color:var(--white)}
+.etpl-copy.copied{border-color:var(--green);color:var(--green)}
 /* ── PRODUCTIONS ────────────────────────────────────────────── */
 .prod-layout{display:flex;flex:1;overflow:hidden;min-height:0}
 .prod-list-pane{width:320px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
@@ -1498,6 +1510,15 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
           <div>Email: <span style="color:var(--white)">Produccion@5hift.com.mx</span></div>
         </div>
       </div>
+
+      <div class="settings-block">
+        <div class="settings-block-label">Email Templates</div>
+        <p class="settings-hint" style="margin-top:0;margin-bottom:14px">Enter a client name below, then click <strong style="color:var(--gray)">Copy</strong> on any template — it substitutes the name and copies the full text (subject line included) to your clipboard, ready to paste into Gmail.</p>
+        <div class="etpl-name-row">
+          <input class="f-input" id="etpl-client" placeholder="Client name — e.g. Priya &amp; Raj"/>
+        </div>
+        <div class="etpl-list" id="etpl-list"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1941,6 +1962,61 @@ function crmAddTask(clientId) {
   renderDashboardTasks();
 }
 
+// ── EMAIL TEMPLATES ────────────────────────────────────────
+const _EMAIL_TPLS = [
+  { id:'followup', title:'Initial Follow-up',
+    subject:'Following up — SHIFT Events',
+    body:`Hi [Client],\n\nThank you so much for reaching out! It was great connecting with you.\n\nI'd love to learn more about your vision for the event and how SHIFT can bring it to life. Are you available for a quick call this week?\n\nLooking forward to hearing from you.\n\nWarm regards,\nSHIFT Events\nProduccion@5hift.com.mx | +1 (346) 332-7077`
+  },
+  { id:'proposal-sent', title:'Proposal Sent',
+    subject:'Your SHIFT Events Proposal is Ready',
+    body:`Hi [Client],\n\nYour personalized proposal is ready for review. I've put together everything we discussed so you can see exactly what SHIFT will deliver for your event.\n\nPlease use the link I'm attaching to view and accept the proposal. If anything needs adjusting or you have questions, I'm just a message away.\n\nExcited to work together!\n\nBest,\nSHIFT Events\nProduccion@5hift.com.mx | +1 (346) 332-7077`
+  },
+  { id:'contract-ready', title:'Contract Ready to Sign',
+    subject:'Your SHIFT Events Contract is Ready',
+    body:`Hi [Client],\n\nGreat news — your event contract is ready! Please take a moment to review the details. Once you're happy with everything, just reply to confirm your acceptance and we'll lock everything in.\n\nIf you'd like to make any changes before signing, I'm happy to go over it together.\n\nLooking forward to making this event exceptional!\n\nBest,\nSHIFT Events\nProduccion@5hift.com.mx | +1 (346) 332-7077`
+  },
+  { id:'payment-reminder', title:'Payment Reminder',
+    subject:'Friendly Payment Reminder — SHIFT Events',
+    body:`Hi [Client],\n\nHope you're doing well! Just a quick, friendly reminder that your SHIFT Events invoice is coming due.\n\nIf you have any questions about the invoice or need to discuss payment options, please don't hesitate to reach out — I'm happy to help make it easy.\n\nThank you for your trust in SHIFT Events!\n\nBest regards,\nSHIFT Events\nProduccion@5hift.com.mx | +1 (346) 332-7077`
+  },
+  { id:'thank-you', title:'Thank You After Event',
+    subject:'Thank You — It Was an Incredible Event!',
+    body:`Hi [Client],\n\nThank you so much for trusting SHIFT Events with your special occasion. It was truly an honor, and seeing everything come together was incredibly rewarding for our whole team.\n\nWe hope you and your guests had an unforgettable experience. If you'd like to share any feedback — or know someone who could use our services — we'd love to hear from you.\n\nWishing you all the best. We hope to work together again soon!\n\nWith gratitude,\nSHIFT Events\nProduccion@5hift.com.mx | +1 (346) 332-7077`
+  }
+];
+
+function renderEmailTemplates() {
+  const list = document.getElementById('etpl-list');
+  if (!list) return;
+  list.innerHTML = _EMAIL_TPLS.map(t => `
+    <div class="etpl-card">
+      <div class="etpl-card-hd">
+        <div>
+          <div class="etpl-title">${esc(t.title)}</div>
+          <div class="etpl-subj">Subject: ${esc(t.subject)}</div>
+        </div>
+        <button class="etpl-copy" id="etpl-btn-${t.id}" onclick="copyEmailTpl('${t.id}')">Copy</button>
+      </div>
+      <div class="etpl-body">${esc(t.body)}</div>
+    </div>
+  `).join('');
+}
+
+function copyEmailTpl(id) {
+  const tpl = _EMAIL_TPLS.find(t=>t.id===id);
+  if (!tpl) return;
+  const clientName = document.getElementById('etpl-client')?.value.trim() || '[Client]';
+  const text = `Subject: ${tpl.subject}\n\n${tpl.body}`.replace(/\[Client\]/g, clientName);
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(`etpl-btn-${id}`);
+    if (!btn) return;
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2500);
+  });
+}
+
 // ── QUICK TASK FAB ─────────────────────────────────────────
 let _qtCtxId = '';
 let _qtCtxName = '';
@@ -2022,6 +2098,7 @@ function switchTab(name) {
   if (name === 'quickquote') { initQuoteForm(); renderQuoteHistory(); _populateCRMPickers(); }
   if (name === 'calendar')    renderCalendar();
   if (name === 'productions') renderProdList();
+  if (name === 'settings')    renderEmailTemplates();
 }
 
 // ── AUTH ────────────────────────────────────────────────────
