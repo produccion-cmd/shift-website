@@ -544,6 +544,115 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .qq-hist-del:hover{color:var(--red)}
 .qq-hist-copy.copied{border-color:var(--green);color:var(--green)}
 
+/* ── PRODUCTIONS ────────────────────────────────────────────── */
+.prod-layout{display:flex;flex:1;overflow:hidden;min-height:0}
+.prod-list-pane{width:320px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.prod-toolbar{padding:12px 12px 10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.prod-flt-row{display:flex;gap:0;border:1px solid var(--border);overflow:hidden}
+.prod-flt{flex:1;padding:7px 2px;font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:transparent;border:none;border-right:1px solid var(--border);color:var(--dim);cursor:pointer;font-family:'Inter',sans-serif;text-align:center;transition:color .12s,background .12s}
+.prod-flt:last-child{border-right:none}
+.prod-flt:hover{color:var(--gray)}
+.prod-flt.on{background:#111;color:var(--white)}
+.prod-list-inner{flex:1;overflow-y:auto;padding:8px}
+.prod-list-empty{font-size:12px;color:var(--dim);padding:24px 8px;text-align:center;line-height:1.7}
+.prod-card{border:1px solid var(--border);padding:13px 15px;margin-bottom:6px;cursor:pointer;transition:border-color .12s}
+.prod-card:hover,.prod-card.selected{border-color:#333}
+.prod-card.selected{background:#0d0d0d}
+.prod-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:5px}
+.prod-card-name{font-family:'Sora',sans-serif;font-weight:700;font-size:13px;line-height:1.3}
+.prod-card-client{font-size:11px;color:var(--gray);margin-top:2px}
+.prod-card-date{font-size:11px;color:var(--dim);margin-top:5px;display:flex;align-items:center;gap:8px}
+.prod-card-countdown{font-size:10px;font-weight:700}
+.prod-ct-today{color:var(--green)}
+.prod-ct-soon{color:#fb923c}
+.prod-ct-past{color:var(--dim)}
+.prod-s-pill{font-size:7.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;padding:3px 7px;border:1px solid;flex-shrink:0}
+.prod-s-pending{color:#c8a84b;border-color:rgba(200,168,75,.3);background:rgba(200,168,75,.06)}
+.prod-s-preproduction{color:#60a5fa;border-color:rgba(96,165,250,.3);background:rgba(96,165,250,.06)}
+.prod-s-loadin{color:#c084fc;border-color:rgba(192,132,252,.3);background:rgba(192,132,252,.07)}
+.prod-s-live{color:#4ade80;border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.08);animation:ppulse 1.8s ease-in-out infinite}
+@keyframes ppulse{0%,100%{opacity:1}50%{opacity:.5}}
+.prod-s-strike{color:#fb923c;border-color:rgba(251,146,60,.3);background:rgba(251,146,60,.06)}
+.prod-s-complete{color:#3a3a44;border-color:#222;background:transparent}
+.prod-card-foot{display:flex;gap:10px;font-size:10px;color:var(--dim);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+/* Detail pane */
+.prod-detail-pane{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.prod-detail-empty{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;text-align:center}
+.prod-detail-empty-lbl{font-size:12px;color:var(--dim);line-height:1.8}
+.prod-detail-inner{padding:28px 32px 60px;max-width:720px}
+.prod-detail-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.prod-detail-title{font-family:'Sora',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.02em;line-height:1.2}
+.prod-detail-sub{font-size:12.5px;color:var(--gray);margin-top:5px;line-height:1.6}
+.prod-hd-btns{display:flex;gap:7px;flex-shrink:0;flex-wrap:wrap;margin-top:2px}
+.prod-hd-btn{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--gray);padding:6px 13px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .12s}
+.prod-hd-btn:hover{border-color:#555;color:var(--white)}
+.prod-hd-btn-del{border-color:transparent;color:var(--dim)}
+.prod-hd-btn-del:hover{color:var(--red);border-color:transparent}
+/* Status bar */
+.prod-status-bar{display:flex;gap:0;border:1px solid var(--border);overflow:hidden;margin-bottom:24px}
+.prod-sb-btn{flex:1;padding:9px 4px;font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:transparent;border:none;border-right:1px solid var(--border);color:var(--dim);cursor:pointer;font-family:'Inter',sans-serif;transition:all .12s;text-align:center}
+.prod-sb-btn:last-child{border-right:none}
+.prod-sb-btn:hover{color:var(--gray)}
+.prod-sb-pending.active{background:#c8a84b;color:#000}
+.prod-sb-preproduction.active{background:#60a5fa;color:#000}
+.prod-sb-loadin.active{background:#c084fc;color:#000}
+.prod-sb-live.active{background:#4ade80;color:#000;animation:ppulse 1.8s ease-in-out infinite}
+.prod-sb-strike.active{background:#fb923c;color:#000}
+.prod-sb-complete.active{background:#2a2a2a;color:#888}
+/* Sections */
+.prod-section{border-top:1px solid var(--border);padding-top:18px;margin-bottom:22px}
+.prod-section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.prod-section-lbl{font-size:9.5px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+.prod-section-btn{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--gray);padding:5px 11px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .12s}
+.prod-section-btn:hover{border-color:#555;color:var(--white)}
+/* Times grid */
+.prod-times-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(max-width:680px){.prod-times-grid{grid-template-columns:repeat(2,1fr)}}
+.prod-tc{background:var(--surface);border:1px solid var(--border);padding:10px 12px}
+.prod-tc-lbl{font-size:8.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.prod-tc-in{background:transparent;border:none;color:var(--white);font-family:'Sora',sans-serif;font-size:18px;font-weight:800;width:100%;outline:none;padding:0;letter-spacing:-.01em}
+.prod-tc-in::-webkit-calendar-picker-indicator{filter:invert(.3)}
+/* Gear */
+.prod-gear-list{display:flex;flex-direction:column;gap:5px}
+.prod-gear-item{display:flex;align-items:center;gap:10px;border:1px solid var(--border);padding:10px 13px}
+.prod-gear-qty{width:28px;text-align:center;font-family:'Sora',sans-serif;font-weight:800;font-size:17px;flex-shrink:0}
+.prod-gear-body{flex:1;min-width:0}
+.prod-gear-name{font-size:13px;font-weight:500}
+.prod-gear-sub{font-size:10.5px;color:var(--dim);margin-top:2px}
+.prod-gear-del,.prod-crew-del,.prod-doc-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;padding:4px 6px;flex-shrink:0;transition:color .12s;font-family:'Inter',sans-serif}
+.prod-gear-del:hover,.prod-crew-del:hover,.prod-doc-del:hover{color:var(--red)}
+/* Crew */
+.prod-crew-list{display:flex;flex-direction:column;gap:5px}
+.prod-crew-item{display:flex;align-items:center;gap:10px;border:1px solid var(--border);padding:10px 13px}
+.prod-crew-init{width:30px;height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--border);font-size:10px;font-weight:700;letter-spacing:.04em}
+.prod-crew-body{flex:1;min-width:0}
+.prod-crew-name{font-size:13px;font-weight:500}
+.prod-crew-role{font-size:10.5px;color:var(--dim);margin-top:2px}
+.prod-crew-call{font-family:'Sora',sans-serif;font-weight:700;font-size:13px;color:var(--gray);flex-shrink:0}
+/* Docs */
+.prod-doc-item{border:1px solid var(--border);padding:11px 14px;display:flex;align-items:center;gap:12px;margin-bottom:5px}
+.prod-doc-badge{font-size:8px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:3px 7px;border:1px solid;flex-shrink:0;white-space:nowrap}
+.prod-doc-body{flex:1;min-width:0}
+.prod-doc-num{font-size:13px;font-weight:600}
+.prod-doc-meta{font-size:10.5px;color:var(--dim);margin-top:2px}
+.prod-doc-amount{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;flex-shrink:0}
+.prod-link-row{display:flex;gap:7px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.prod-link-sel{flex:1;min-width:120px;background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'Inter',sans-serif;font-size:12px;padding:7px 10px;outline:none;cursor:pointer}
+.prod-link-sel option{background:#111;color:#fff}
+.prod-link-btn{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--white);padding:7px 13px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:border-color .12s}
+.prod-link-btn:hover{border-color:#555}
+/* New production modal */
+.prod-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;align-items:center;justify-content:center;padding:24px}
+.prod-modal.open{display:flex}
+.prod-modal-box{background:#0d0d0d;border:1px solid var(--border);padding:32px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto}
+.prod-modal-h{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.02em;margin-bottom:22px}
+.prod-modal-foot{display:flex;gap:10px;margin-top:22px;justify-content:flex-end}
+/* Add gear/crew inline forms */
+.prod-add-row{display:flex;gap:7px;align-items:flex-end;flex-wrap:wrap;border:1px dashed var(--border2);padding:12px;margin-top:8px}
+.prod-add-row .f-input{padding:8px 10px;font-size:13px}
+.prod-add-row .f-input.w-sm{width:64px;flex-shrink:0}
+.prod-add-row .f-input.w-md{flex:1;min-width:100px}
+.prod-add-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:9px 16px;border:none;cursor:pointer;white-space:nowrap}
 /* ── CRM PICKER (shared across forms) ───────────────────────── */
 .crm-pick-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .crm-pick-lbl{font-size:9.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);white-space:nowrap;flex-shrink:0}
@@ -644,6 +753,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 
   <nav class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('productions')">Productions</button>
     <button class="tab-btn" onclick="switchTab('links')">Portal Links</button>
     <button class="tab-btn" onclick="switchTab('quickquote')">Quick Quote</button>
     <button class="tab-btn" onclick="switchTab('proposals')">Proposals</button>
@@ -714,6 +824,34 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
           <div class="dash-panel-lbl">Links Expiring Soon</div>
           <div id="dash-expiring-links"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: PRODUCTIONS -->
+  <div class="tab-panel" id="tab-productions">
+    <div class="prod-layout">
+      <div class="prod-list-pane">
+        <div class="prod-toolbar">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="section-label" style="margin-bottom:0">Productions</div>
+            <button class="crm-new-btn" onclick="prodOpenAdd()">+ New</button>
+          </div>
+          <div class="prod-flt-row">
+            <button class="prod-flt on" id="pf-all"           onclick="setProdFilter('')">All</button>
+            <button class="prod-flt"   id="pf-pending"        onclick="setProdFilter('pending')">Pending</button>
+            <button class="prod-flt"   id="pf-preproduction"  onclick="setProdFilter('preproduction')">Prep</button>
+            <button class="prod-flt"   id="pf-live"           onclick="setProdFilter('live')">Live</button>
+            <button class="prod-flt"   id="pf-complete"       onclick="setProdFilter('complete')">Done</button>
+          </div>
+        </div>
+        <div class="prod-list-inner" id="prod-list"></div>
+      </div>
+      <div class="prod-detail-pane" id="prod-detail-pane">
+        <div class="prod-detail-empty" id="prod-detail-empty">
+          <div class="prod-detail-empty-lbl">Select a production to view its run sheet,<br>or create a new one with "+ New".</div>
+        </div>
+        <div class="prod-detail-inner" id="prod-detail-view" style="display:none"></div>
       </div>
     </div>
   </div>
@@ -1583,7 +1721,7 @@ function _timeAgo(ts) {
 // ── TAB SYSTEM ──────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    const names = ['dashboard','links','quickquote','proposals','invoices','contracts','pipeline','calendar','ratecards','clients','settings'];
+    const names = ['dashboard','productions','links','quickquote','proposals','invoices','contracts','pipeline','calendar','ratecards','clients','settings'];
     b.classList.toggle('active', names[i] === name);
   });
   document.querySelectorAll('.tab-panel').forEach(p => {
@@ -1595,7 +1733,8 @@ function switchTab(name) {
   if (name === 'pipeline') renderPipeline();
   if (name === 'ratecards') renderRateCard();
   if (name === 'quickquote') { initQuoteForm(); renderQuoteHistory(); _populateCRMPickers(); }
-  if (name === 'calendar')   renderCalendar();
+  if (name === 'calendar')    renderCalendar();
+  if (name === 'productions') renderProdList();
 }
 
 // ── AUTH ────────────────────────────────────────────────────
@@ -2135,6 +2274,7 @@ function showCRMProfile(id) {
     <div class="crm-quick">
       <button class="crm-q-btn primary" onclick="crmNewInvoice('${id}')">New Invoice</button>
       <button class="crm-q-btn" onclick="crmNewProposal('${id}')">New Proposal</button>
+      <button class="crm-q-btn" onclick="crmNewProduction('${id}')">New Production</button>
       <button class="crm-q-btn" onclick="crmNewQuote('${id}')">Quick Quote</button>
       <button class="crm-q-btn" onclick="crmNewEvent('${id}')">Add Event</button>
       ${c.email?`<button class="crm-q-btn" onclick="navigator.clipboard.writeText('${esc(c.email)}').then(()=>toast('Email copied','ok'))">Copy Email</button>`:''}
@@ -2530,7 +2670,9 @@ let _rcPickerTarget = 'invoice';
 function rcOpenPicker(target) {
   _rcPickerTarget = target;
   document.getElementById('rcp-ctx').textContent =
-    target === 'invoice' ? 'Adding to Invoice' : target === 'quickquote' ? 'Adding to Quick Quote' : 'Adding to Proposal';
+    target === 'invoice' ? 'Adding to Invoice' :
+    target === 'quickquote' ? 'Adding to Quick Quote' :
+    target === 'production' ? 'Adding to Gear Manifest' : 'Adding to Proposal';
   document.getElementById('rcp-search').value = '';
   renderRCPicker();
   document.getElementById('rcp-modal').classList.add('open');
@@ -2574,7 +2716,10 @@ function rcInsert(id, btn) {
   const s = _rcLoad().find(x => x.id === id);
   if (!s) return;
 
-  if (_rcPickerTarget === 'quickquote') {
+  if (_rcPickerTarget === 'production') {
+    _rcInsertToProd(s);
+
+  } else if (_rcPickerTarget === 'quickquote') {
     const amtEl  = document.getElementById('qq-amount');
     const descEl = document.getElementById('qq-desc');
     const cur = parseFloat(amtEl.value||'0') + (s.price||0);
@@ -2689,6 +2834,14 @@ function _getClientActivity(clientId, clientName) {
       sub: ev.type ? ev.type.charAt(0).toUpperCase()+ev.type.slice(1) : 'Event', amount: 0, id: ev.id });
   });
 
+  _prodsLoad().forEach(p => {
+    if (p.clientId !== clientId && (p.client||'').toLowerCase().trim() !== nameKey) return;
+    const sc = p.status||'pending';
+    const sLabel = PROD_STATUSES.find(s=>s.id===sc)?.label||sc;
+    acts.push({ type:'production', date: p.date||'', label: p.title||'Production',
+      sub: sLabel + (p.venue?' · '+p.venue:''), amount: 0, id: p.id });
+  });
+
   return acts.sort((a,b) => {
     const da = a.date ? new Date(a.date+'T12:00:00') : 0;
     const db = b.date ? new Date(b.date+'T12:00:00') : 0;
@@ -2698,9 +2851,9 @@ function _getClientActivity(clientId, clientName) {
 
 function _renderClientActivity(clientId, clientName) {
   const acts = _getClientActivity(clientId, clientName);
-  const BADGE = { invoice:'INV', contract:'CTR', quote:'QQ', event:'EVT', proposal:'PROP' };
-  const BADGE_CLASS = { invoice:'crm-act-badge-inv', contract:'crm-act-badge-ctr', quote:'crm-act-badge-quote', event:'crm-act-badge-ev', proposal:'crm-act-badge-prop' };
-  const NAV = { invoice:`switchTab('invoices')`, contract:`switchTab('contracts')`, quote:`switchTab('quickquote')`, event:`switchTab('calendar')`, proposal:`switchTab('proposals')` };
+  const BADGE = { invoice:'INV', contract:'CTR', quote:'QQ', event:'EVT', proposal:'PROP', production:'PROD' };
+  const BADGE_CLASS = { invoice:'crm-act-badge-inv', contract:'crm-act-badge-ctr', quote:'crm-act-badge-quote', event:'crm-act-badge-ev', proposal:'crm-act-badge-prop', production:'crm-act-badge-quote' };
+  const NAV = { invoice:`switchTab('invoices')`, contract:`switchTab('contracts')`, quote:`switchTab('quickquote')`, event:`switchTab('calendar')`, proposal:`switchTab('proposals')`, production:`switchTab('productions')` };
   const fmtAmt = n => n>0 ? '$'+parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
   const items = acts.map(a => `
     <div class="crm-act-item" onclick="${NAV[a.type]||''}">
@@ -3539,10 +3692,12 @@ function renderLedger() {
          <div class="ledger-acts" id="act-row-${inv.id}">
            <button class="lact lact-pay" onclick="showPayConfirm('${inv.id}')">Mark as Paid</button>
            ${inv.url?`<a href="${inv.url}" target="_blank"><button class="lact">Open ↗</button></a>`:''}
+           <button class="lact" onclick="prodFromInvoice('${inv.id}')">→ Event</button>
            <button class="lact lact-del" onclick="removeInvoiceRecord('${inv.id}')">✕</button>
          </div>`
       : `<div class="ledger-acts">
            ${inv.url?`<a href="${inv.url}" target="_blank"><button class="lact">Open ↗</button></a>`:''}
+           <button class="lact" onclick="prodFromInvoice('${inv.id}')">→ Event</button>
            <button class="lact lact-del" onclick="removeInvoiceRecord('${inv.id}')">✕</button>
          </div>`;
 
@@ -4381,8 +4536,565 @@ function calDelete(id) {
   renderCalendar();
 }
 
-document.addEventListener('keydown', e => { if (e.key==='Escape') calCloseModal(); });
+document.addEventListener('keydown', e => { if (e.key==='Escape') { calCloseModal(); prodModalClose(); } });
+
+// ── PRODUCTIONS ───────────────────────────────────────────────
+const PROD_STATUSES = [
+  { id:'pending',       label:'Pending',        short:'PENDING',    color:'#c8a84b' },
+  { id:'preproduction', label:'Pre-Production',  short:'PRE-PROD',   color:'#60a5fa' },
+  { id:'loadin',        label:'Load In',         short:'LOAD IN',    color:'#c084fc' },
+  { id:'live',          label:'Live',            short:'LIVE',       color:'#4ade80' },
+  { id:'strike',        label:'Strike',          short:'STRIKE',     color:'#fb923c' },
+  { id:'complete',      label:'Complete',        short:'COMPLETE',   color:'#3a3a44' },
+];
+
+function _prodsLoad() { return JSON.parse(localStorage.getItem('shift-productions')||'[]'); }
+function _prodsSave(d) { localStorage.setItem('shift-productions', JSON.stringify(d)); }
+function _prodById(id) { return _prodsLoad().find(p => p.id === id); }
+
+let _selectedProdId = null;
+let _prodFilter = '';
+
+// ── List ─────────────────────────────────────────────────────
+function setProdFilter(f) {
+  _prodFilter = f;
+  const map = {'':'all','pending':'pending','preproduction':'preproduction','live':'live','complete':'complete'};
+  document.querySelectorAll('.prod-flt').forEach(b => {
+    const key = b.id.replace('pf-','');
+    b.classList.toggle('on', (f===''&&key==='all')||(f!==''&&key===f));
+  });
+  renderProdList();
+}
+
+function renderProdList() {
+  const el = document.getElementById('prod-list');
+  if (!el) return;
+  let prods = _prodsLoad();
+  if (_prodFilter) prods = prods.filter(p => p.status === _prodFilter);
+  prods.sort((a,b) => (a.date||'9999') < (b.date||'9999') ? -1 : 1);
+
+  if (!prods.length) {
+    el.innerHTML = `<div class="prod-list-empty">No productions${_prodFilter?' with this status':''} yet.<br>Create one or convert an invoice.</div>`;
+    return;
+  }
+  const now = new Date(); now.setHours(0,0,0,0);
+  el.innerHTML = prods.map(p => {
+    const dt = p.date ? new Date(p.date+'T12:00:00') : null;
+    const diffDays = dt ? Math.round((dt-now)/86400000) : null;
+    let cdText='', cdCls='prod-ct-past';
+    if (diffDays !== null) {
+      if (diffDays === 0)      { cdText='TODAY';          cdCls='prod-ct-today'; }
+      else if (diffDays === 1) { cdText='TOMORROW';       cdCls='prod-ct-soon'; }
+      else if (diffDays > 1 && diffDays <= 7) { cdText=`IN ${diffDays}D`; cdCls='prod-ct-soon'; }
+      else if (diffDays > 0)   { cdText=`IN ${diffDays}D`; cdCls='prod-ct-past'; }
+      else                     { cdText=`${Math.abs(diffDays)}D AGO`; cdCls='prod-ct-past'; }
+    }
+    const dateStr = dt ? dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+    const sc = p.status||'pending';
+    const pillLabel = PROD_STATUSES.find(s=>s.id===sc)?.short || sc;
+    const gearCount = (p.gear||[]).length;
+    const crewCount = (p.crew||[]).length;
+    return `<div class="prod-card${p.id===_selectedProdId?' selected':''}" onclick="prodSelectEvent('${p.id}')">
+      <div class="prod-card-top">
+        <div>
+          <div class="prod-card-name">${esc(p.title)}</div>
+          ${p.client?`<div class="prod-card-client">${esc(p.client)}</div>`:''}
+        </div>
+        <span class="prod-s-pill prod-s-${sc}">${pillLabel}</span>
+      </div>
+      <div class="prod-card-date">
+        <span>${dateStr}</span>
+        ${cdText?`<span class="prod-card-countdown ${cdCls}">${cdText}</span>`:''}
+      </div>
+      <div class="prod-card-foot">
+        ${gearCount?`<span>📦 ${gearCount} item${gearCount!==1?'s':''}</span>`:'<span>No gear yet</span>'}
+        ${crewCount?`<span>👥 ${crewCount} crew</span>`:'<span>No crew</span>'}
+        ${p.venue?`<span>${esc(p.venue)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Detail ───────────────────────────────────────────────────
+function prodSelectEvent(id) {
+  _selectedProdId = id;
+  renderProdList();
+  renderProdDetail(id);
+}
+
+function renderProdDetail(id) {
+  const p = _prodById(id);
+  if (!p) return;
+  document.getElementById('prod-detail-empty').style.display = 'none';
+  const pv = document.getElementById('prod-detail-view');
+  pv.style.display = '';
+
+  const sc = p.status||'pending';
+  const statusBar = PROD_STATUSES.map(s =>
+    `<button class="prod-sb-btn prod-sb-${s.id}${sc===s.id?' active':''}" onclick="prodSetStatus('${id}','${s.id}')">${s.label}</button>`
+  ).join('');
+
+  const timeDefs = [
+    {key:'warehouse', label:'Warehouse Call'},
+    {key:'depart',    label:'Truck Departs'},
+    {key:'arrival',   label:'Venue Arrival'},
+    {key:'showstart', label:'Show Start'},
+    {key:'showend',   label:'Show End'},
+    {key:'strike',    label:'Strike Done'},
+  ];
+  const timesHTML = timeDefs.map(t =>
+    `<div class="prod-tc">
+      <div class="prod-tc-lbl">${t.label}</div>
+      <input class="prod-tc-in" type="time" value="${(p.times||{})[t.key]||''}" onchange="prodSaveTime('${id}','${t.key}',this.value)" placeholder="--:--"/>
+    </div>`
+  ).join('');
+
+  const gearHTML = (p.gear||[]).length
+    ? (p.gear).map((g,i) => `
+      <div class="prod-gear-item">
+        <div class="prod-gear-qty">${g.qty||1}</div>
+        <div class="prod-gear-body">
+          <div class="prod-gear-name">${esc(g.name)}</div>
+          ${g.location||g.notes?`<div class="prod-gear-sub">${[g.location?'📍'+g.location:'',g.notes].filter(Boolean).join(' · ')}</div>`:''}
+        </div>
+        <button class="prod-gear-del" onclick="prodRemoveGear('${id}',${i})" title="Remove">✕</button>
+      </div>`).join('')
+    : '<div style="font-size:12px;color:var(--dim);padding:6px 0">No gear added yet.</div>';
+
+  const crewHTML = (p.crew||[]).length
+    ? (p.crew).map((c,i) => `
+      <div class="prod-crew-item">
+        <div class="prod-crew-init">${(c.name||'?').slice(0,2).toUpperCase()}</div>
+        <div class="prod-crew-body">
+          <div class="prod-crew-name">${esc(c.name)}</div>
+          <div class="prod-crew-role">${esc(c.role||'')}${c.phone?' · '+esc(c.phone):''}</div>
+        </div>
+        ${c.calltime?`<div class="prod-crew-call">${c.calltime}</div>`:''}
+        <button class="prod-crew-del" onclick="prodRemoveCrew('${id}',${i})" title="Remove">✕</button>
+      </div>`).join('')
+    : '<div style="font-size:12px;color:var(--dim);padding:6px 0">No crew assigned yet.</div>';
+
+  // Linked docs
+  const invs = _invoicesLoad();
+  const quotes = _quotesLoad();
+  const docs = p.links||{};
+  let docsHTML = '';
+  if (docs.invoiceId) {
+    const inv = invs.find(x=>x.id===docs.invoiceId);
+    if (inv) docsHTML += `<div class="prod-doc-item">
+      <span class="prod-doc-badge crm-act-badge-inv">INV</span>
+      <div class="prod-doc-body"><div class="prod-doc-num">${esc(inv.invoiceNum)}</div>
+      <div class="prod-doc-meta">Due ${inv.dueDate||'—'} · ${inv.status||'sent'}</div></div>
+      <div class="prod-doc-amount">$${(inv.amount||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      <button class="prod-doc-del" onclick="prodUnlinkDoc('${id}','invoiceId')" title="Unlink">✕</button>
+    </div>`;
+  }
+  if (docs.quoteId) {
+    const q = quotes.find(x=>x.id===docs.quoteId||x.num===docs.quoteId);
+    if (q) docsHTML += `<div class="prod-doc-item">
+      <span class="prod-doc-badge crm-act-badge-quote">QQ</span>
+      <div class="prod-doc-body"><div class="prod-doc-num">${esc(q.num)}</div>
+      <div class="prod-doc-meta">Valid Until ${q.validUntil||'—'}</div></div>
+      <div class="prod-doc-amount">$${parseFloat(q.amount||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      <button class="prod-doc-del" onclick="prodUnlinkDoc('${id}','quoteId')" title="Unlink">✕</button>
+    </div>`;
+  }
+
+  const invOpts = invs.map(inv=>`<option value="${inv.id}">${esc(inv.invoiceNum)} — ${esc(inv.client)} — $${(inv.amount||0).toLocaleString()}</option>`).join('');
+  const qqOpts  = quotes.map(q=>`<option value="${q.num}">${esc(q.num)} — ${esc(q.client)} — $${parseFloat(q.amount||0).toLocaleString()}</option>`).join('');
+
+  const eventDate = p.date ? new Date(p.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}) : '—';
+
+  pv.innerHTML = `
+    <div class="prod-detail-hd">
+      <div>
+        <div class="prod-detail-title">${esc(p.title)}</div>
+        <div class="prod-detail-sub">
+          ${p.client?esc(p.client):''}${p.venue?' · '+esc(p.venue):''}${p.venueAddr?'<br>'+esc(p.venueAddr):''}
+          <br>${eventDate}
+        </div>
+      </div>
+      <div class="prod-hd-btns">
+        <button class="prod-hd-btn" onclick="prodOpenEdit('${id}')">Edit Info</button>
+        <button class="prod-hd-btn prod-hd-btn-del" onclick="prodDelete('${id}')">✕ Delete</button>
+      </div>
+    </div>
+
+    <div class="prod-status-bar">${statusBar}</div>
+
+    <div class="prod-section">
+      <div class="prod-section-hd"><div class="prod-section-lbl">Call Schedule</div></div>
+      <div class="prod-times-grid">${timesHTML}</div>
+    </div>
+
+    <div class="prod-section">
+      <div class="prod-section-hd">
+        <div class="prod-section-lbl">Gear Manifest${p.gear?.length?' ('+p.gear.length+')':''}</div>
+        <div style="display:flex;gap:6px">
+          <button class="prod-section-btn" onclick="prodToggleGearForm('${id}')">+ Add Item</button>
+          <button class="prod-section-btn" onclick="rcOpenPicker('production')">↓ Rate Card</button>
+        </div>
+      </div>
+      <div class="prod-gear-list" id="prod-gear-list-${id}">${gearHTML}</div>
+      <div id="prod-gear-form-${id}" style="display:none">
+        <div class="prod-add-row">
+          <input class="f-input w-sm" type="number" id="pgf-qty-${id}" placeholder="Qty" value="1" min="1"/>
+          <input class="f-input w-md" id="pgf-name-${id}" placeholder="Item name *"/>
+          <input class="f-input w-md" id="pgf-loc-${id}" placeholder="Location (e.g. Shelf B-3)"/>
+          <input class="f-input w-md" id="pgf-notes-${id}" placeholder="Notes"/>
+          <button class="prod-add-btn" onclick="prodAddGear('${id}')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="prod-section">
+      <div class="prod-section-hd">
+        <div class="prod-section-lbl">Crew${p.crew?.length?' ('+p.crew.length+')':''}</div>
+        <button class="prod-section-btn" onclick="prodToggleCrewForm('${id}')">+ Add Member</button>
+      </div>
+      <div class="prod-crew-list" id="prod-crew-list-${id}">${crewHTML}</div>
+      <div id="prod-crew-form-${id}" style="display:none">
+        <div class="prod-add-row">
+          <input class="f-input w-md" id="pcf-name-${id}" placeholder="Name *"/>
+          <input class="f-input w-md" id="pcf-role-${id}" placeholder="Role (Lead Op, Tech, Driver…)"/>
+          <input class="f-input" id="pcf-phone-${id}" placeholder="Phone" style="flex:0 0 130px"/>
+          <input class="f-input" type="time" id="pcf-call-${id}" style="flex:0 0 110px"/>
+          <button class="prod-add-btn" onclick="prodAddCrew('${id}')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="prod-section">
+      <div class="prod-section-hd"><div class="prod-section-lbl">Linked Documents</div></div>
+      <div id="prod-docs-${id}">${docsHTML||'<div style="font-size:12px;color:var(--dim);padding:4px 0">No documents linked yet.</div>'}</div>
+      <div class="prod-link-row">
+        <select class="prod-link-sel" id="prod-inv-sel-${id}">
+          <option value="">— Link Invoice —</option>${invOpts}
+        </select>
+        <button class="prod-link-btn" onclick="prodLinkDoc('${id}','invoiceId','prod-inv-sel-${id}')">Link</button>
+        <select class="prod-link-sel" id="prod-qq-sel-${id}">
+          <option value="">— Link Quote —</option>${qqOpts}
+        </select>
+        <button class="prod-link-btn" onclick="prodLinkDoc('${id}','quoteId','prod-qq-sel-${id}')">Link</button>
+      </div>
+    </div>
+
+    <div class="prod-section">
+      <div class="prod-section-hd"><div class="prod-section-lbl">Production Notes</div></div>
+      <textarea class="f-textarea" style="min-height:100px" placeholder="Venue notes, parking, contacts, tech rider details…" onchange="prodSaveNotes('${id}',this.value)">${esc(p.notes||'')}</textarea>
+    </div>
+  `;
+}
+
+// ── Status ───────────────────────────────────────────────────
+function prodSetStatus(id, status) {
+  const prods = _prodsLoad();
+  const p = prods.find(x=>x.id===id);
+  if (!p) return;
+  p.status = status; p.updated = Date.now();
+  _prodsSave(prods);
+  renderProdList();
+  renderProdDetail(id);
+  const lbl = PROD_STATUSES.find(s=>s.id===status)?.label || status;
+  toast(`Status → ${lbl}`, 'ok');
+}
+
+function prodSaveTime(id, key, val) {
+  const prods = _prodsLoad();
+  const p = prods.find(x=>x.id===id);
+  if (!p) return;
+  if (!p.times) p.times = {};
+  p.times[key] = val; p.updated = Date.now();
+  _prodsSave(prods);
+}
+
+function prodSaveNotes(id, val) {
+  const prods = _prodsLoad();
+  const p = prods.find(x=>x.id===id);
+  if (!p) return;
+  p.notes = val; p.updated = Date.now();
+  _prodsSave(prods);
+}
+
+// ── Gear ─────────────────────────────────────────────────────
+function prodToggleGearForm(id) {
+  const el = document.getElementById(`prod-gear-form-${id}`);
+  if (el) { el.style.display = el.style.display==='none' ? '' : 'none'; }
+  setTimeout(() => document.getElementById(`pgf-name-${id}`)?.focus(), 50);
+}
+function prodToggleCrewForm(id) {
+  const el = document.getElementById(`prod-crew-form-${id}`);
+  if (el) { el.style.display = el.style.display==='none' ? '' : 'none'; }
+  setTimeout(() => document.getElementById(`pcf-name-${id}`)?.focus(), 50);
+}
+
+function prodAddGear(id) {
+  const name = document.getElementById(`pgf-name-${id}`)?.value.trim();
+  if (!name) { toast('Enter item name','err'); return; }
+  const qty  = parseInt(document.getElementById(`pgf-qty-${id}`)?.value)||1;
+  const loc  = document.getElementById(`pgf-loc-${id}`)?.value.trim()||'';
+  const notes= document.getElementById(`pgf-notes-${id}`)?.value.trim()||'';
+  const prods = _prodsLoad();
+  const p = prods.find(x=>x.id===id);
+  if (!p) return;
+  if (!p.gear) p.gear = [];
+  p.gear.push({ id:'g_'+Date.now(), name, qty, location:loc, notes });
+  p.updated = Date.now();
+  _prodsSave(prods);
+  renderProdDetail(id);
+  renderProdList();
+}
+
+function prodRemoveGear(id, idx) {
+  const prods = _prodsLoad();
+  const p = prods.find(x=>x.id===id);
+  if (!p||!p.gear) return;
+  p.gear.splice(idx,1); p.updated = Date.now();
+  _prodsSave(prods);
+  renderProdDetail(id);
+  renderProdList();
+}
+
+// Rate Card → production gear
+function _rcInsertToProd(s) {
+  if (!_selectedProdId) { toast('Select a production first','err'); return; }
+  const prods = _prodsLoad();
+  const p = prods.find(x=>x.id===_selectedProdId);
+  if (!p) return;
+  if (!p.gear) p.gear = [];
+  p.gear.push({ id:'g_'+Date.now(), name:s.name+(s.unit?' (per '+s.unit+')':''), qty:1, location:'', notes:s.description||'' });
+  p.updated = Date.now();
+  _prodsSave(prods);
+  renderProdDetail(_selectedProdId);
+  renderProdList();
+}
+
+// ── Crew ─────────────────────────────────────────────────────
+function prodAddCrew(id) {
+  const name = document.getElementById(`pcf-name-${id}`)?.value.trim();
+  if (!name) { toast('Enter crew member name','err'); return; }
+  const role     = document.getElementById(`pcf-role-${id}`)?.value.trim()||'';
+  const phone    = document.getElementById(`pcf-phone-${id}`)?.value.trim()||'';
+  const calltime = document.getElementById(`pcf-call-${id}`)?.value||'';
+  const prods = _prodsLoad();
+  const p = prods.find(x=>x.id===id);
+  if (!p) return;
+  if (!p.crew) p.crew = [];
+  p.crew.push({ id:'cr_'+Date.now(), name, role, phone, calltime });
+  p.updated = Date.now();
+  _prodsSave(prods);
+  renderProdDetail(id);
+  renderProdList();
+}
+
+function prodRemoveCrew(id, idx) {
+  const prods = _prodsLoad();
+  const p = prods.find(x=>x.id===id);
+  if (!p||!p.crew) return;
+  p.crew.splice(idx,1); p.updated = Date.now();
+  _prodsSave(prods);
+  renderProdDetail(id);
+  renderProdList();
+}
+
+// ── Documents ────────────────────────────────────────────────
+function prodLinkDoc(id, key, selId) {
+  const val = document.getElementById(selId)?.value;
+  if (!val) return;
+  const prods = _prodsLoad();
+  const p = prods.find(x=>x.id===id);
+  if (!p) return;
+  if (!p.links) p.links = {};
+  p.links[key] = val; p.updated = Date.now();
+  _prodsSave(prods);
+  renderProdDetail(id);
+  toast('Document linked ✓','ok');
+}
+
+function prodUnlinkDoc(id, key) {
+  const prods = _prodsLoad();
+  const p = prods.find(x=>x.id===id);
+  if (!p||!p.links) return;
+  delete p.links[key]; p.updated = Date.now();
+  _prodsSave(prods);
+  renderProdDetail(id);
+}
+
+// ── Create / Edit / Delete ────────────────────────────────────
+let _prodEditId = null;
+
+function prodOpenAdd() {
+  _prodEditId = null;
+  document.getElementById('prod-modal-h').textContent = 'New Production';
+  document.getElementById('pm-title').value    = '';
+  document.getElementById('pm-client').value   = '';
+  document.getElementById('pm-client-id').value= '';
+  document.getElementById('pm-venue').value    = '';
+  document.getElementById('pm-venue-addr').value='';
+  document.getElementById('pm-date').value     = '';
+  document.getElementById('pm-showstart').value= '';
+  _populateCRMPickers();
+  document.getElementById('prod-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('pm-title').focus(),50);
+}
+
+function prodOpenEdit(id) {
+  const p = _prodById(id);
+  if (!p) return;
+  _prodEditId = id;
+  document.getElementById('prod-modal-h').textContent = 'Edit Production';
+  document.getElementById('pm-title').value     = p.title||'';
+  document.getElementById('pm-client').value    = p.client||'';
+  document.getElementById('pm-client-id').value = p.clientId||'';
+  document.getElementById('pm-venue').value     = p.venue||'';
+  document.getElementById('pm-venue-addr').value= p.venueAddr||'';
+  document.getElementById('pm-date').value      = p.date||'';
+  document.getElementById('pm-showstart').value = (p.times||{}).showstart||'';
+  _populateCRMPickers();
+  document.getElementById('prod-modal').classList.add('open');
+}
+
+function prodModalClose() { document.getElementById('prod-modal').classList.remove('open'); }
+
+function prodModalSave() {
+  const title = document.getElementById('pm-title').value.trim();
+  const date  = document.getElementById('pm-date').value;
+  if (!title) { toast('Enter a production title','err'); document.getElementById('pm-title').focus(); return; }
+  if (!date)  { toast('Select an event date','err');  document.getElementById('pm-date').focus(); return; }
+
+  const prods = _prodsLoad();
+  const showstart = document.getElementById('pm-showstart').value||'';
+
+  if (_prodEditId) {
+    const p = prods.find(x=>x.id===_prodEditId);
+    if (p) {
+      p.title=title; p.client=document.getElementById('pm-client').value.trim();
+      p.clientId=document.getElementById('pm-client-id').value;
+      p.venue=document.getElementById('pm-venue').value.trim();
+      p.venueAddr=document.getElementById('pm-venue-addr').value.trim();
+      p.date=date; if (!p.times) p.times={}; if(showstart) p.times.showstart=showstart;
+      p.updated=Date.now();
+    }
+    _prodsSave(prods);
+    prodModalClose();
+    renderProdList();
+    renderProdDetail(_prodEditId);
+    toast('Production updated ✓','ok');
+  } else {
+    const newP = {
+      id:'prod_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
+      title, client:document.getElementById('pm-client').value.trim(),
+      clientId:document.getElementById('pm-client-id').value,
+      venue:document.getElementById('pm-venue').value.trim(),
+      venueAddr:document.getElementById('pm-venue-addr').value.trim(),
+      date, times:showstart?{showstart}:{}, status:'pending',
+      gear:[], crew:[], links:{}, notes:'', created:Date.now(), updated:Date.now()
+    };
+    prods.unshift(newP);
+    _prodsSave(prods);
+    prodModalClose();
+    _selectedProdId = newP.id;
+    renderProdList();
+    renderProdDetail(newP.id);
+    toast('Production created ✓','ok');
+  }
+}
+
+function prodDelete(id) {
+  const p = _prodById(id);
+  if (!p || !confirm(`Delete "${p.title}"? This cannot be undone.`)) return;
+  _prodsSave(_prodsLoad().filter(x=>x.id!==id));
+  _selectedProdId = null;
+  document.getElementById('prod-detail-empty').style.display='';
+  document.getElementById('prod-detail-view').style.display='none';
+  renderProdList();
+  toast('Production deleted','ok');
+}
+
+// ── Create from Invoice ───────────────────────────────────────
+function prodFromInvoice(invId) {
+  const inv = _invoicesLoad().find(x=>x.id===invId);
+  if (!inv) return;
+  const prods = _prodsLoad();
+  const gear = (inv.items||[]).filter(it=>it.desc).map(it=>({
+    id:'g_'+Date.now()+'_'+Math.random().toString(36).slice(2,4),
+    name:it.desc, qty:it.qty||1, location:'', notes:''
+  }));
+  const newP = {
+    id:'prod_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
+    title: inv.client ? inv.client+' Event' : 'Event from '+inv.invoiceNum,
+    client:inv.client, clientId:inv.clientId||'',
+    venue:'', venueAddr:'', date:inv.dueDate||'',
+    times:{}, status:'pending',
+    gear, crew:[], links:{invoiceId:invId}, notes:'',
+    created:Date.now(), updated:Date.now()
+  };
+  prods.unshift(newP);
+  _prodsSave(prods);
+  _selectedProdId = newP.id;
+  switchTab('productions');
+  setTimeout(()=>{ renderProdList(); renderProdDetail(newP.id); },50);
+  toast(`Production created from ${inv.invoiceNum} ✓`,'ok');
+}
+
+// ── CRM new event → production ────────────────────────────────
+function crmNewProduction(id) {
+  const c = _crmById(id);
+  if (!c) return;
+  _prodEditId = null;
+  document.getElementById('pm-title').value     = '';
+  document.getElementById('pm-client').value    = c.name;
+  document.getElementById('pm-client-id').value = c.id;
+  document.getElementById('pm-venue').value     = '';
+  document.getElementById('pm-venue-addr').value= '';
+  document.getElementById('pm-date').value      = '';
+  document.getElementById('pm-showstart').value = '';
+  document.getElementById('prod-modal-h').textContent = 'New Production — '+c.name;
+  _populateCRMPickers();
+  document.getElementById('prod-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('pm-title').focus(),50);
+}
 </script>
+
+<!-- PRODUCTION MODAL (new/edit basic info) -->
+<div class="prod-modal" id="prod-modal">
+  <div class="prod-modal-box">
+    <div class="prod-modal-h" id="prod-modal-h">New Production</div>
+    <div class="crm-pick-row" style="margin-bottom:14px">
+      <span class="crm-pick-lbl">Load from CRM</span>
+      <select class="crm-pick-sel" id="pm-client-picker" onchange="pickFromCRM('pm-client-picker','pm-client','pm-client-id')">
+        <option value="">— Pick a client —</option>
+      </select>
+    </div>
+    <input type="hidden" id="pm-client-id"/>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Production Title *</label>
+        <input class="f-input" id="pm-title" placeholder="e.g. Hernandez Wedding"/>
+      </div>
+      <div class="f-row"><label class="f-label">Client Name</label>
+        <input class="f-input" id="pm-client" placeholder="Client Name"/>
+      </div>
+    </div>
+    <div class="f-row" style="margin-top:12px"><label class="f-label">Venue</label>
+      <input class="f-input" id="pm-venue" placeholder="Venue name"/>
+    </div>
+    <div class="f-row" style="margin-top:12px"><label class="f-label">Venue Address</label>
+      <input class="f-input" id="pm-venue-addr" placeholder="Street, City, State"/>
+    </div>
+    <div class="f-grid" style="margin-top:12px">
+      <div class="f-row"><label class="f-label">Event Date *</label>
+        <input class="f-input" type="date" id="pm-date"/>
+      </div>
+      <div class="f-row"><label class="f-label">Show Start Time</label>
+        <input class="f-input" type="time" id="pm-showstart"/>
+      </div>
+    </div>
+    <div class="prod-modal-foot">
+      <button class="cal-cancel-btn" onclick="prodModalClose()">Cancel</button>
+      <button class="cal-save-btn" onclick="prodModalSave()">Save Production</button>
+    </div>
+  </div>
+</div>
 
 <!-- CALENDAR MODAL -->
 <div class="cal-modal" id="cal-modal">
