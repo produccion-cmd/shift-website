@@ -443,6 +443,77 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .pipe-cancel-btn:hover{border-color:#555;color:var(--white)}
 .pipe-del-btn{background:transparent;border:1px solid transparent;color:var(--dim);font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;padding:11px 12px;cursor:pointer;margin-left:auto}
 .pipe-del-btn:hover{color:var(--red)}
+
+/* ── RATE CARD ───────────────────────────────────────────── */
+.rc-wrap{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.rc-topbar{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0;flex-wrap:wrap}
+.rc-title-block .rc-h2{font-family:'Sora',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.02em}
+.rc-title-block .rc-sub{font-size:11px;color:var(--dim);margin-top:3px}
+.rc-topbar-right{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.rc-search{background:transparent;border:1px solid var(--border);color:var(--white);font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;outline:none;width:200px}
+.rc-search:focus{border-color:#444}
+.rc-search::placeholder{color:var(--dim)}
+.rc-list{flex:1;padding:0 28px 48px;max-width:760px;width:100%;margin:0 auto}
+.rc-empty{font-size:13px;color:var(--dim);padding:48px 0;text-align:center;line-height:1.9}
+.rc-cat{margin-top:32px}
+.rc-cat-label{font-size:9.5px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:0}
+.rc-item{border-bottom:1px solid var(--border);padding:14px 4px;display:flex;align-items:center;gap:16px;transition:background .12s}
+.rc-item:hover{background:rgba(255,255,255,.018)}
+.rc-item-main{flex:1;min-width:0}
+.rc-item-name{font-family:'Sora',sans-serif;font-weight:600;font-size:13.5px;line-height:1.3}
+.rc-item-desc{font-size:11.5px;color:var(--gray);margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.rc-item-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.rc-item-unit{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);border:1px solid var(--border);padding:3px 8px}
+.rc-item-price{font-family:'Sora',sans-serif;font-weight:800;font-size:16px;min-width:70px;text-align:right}
+.rc-item-price.free{color:var(--dim);font-size:13px;font-weight:400}
+.rc-item-acts{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.rc-item:hover .rc-item-acts{opacity:1}
+.rc-act{background:none;border:none;color:var(--dim);cursor:pointer;font-family:'Inter',sans-serif;font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:5px 8px;transition:color .12s}
+.rc-act:hover{color:var(--white)}
+.rc-act-del:hover{color:var(--red)}
+/* Rate Card add button in builders */
+.rc-add-btn{background:transparent;border:1px solid var(--border2);color:var(--gray);font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;padding:11px 18px;cursor:pointer;white-space:nowrap;transition:border-color .15s,color .15s;flex-shrink:0}
+.rc-add-btn:hover{border-color:#555;color:var(--white)}
+/* Rate Card modal */
+#rc-modal{display:none;position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,.87);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px}
+#rc-modal.open{display:flex}
+.rc-modal-box{background:#111;border:1px solid var(--border2);padding:28px;width:100%;max-width:420px}
+.rc-modal-title{font-family:'Sora',sans-serif;font-weight:700;font-size:17px;letter-spacing:-.02em;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.rc-modal-x{background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:0;line-height:1}
+.rc-modal-x:hover{color:var(--white)}
+.rc-modal-acts{display:flex;gap:10px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+/* Rate Card picker modal */
+#rcp-modal{display:none;position:fixed;inset:0;z-index:9996;background:rgba(0,0,0,.87);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px}
+#rcp-modal.open{display:flex}
+.rcp-box{background:#111;border:1px solid var(--border2);width:100%;max-width:520px;max-height:88vh;display:flex;flex-direction:column}
+.rcp-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.rcp-head-left{flex:1}
+.rcp-title{font-family:'Sora',sans-serif;font-weight:700;font-size:16px;letter-spacing:-.02em}
+.rcp-ctx{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-top:3px}
+.rcp-search{width:100%;margin-top:10px;background:transparent;border:1px solid var(--border);color:var(--white);font-family:'Inter',sans-serif;font-size:13px;padding:9px 12px;outline:none}
+.rcp-search:focus{border-color:#444}
+.rcp-search::placeholder{color:var(--dim)}
+.rcp-close-x{background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:0;line-height:1;flex-shrink:0;align-self:flex-start}
+.rcp-close-x:hover{color:var(--white)}
+.rcp-body{flex:1;overflow-y:auto;padding:0 24px 20px}
+.rcp-body::-webkit-scrollbar{width:3px}
+.rcp-body::-webkit-scrollbar-thumb{background:var(--border2)}
+.rcp-cat-label{font-size:9px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);padding:16px 0 8px;border-bottom:1px solid var(--border)}
+.rcp-item{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--border)}
+.rcp-item:last-child{border-bottom:none}
+.rcp-item-left{flex:1;min-width:0}
+.rcp-item-name{font-family:'Sora',sans-serif;font-weight:600;font-size:13px}
+.rcp-item-desc{font-size:11px;color:var(--gray);margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.rcp-item-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.rcp-item-unit{font-size:9.5px;color:var(--dim);font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.rcp-item-price{font-family:'Sora',sans-serif;font-weight:800;font-size:14px;min-width:58px;text-align:right}
+.rcp-ins-btn{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--gray);padding:6px 12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .12s;white-space:nowrap}
+.rcp-ins-btn:hover{border-color:#4ade80;color:#4ade80}
+.rcp-ins-btn.added{border-color:#4ade80;color:#4ade80}
+.rcp-empty{font-size:13px;color:var(--dim);padding:32px 0;text-align:center}
+.rcp-foot{padding:14px 24px;border-top:1px solid var(--border);flex-shrink:0;text-align:right}
+.rcp-done-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:11px 24px;border:none;cursor:pointer}
+.rcp-done-btn:hover{opacity:.85}
 </style>
 </head>
 <body>
@@ -477,6 +548,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
     <button class="tab-btn" onclick="switchTab('invoices')">Invoices</button>
     <button class="tab-btn" onclick="switchTab('contracts')">Contracts</button>
     <button class="tab-btn" onclick="switchTab('pipeline')">Pipeline</button>
+    <button class="tab-btn" onclick="switchTab('ratecards')">Rate Card</button>
     <button class="tab-btn" onclick="switchTab('clients')">Clients</button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
   </nav>
@@ -605,7 +677,10 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         <div class="f-section">
           <div class="f-section-label">Services</div>
           <div class="services-list" id="services-list"></div>
-          <button class="add-row-btn" onclick="addService()">+ Add Service</button>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="add-row-btn" style="flex:1;margin-top:0" onclick="addService()">+ Add Service</button>
+            <button class="rc-add-btn" onclick="rcOpenPicker('proposal')">↓ Rate Card</button>
+          </div>
         </div>
 
         <div class="f-section">
@@ -707,7 +782,10 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
             </thead>
             <tbody id="invoice-items"></tbody>
           </table>
-          <button class="add-row-btn" style="margin-top:10px" onclick="addInvoiceItem()">+ Add Line Item</button>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="add-row-btn" style="flex:1;margin-top:0" onclick="addInvoiceItem()">+ Add Line Item</button>
+            <button class="rc-add-btn" onclick="rcOpenPicker('invoice')">↓ Rate Card</button>
+          </div>
           <div class="invoice-total-row">
             <span class="invoice-total-label">Tax %</span>
             <input class="f-input" id="i-tax" type="number" min="0" max="100" value="0" style="width:70px;text-align:right;padding:8px" oninput="calcInvoiceTotal();scheduleInvoicePreview()"/>
@@ -953,6 +1031,23 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
     </div>
   </div>
 
+  <!-- TAB: RATE CARD -->
+  <div class="tab-panel" id="tab-ratecards">
+    <div class="rc-wrap">
+      <div class="rc-topbar">
+        <div class="rc-title-block">
+          <div class="rc-h2">Service Library</div>
+          <div class="rc-sub" id="rc-sub"></div>
+        </div>
+        <div class="rc-topbar-right">
+          <input class="rc-search" id="rc-search" placeholder="Search…" oninput="renderRateCard()"/>
+          <button class="crm-new-btn" onclick="rcOpenAdd()">+ New Service</button>
+        </div>
+      </div>
+      <div class="rc-list" id="rc-list"></div>
+    </div>
+  </div>
+
   <!-- TAB: PIPELINE -->
   <div class="tab-panel" id="tab-pipeline">
     <div class="pipe-wrap">
@@ -1012,6 +1107,67 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 
 <!-- TOAST CONTAINER -->
 <div id="toast"></div>
+
+<!-- RATE CARD EDIT MODAL -->
+<div id="rc-modal">
+  <div class="rc-modal-box">
+    <div class="rc-modal-title">
+      <span id="rc-modal-title-txt">New Service</span>
+      <button class="rc-modal-x" onclick="closeRCModal()">✕</button>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Service Name *</label><input class="f-input" id="rc-name" placeholder="AV Technician"/></div>
+      <div class="f-row">
+        <label class="f-label">Category</label>
+        <select class="f-select" id="rc-category">
+          <option value="Labor">Labor</option>
+          <option value="Equipment">Equipment</option>
+          <option value="Production">Production</option>
+          <option value="Creative">Creative</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-row"><label class="f-label">Description</label><input class="f-input" id="rc-desc" placeholder="Full day on-site AV support"/></div>
+    <div class="f-grid">
+      <div class="f-row">
+        <label class="f-label">Unit</label>
+        <select class="f-select" id="rc-unit">
+          <option value="Day">Day</option>
+          <option value="Hour">Hour</option>
+          <option value="Event">Event</option>
+          <option value="Each">Each</option>
+          <option value="Week">Week</option>
+          <option value="">—</option>
+        </select>
+      </div>
+      <div class="f-row"><label class="f-label">Rate (USD) *</label><input class="f-input" id="rc-price" type="number" min="0" placeholder="500"/></div>
+    </div>
+    <div class="rc-modal-acts">
+      <button class="pipe-save-btn" onclick="rcSave()">Save</button>
+      <button class="pipe-cancel-btn" onclick="closeRCModal()">Cancel</button>
+      <button class="pipe-del-btn" id="rc-del-btn" onclick="rcDeleteFromModal()" style="display:none">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- RATE CARD PICKER MODAL -->
+<div id="rcp-modal">
+  <div class="rcp-box">
+    <div class="rcp-head">
+      <div class="rcp-head-left">
+        <div class="rcp-title">Rate Card</div>
+        <div class="rcp-ctx" id="rcp-ctx">Adding to Invoice</div>
+        <input class="rcp-search" id="rcp-search" placeholder="Search services…" oninput="renderRCPicker()"/>
+      </div>
+      <button class="rcp-close-x" onclick="closeRCPicker()">✕</button>
+    </div>
+    <div class="rcp-body" id="rcp-body"></div>
+    <div class="rcp-foot">
+      <button class="rcp-done-btn" onclick="closeRCPicker()">Done</button>
+    </div>
+  </div>
+</div>
 
 <!-- PIPELINE DEAL MODAL -->
 <div id="pipe-modal">
@@ -1227,7 +1383,7 @@ function _timeAgo(ts) {
 // ── TAB SYSTEM ──────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    const names = ['dashboard','links','proposals','invoices','contracts','pipeline','clients','settings'];
+    const names = ['dashboard','links','proposals','invoices','contracts','pipeline','ratecards','clients','settings'];
     b.classList.toggle('active', names[i] === name);
   });
   document.querySelectorAll('.tab-panel').forEach(p => {
@@ -1237,6 +1393,7 @@ function switchTab(name) {
   if (name === 'dashboard') renderDashboard();
   if (name === 'contracts') renderContractHistory();
   if (name === 'pipeline') renderPipeline();
+  if (name === 'ratecards') renderRateCard();
 }
 
 // ── AUTH ────────────────────────────────────────────────────
@@ -1250,6 +1407,7 @@ function doLogin() {
     renderHistory();
     loadGHToken();
     crmInit();
+    rcInit();
     renderDashboard();
     _refreshOverdueBadge();
     initContractForm();
@@ -1268,7 +1426,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { initForms(); renderHistory(); loadGHToken(); crmInit(); renderDashboard(); _refreshOverdueBadge(); initContractForm(); });
+  document.addEventListener('DOMContentLoaded', () => { initForms(); renderHistory(); loadGHToken(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); initContractForm(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -1973,6 +2131,246 @@ function _crmOnInvoicePublish(d, invoiceNum, amount) {
   if (c.status === 'lead') { c.status = 'active'; }
   _crmSave(contacts);
 }
+
+// ── RATE CARD ─────────────────────────────────────────────────
+const RC_CATS = ['Labor','Equipment','Production','Creative','Other'];
+
+const RC_DEFAULTS = [
+  {category:'Labor',     name:'AV Technician',          description:'Full day on-site AV support',               unit:'Day',   price:500},
+  {category:'Labor',     name:'Lead Operator',           description:'Senior tech, full day',                     unit:'Day',   price:650},
+  {category:'Labor',     name:'Assistant Technician',    description:'Support crew, full day',                    unit:'Day',   price:350},
+  {category:'Labor',     name:'Hourly Labor',            description:'Setup, strike, or on-call support',         unit:'Hour',  price:75},
+  {category:'Equipment', name:'DJ Package (Full)',        description:'CDJs, mixer, monitors, cables',             unit:'Event', price:800},
+  {category:'Equipment', name:'Sound System — Small',    description:'Up to 150 guests',                          unit:'Day',   price:650},
+  {category:'Equipment', name:'Sound System — Medium',   description:'150–500 guests',                            unit:'Day',   price:950},
+  {category:'Equipment', name:'LED Wall (8×6 ft)',        description:'Panels, rigging, controller',               unit:'Day',   price:1200},
+  {category:'Equipment', name:'Projector (4K Laser)',     description:'10,000-lumen projector + screen',           unit:'Day',   price:400},
+  {category:'Equipment', name:'Wireless Microphone',     description:'Handheld or lavalier',                      unit:'Day',   price:150},
+  {category:'Production',name:'Event Consultation',      description:'Tech rider, design, site survey',           unit:'Hour',  price:125},
+  {category:'Production',name:'Pre-Production Day',      description:'Programming, prep, asset creation',         unit:'Day',   price:500},
+  {category:'Production',name:'Custom Lighting Design',  description:'Full venue lighting package',               unit:'Event', price:750},
+  {category:'Creative',  name:'Post-Event Media Package', description:'Highlight reel + photo selects',           unit:'Event', price:350},
+];
+
+function _rcLoad() { return JSON.parse(localStorage.getItem('shift-ratecards')||'[]'); }
+function _rcSave(d) { localStorage.setItem('shift-ratecards', JSON.stringify(d)); }
+
+function rcInit() {
+  if (_rcLoad().length) return;
+  const seeded = RC_DEFAULTS.map(s => ({
+    ...s,
+    id: 'rc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+    created: Date.now(), updated: Date.now()
+  }));
+  _rcSave(seeded);
+}
+
+function renderRateCard() {
+  const all = _rcLoad();
+  const q   = (document.getElementById('rc-search')?.value||'').toLowerCase();
+  const filtered = q ? all.filter(s => (s.name+' '+s.description+' '+s.category).toLowerCase().includes(q)) : all;
+
+  const sub = document.getElementById('rc-sub');
+  if (sub) sub.textContent = `${all.length} service${all.length!==1?'s':''} · click ↓ Rate Card in any builder to insert`;
+
+  const el = document.getElementById('rc-list');
+  if (!el) return;
+
+  if (!filtered.length) {
+    el.innerHTML = `<div class="rc-empty">${all.length ? 'No matches.' : 'No services yet. Hit "+ New Service" to add your first.'}</div>`;
+    return;
+  }
+
+  let html = '';
+  RC_CATS.forEach(cat => {
+    const items = filtered.filter(s => s.category === cat);
+    if (!items.length) return;
+    html += `<div class="rc-cat">
+      <div class="rc-cat-label">${cat}</div>
+      ${items.map(s => `
+        <div class="rc-item">
+          <div class="rc-item-main">
+            <div class="rc-item-name">${esc(s.name)}</div>
+            ${s.description ? `<div class="rc-item-desc">${esc(s.description)}</div>` : ''}
+          </div>
+          <div class="rc-item-right">
+            ${s.unit ? `<div class="rc-item-unit">${esc(s.unit)}</div>` : ''}
+            <div class="rc-item-price${s.price===0?' free':''}">${s.price>0?'$'+s.price.toLocaleString():'—'}</div>
+            <div class="rc-item-acts">
+              <button class="rc-act" onclick="rcOpenEdit('${s.id}')">Edit</button>
+              <button class="rc-act rc-act-del" onclick="rcDelete('${s.id}')">✕</button>
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+// ── RC CRUD modal ─────────────────────────────────────────────
+let _rcEditId = null;
+
+function rcOpenAdd() {
+  _rcEditId = null;
+  document.getElementById('rc-modal-title-txt').textContent = 'New Service';
+  document.getElementById('rc-name').value     = '';
+  document.getElementById('rc-desc').value     = '';
+  document.getElementById('rc-category').value = 'Labor';
+  document.getElementById('rc-unit').value     = 'Day';
+  document.getElementById('rc-price').value    = '';
+  document.getElementById('rc-del-btn').style.display = 'none';
+  document.getElementById('rc-modal').classList.add('open');
+  setTimeout(() => document.getElementById('rc-name').focus(), 50);
+}
+function rcOpenEdit(id) {
+  const s = _rcLoad().find(x => x.id === id);
+  if (!s) return;
+  _rcEditId = id;
+  document.getElementById('rc-modal-title-txt').textContent = 'Edit Service';
+  document.getElementById('rc-name').value     = s.name;
+  document.getElementById('rc-desc').value     = s.description||'';
+  document.getElementById('rc-category').value = s.category||'Labor';
+  document.getElementById('rc-unit').value     = s.unit||'Day';
+  document.getElementById('rc-price').value    = s.price||'';
+  document.getElementById('rc-del-btn').style.display = 'block';
+  document.getElementById('rc-modal').classList.add('open');
+}
+function closeRCModal() {
+  document.getElementById('rc-modal').classList.remove('open');
+  _rcEditId = null;
+}
+function rcSave() {
+  const name  = document.getElementById('rc-name').value.trim();
+  const price = parseFloat(document.getElementById('rc-price').value)||0;
+  if (!name) { toast('Enter a service name','err'); return; }
+  const all = _rcLoad();
+  if (_rcEditId) {
+    const s = all.find(x => x.id === _rcEditId);
+    if (s) {
+      s.name        = name;
+      s.description = document.getElementById('rc-desc').value.trim();
+      s.category    = document.getElementById('rc-category').value;
+      s.unit        = document.getElementById('rc-unit').value;
+      s.price       = price;
+      s.updated     = Date.now();
+    }
+  } else {
+    all.push({
+      id: 'rc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+      name,
+      description: document.getElementById('rc-desc').value.trim(),
+      category: document.getElementById('rc-category').value,
+      unit: document.getElementById('rc-unit').value,
+      price, created: Date.now(), updated: Date.now()
+    });
+  }
+  _rcSave(all);
+  closeRCModal();
+  renderRateCard();
+  toast(_rcEditId ? 'Service updated' : 'Service added', 'ok');
+}
+function rcDeleteFromModal() {
+  if (!_rcEditId || !confirm('Delete this service?')) return;
+  _rcSave(_rcLoad().filter(s => s.id !== _rcEditId));
+  closeRCModal();
+  renderRateCard();
+  toast('Service deleted', 'ok');
+}
+function rcDelete(id) {
+  if (!confirm('Delete this service?')) return;
+  _rcSave(_rcLoad().filter(s => s.id !== id));
+  renderRateCard();
+  toast('Service deleted', 'ok');
+}
+
+// ── RC Picker (used from Invoice + Proposal builders) ─────────
+let _rcPickerTarget = 'invoice';
+
+function rcOpenPicker(target) {
+  _rcPickerTarget = target;
+  document.getElementById('rcp-ctx').textContent =
+    target === 'invoice' ? 'Adding to Invoice' : 'Adding to Proposal';
+  document.getElementById('rcp-search').value = '';
+  renderRCPicker();
+  document.getElementById('rcp-modal').classList.add('open');
+  setTimeout(() => document.getElementById('rcp-search').focus(), 50);
+}
+function closeRCPicker() { document.getElementById('rcp-modal').classList.remove('open'); }
+
+function renderRCPicker() {
+  const q   = (document.getElementById('rcp-search')?.value||'').toLowerCase();
+  const all = _rcLoad();
+  const filtered = q ? all.filter(s => (s.name+' '+s.description+' '+s.category).toLowerCase().includes(q)) : all;
+  const body = document.getElementById('rcp-body');
+
+  if (!filtered.length) {
+    body.innerHTML = `<div class="rcp-empty">${all.length ? 'No matches.' : 'No services saved yet. Add some in the Rate Card tab.'}</div>`;
+    return;
+  }
+
+  let html = '';
+  RC_CATS.forEach(cat => {
+    const items = filtered.filter(s => s.category === cat);
+    if (!items.length) return;
+    html += `<div class="rcp-cat-label">${cat}</div>` +
+      items.map(s => `
+        <div class="rcp-item" id="rcpi-${s.id}">
+          <div class="rcp-item-left">
+            <div class="rcp-item-name">${esc(s.name)}</div>
+            ${s.description ? `<div class="rcp-item-desc">${esc(s.description)}</div>` : ''}
+          </div>
+          <div class="rcp-item-right">
+            ${s.unit ? `<div class="rcp-item-unit">${esc(s.unit)}</div>` : ''}
+            <div class="rcp-item-price">${s.price>0?'$'+s.price.toLocaleString():'—'}</div>
+            <button class="rcp-ins-btn" id="rcpb-${s.id}" onclick="rcInsert('${s.id}',this)">Add</button>
+          </div>
+        </div>`).join('');
+  });
+  body.innerHTML = html;
+}
+
+function rcInsert(id, btn) {
+  const s = _rcLoad().find(x => x.id === id);
+  if (!s) return;
+
+  if (_rcPickerTarget === 'invoice') {
+    // Add a pre-filled row to the invoice items table
+    const tbody = document.getElementById('invoice-items');
+    const tr = document.createElement('tr');
+    const desc = s.unit ? `${s.name}${s.unit?' (per '+s.unit+')':''}` : s.name;
+    tr.innerHTML = `<td><input class="f-input" style="padding:8px 10px" value="${esc(desc)}" oninput="calcInvoiceTotal();scheduleInvoicePreview()"/></td>
+      <td><input class="f-input" style="padding:8px 10px;text-align:center" type="number" value="1" min="1" oninput="calcInvoiceTotal();scheduleInvoicePreview()"/></td>
+      <td><input class="f-input" style="padding:8px 10px;text-align:right" type="number" value="${s.price||0}" oninput="calcInvoiceTotal();scheduleInvoicePreview()"/></td>
+      <td class="item-total-cell">$${fmtPrice(s.price||0)}</td>
+      <td><button class="item-del-btn" onclick="removeInvoiceItem(this)">✕</button></td>`;
+    tbody.appendChild(tr);
+    calcInvoiceTotal();
+    scheduleInvoicePreview();
+
+  } else {
+    // Add a pre-filled row to the proposal services list
+    _pServiceCount++;
+    const list = document.getElementById('services-list');
+    const row  = document.createElement('div');
+    row.className = 'svc-row'; row.dataset.id = _pServiceCount;
+    row.innerHTML = `<div class="svc-row-hd"><span class="svc-num">Service ${list.children.length+1}</span><button class="svc-remove" onclick="removeService(this)">Remove</button></div>
+      <div class="f-row"><label class="f-label">Service Name *</label><input class="f-input" name="svc-name" value="${esc(s.name)}" oninput="scheduleProposalPreview()"/></div>
+      <div class="f-row"><label class="f-label">Short Description</label><input class="f-input" name="svc-desc" value="${esc(s.description||'')}" oninput="scheduleProposalPreview()"/></div>
+      <div class="f-row"><label class="f-label">Price (USD)</label><input class="f-input" type="number" name="svc-price" value="${s.price||0}" oninput="updateProposalTotal();scheduleProposalPreview()"/></div>`;
+    list.appendChild(row);
+    renumberServices();
+    updateProposalTotal();
+    scheduleProposalPreview();
+  }
+
+  // Visual feedback on button
+  btn.textContent = '✓ Added';
+  btn.classList.add('added');
+  setTimeout(() => { btn.textContent = 'Add'; btn.classList.remove('added'); }, 1800);
+  toast(`Added: ${s.name}`, 'ok');
+}
+
+document.addEventListener('keydown', e => { if (e.key==='Escape') { closeRCModal(); closeRCPicker(); } });
 
 // ── PIPELINE ─────────────────────────────────────────────────
 const PIPE_STAGES = [
