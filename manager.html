@@ -1537,6 +1537,11 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         </div>
         <button class="save-btn" onclick="saveGHToken()">Save Token</button>
         <div class="token-status" id="token-status"></div>
+        <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border); display:flex; gap:10px;">
+          <button class="action-btn btn-secondary" style="flex:1" onclick="syncDataToGitHub()">↑ Sync to Cloud</button>
+          <button class="action-btn btn-secondary" style="flex:1" onclick="loadDataFromGitHub()">↓ Load from Cloud</button>
+        </div>
+        <div class="settings-hint" style="margin-top:10px">Back up your entire database (Clients, Prods, etc.) to a private file in your GitHub repo.</div>
       </div>
 
       <div class="settings-block">
@@ -4631,6 +4636,76 @@ async function autoUpdateHub(cardHTML, marker, token) {
 }
 
 // ── GITHUB PUBLISH ───────────────────────────────────────────
+// ── CLOUD SYNC ──────────────────────────────────────────────
+async function syncDataToGitHub() {
+  const token = getGHToken();
+  if (!token) { toast('GitHub token required','err'); return; }
+  
+  const data = {
+    tasks: _tasksLoad(),
+    crm: _crmLoad(),
+    ratecards: _rcLoad(),
+    quotes: _quotesLoad(),
+    pipeline: _pipeLoad(),
+    invoices: _invoicesLoad(),
+    events: _eventsLoad(),
+    productions: _prodsLoad(),
+    settings: {
+      terms: localStorage.getItem('shift-default-payment-terms'),
+      tax: localStorage.getItem('shift-default-tax-rate'),
+      prefix: localStorage.getItem('shift-default-invoice-prefix')
+    },
+    version: '1.0',
+    timestamp: Date.now()
+  };
+
+  try {
+    toast('Syncing to Cloud...', 'ok');
+    const json = JSON.stringify(data, null, 2);
+    await publishToGitHub('SHIFT_DATABASE_BACKUP.json', json, 'Database Backup Update', token);
+    toast('Cloud Sync Complete ✓', 'ok');
+  } catch(e) {
+    toast('Sync Failed: ' + e.message, 'err');
+  }
+}
+
+async function loadDataFromGitHub() {
+  const token = getGHToken();
+  if (!token) { toast('GitHub token required','err'); return; }
+  if (!confirm('This will overwrite ALL local data with the cloud backup. Continue?')) return;
+
+  try {
+    toast('Fetching Cloud Data...', 'ok');
+    const url = `https://api.github.com/repos/${REPO}/contents/SHIFT_DATABASE_BACKUP.json`;
+    const res = await fetch(url, { headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3.raw' } });
+    
+    if (!res.ok) throw new Error('Could not find backup file on GitHub.');
+    
+    const data = await res.json();
+    
+    // Save everything back to localStorage
+    if (data.tasks) _tasksSave(data.tasks);
+    if (data.crm) _crmSave(data.crm);
+    if (data.ratecards) _rcSave(data.ratecards);
+    if (data.quotes) _quotesSave(data.quotes);
+    if (data.pipeline) _pipeSave(data.pipeline);
+    if (data.invoices) _invoicesSave(data.invoices);
+    if (data.events) _eventsSave(data.events);
+    if (data.productions) _prodsSave(data.productions);
+    
+    if (data.settings) {
+      if (data.settings.terms) localStorage.setItem('shift-default-payment-terms', data.settings.terms);
+      if (data.settings.tax) localStorage.setItem('shift-default-tax-rate', data.settings.tax);
+      if (data.settings.prefix) localStorage.setItem('shift-default-invoice-prefix', data.settings.prefix);
+    }
+
+    toast('Cloud Data Loaded! Reloading...', 'ok');
+    setTimeout(() => location.reload(), 1500);
+  } catch(e) {
+    toast('Load Failed: ' + e.message, 'err');
+  }
+}
+
 async function publishToGitHub(filename, html, message, token) {
   const content = toBase64(html);
   const apiUrl = `https://api.github.com/repos/${REPO}/contents/${filename}`;
