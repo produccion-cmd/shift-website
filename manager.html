@@ -200,6 +200,11 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .inv-snav-btn:hover{color:var(--gray)}
 .inv-snav-btn.active{color:var(--white);border-bottom-color:var(--white)}
 .inv-badge{display:inline-block;background:#ff6b6b;color:#000;font-size:8px;font-weight:800;padding:1px 5px;margin-left:6px;vertical-align:middle;border-radius:0}
+.inv-num-row{display:flex;gap:6px;align-items:stretch}
+.inv-num-row .f-input{flex:1}
+.inv-autonumber-btn{background:transparent;border:1px solid var(--border);color:var(--dim);padding:0 11px;font-size:14px;cursor:pointer;transition:color .15s,border-color .15s;line-height:1;flex-shrink:0}
+.inv-autonumber-btn:hover{color:var(--white);border-color:#555}
+.inv-autonumber-btn title{display:none}
 .ledger-wrap{flex:1;overflow-y:auto;padding:32px;max-width:960px;width:100%;margin:0 auto}
 .ledger-topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:22px}
 .ledger-h2{font-family:'Sora',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.02em}
@@ -417,6 +422,8 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .deal-card:hover{border-color:#2e2e2e}
 .deal-card.dragging{opacity:.45;transform:scale(.97);cursor:grabbing}
 .deal-card-accent{position:absolute;left:0;top:0;bottom:0;width:3px}
+.deal-card-drag-handle{position:absolute;top:50%;right:10px;transform:translateY(-50%);font-size:13px;color:var(--border2);opacity:0;transition:opacity .15s;pointer-events:none;letter-spacing:-1px}
+.deal-card:hover .deal-card-drag-handle{opacity:1}
 .deal-card-body{padding-left:4px}
 .deal-card-name{font-family:'Sora',sans-serif;font-weight:600;font-size:12.5px;line-height:1.3}
 .deal-card-co{font-size:11px;color:var(--gray);margin-top:2px}
@@ -1134,7 +1141,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         <div class="f-section-label" style="margin-top:0;padding-top:0;border-top:none;font-size:10px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:18px;">Invoice Details</div>
 
         <div class="f-grid">
-          <div class="f-row"><label class="f-label">Invoice #</label><input class="f-input" id="i-num" placeholder="AV2613" oninput="scheduleInvoicePreview()"/></div>
+          <div class="f-row"><label class="f-label">Invoice #</label><div class="inv-num-row"><input class="f-input" id="i-num" placeholder="AV2613" oninput="scheduleInvoicePreview()"/><button class="inv-autonumber-btn" onclick="_setNextInvoiceNum()" title="Suggest next number">↻</button></div></div>
           <div class="f-row"><label class="f-label">Language</label>
             <select class="f-select" id="i-lang" onchange="scheduleInvoicePreview()">
               <option value="es">Español</option>
@@ -1453,6 +1460,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         <div>
           <div class="pipe-h2">Sales Pipeline</div>
           <div class="pipe-summary" id="pipe-summary"></div>
+          <div style="font-size:10.5px;color:var(--dim);margin-top:4px;letter-spacing:.03em">Drag cards between columns to move a deal through stages</div>
         </div>
         <div class="pipe-topbar-right">
           <div class="pipe-total-pill" id="pipe-total-pill"></div>
@@ -2332,12 +2340,43 @@ async function openPortal() {
 // ── PROPOSAL BUILDER ─────────────────────────────────────────
 let _pTimeout = null, _pBlob = null, _pServiceCount = 0;
 
+function _nextInvoiceNum() {
+  const records = _invoicesLoad();
+  const nums = records.map(r => (r.invoiceNum || r.num || '').trim()).filter(Boolean);
+  if (!nums.length) {
+    const n = parseInt(localStorage.getItem('shift-invoice-counter')||'2612') + 1;
+    return 'AV' + n;
+  }
+  // Parse: prefix (letters/dashes) + integer + optional suffix
+  const parsed = nums.map(raw => {
+    const m = raw.match(/^([A-Za-z\-_]*)(\d+)$/);
+    return m ? { prefix: m[1], num: parseInt(m[2], 10), padLen: m[2].length } : null;
+  }).filter(Boolean);
+  if (!parsed.length) {
+    const n = parseInt(localStorage.getItem('shift-invoice-counter')||'2612') + 1;
+    return 'AV' + n;
+  }
+  // Most-used prefix wins
+  const freq = {};
+  parsed.forEach(p => { freq[p.prefix] = (freq[p.prefix]||0) + 1; });
+  const topPrefix = Object.entries(freq).sort((a,b) => b[1]-a[1])[0][0];
+  const group = parsed.filter(p => p.prefix === topPrefix);
+  const best  = group.reduce((a, b) => b.num > a.num ? b : a);
+  const next  = best.num + 1;
+  const pad   = best.padLen > String(next).length ? best.padLen : 0;
+  return topPrefix + (pad ? String(next).padStart(pad, '0') : String(next));
+}
+
+function _setNextInvoiceNum() {
+  document.getElementById('i-num').value = _nextInvoiceNum();
+  scheduleInvoicePreview();
+}
+
 function initForms() {
   document.getElementById('p-date').value = todayISO();
   document.getElementById('p-expiry').value = addDaysISO(30);
   if (!document.querySelector('.svc-row')) addService();
-  const n = parseInt(localStorage.getItem('shift-invoice-counter')||'2612')+1;
-  document.getElementById('i-num').value = 'AV' + n;
+  document.getElementById('i-num').value = _nextInvoiceNum();
   document.getElementById('i-date').value = todayISO();
   document.getElementById('i-due').value = addDaysISO(30);
   if (!document.querySelector('#invoice-items tr')) addInvoiceItem();
@@ -2725,6 +2764,7 @@ function showCRMProfile(id) {
       <button class="crm-q-btn" onclick="crmNewProposal('${id}')">New Proposal</button>
       <button class="crm-q-btn" onclick="crmNewProduction('${id}')">New Production</button>
       <button class="crm-q-btn" onclick="crmNewQuote('${id}')">Quick Quote</button>
+      <button class="crm-q-btn" onclick="crmSendPortalLink('${id}','${esc(c.name).replace(/'/g,"\\'")}')">Send Portal Link</button>
       <button class="crm-q-btn" onclick="crmNewEvent('${id}')">Add Event</button>
       ${c.email?`<button class="crm-q-btn" onclick="navigator.clipboard.writeText('${esc(c.email)}').then(()=>toast('Email copied','ok'))">Copy Email</button>`:''}
     </div>
@@ -2944,6 +2984,27 @@ function crmNewEvent(id) {
     const set = (eid,v) => { const el=document.getElementById(eid); if(el) el.value=v||''; };
     set('cal-ev-client-id', c.id); set('cal-ev-client-in', c.name);
   }, 80);
+}
+
+async function crmSendPortalLink(id, name) {
+  const clientName = name || (_crmById(id)?.name) || '';
+  if (!clientName) { toast('Client has no name', 'err'); return; }
+  const exp = Math.floor(Date.now()/1000) + 30*86400;
+  const payload = `${clientName}|${exp}`;
+  const sig = (await _hmac(payload)).slice(0,32);
+  const token = btoa(payload)+'.'+sig;
+  const url = `${PORTAL_URL}?t=${encodeURIComponent(token)}`;
+  // Save to link history
+  const history = JSON.parse(localStorage.getItem('shift-links')||'[]');
+  history.unshift({ name: clientName, exp, url, created: Date.now() });
+  localStorage.setItem('shift-links', JSON.stringify(history.slice(0,50)));
+  // Copy to clipboard and show feedback
+  navigator.clipboard.writeText(url).then(() => {
+    toast(`Portal link for ${clientName} copied — valid 30 days`, 'ok');
+  }).catch(() => {
+    // Fallback: show in prompt
+    prompt('Copy this portal link:', url);
+  });
 }
 
 // Update CRM when an invoice is published
@@ -3510,6 +3571,7 @@ function _buildDealCard(d, stageColor) {
     ondragstart="pipeDragStart(event,'${d.id}')"
     ondragend="pipeDragEnd(event)">
   <div class="deal-card-accent" style="background:${stageColor}"></div>
+  <div class="deal-card-drag-handle" title="Drag to move">⠿</div>
   <div class="deal-card-body">
     <div class="deal-card-name">${esc(d.name)}</div>
     ${d.company?`<div class="deal-card-co">${esc(d.company)}</div>`:''}
@@ -4344,11 +4406,13 @@ async function publishInvoice() {
     await publishToGitHub(filename, html, `Invoice: ${d.invoiceNum} - ${d.client}`, token);
     const url = `${SITE_URL}/${filename}`;
     const card = buildInvoiceCard(d, filename);
-    const counter = parseInt(localStorage.getItem('shift-invoice-counter')||'2612') + 1;
-    localStorage.setItem('shift-invoice-counter', String(counter));
     _saveClientOnPublish(d, d.invoiceNum);
     _crmOnInvoicePublish(d, d.invoiceNum, d.total);
     saveInvoiceRecord(d, url);
+    // Advance to next number now that this one is saved
+    _setNextInvoiceNum();
+    document.getElementById('i-date').value = todayISO();
+    document.getElementById('i-due').value = addDaysISO(30);
     try {
       await autoUpdateHub(card, '<!-- INVOICES_INSERT -->', token);
       toast('Hub updated with new card ✓', 'ok');
