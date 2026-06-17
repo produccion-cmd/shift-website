@@ -387,6 +387,62 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .modal-copy-card{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--gray);padding:8px 14px;cursor:pointer;font-family:'Inter',sans-serif}
 .modal-copy-card:hover{border-color:#555;color:var(--white)}
 .modal-copy-card.copied{border-color:var(--green);color:var(--green)}
+
+/* ── PIPELINE ────────────────────────────────────────────── */
+.pipe-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.pipe-topbar{border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0;flex-wrap:wrap}
+.pipe-h2{font-family:'Sora',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.02em}
+.pipe-summary{font-size:11px;color:var(--dim);margin-top:3px}
+.pipe-topbar-right{display:flex;align-items:center;gap:10px}
+.pipe-total-pill{font-size:10.5px;color:var(--gray);border:1px solid var(--border);padding:6px 14px;font-weight:600;letter-spacing:.1em}
+.board-scroll{flex:1;overflow-x:auto;overflow-y:hidden;padding:20px 24px 28px;display:flex;gap:12px;align-items:flex-start}
+.board-scroll::-webkit-scrollbar{height:4px}
+.board-scroll::-webkit-scrollbar-track{background:transparent}
+.board-scroll::-webkit-scrollbar-thumb{background:var(--border2)}
+.board-col{flex-shrink:0;width:236px;display:flex;flex-direction:column;border:1px solid var(--border);min-height:240px;max-height:calc(100vh - 200px)}
+.board-col-hd{padding:14px 16px 12px;flex-shrink:0;border-bottom:1px solid var(--border);position:relative}
+.board-col-hd::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.board-col-accent{position:absolute;top:0;left:0;right:0;height:2px}
+.board-col-title{font-size:9.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gray)}
+.board-col-count{font-size:11px;color:var(--dim);margin-top:5px}
+.board-col-value{font-family:'Sora',sans-serif;font-weight:800;font-size:17px;margin-top:2px;line-height:1}
+.board-cards{flex:1;overflow-y:auto;padding:10px;min-height:100px;transition:background .12s}
+.board-cards::-webkit-scrollbar{width:3px}
+.board-cards::-webkit-scrollbar-thumb{background:var(--border2)}
+.board-cards.drag-over{background:rgba(255,255,255,.035);outline:1px dashed rgba(255,255,255,.12)}
+.board-add{width:100%;padding:11px;background:transparent;border:none;border-top:1px solid var(--border);color:var(--dim);font-family:'Inter',sans-serif;font-size:9.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;flex-shrink:0;transition:color .15s,background .15s}
+.board-add:hover{color:var(--white);background:rgba(255,255,255,.03)}
+.deal-card{border:1px solid var(--border);padding:13px 14px;margin-bottom:8px;cursor:grab;background:var(--surface);transition:border-color .15s;user-select:none;position:relative}
+.deal-card:last-child{margin-bottom:0}
+.deal-card:hover{border-color:#2e2e2e}
+.deal-card.dragging{opacity:.45;transform:scale(.97);cursor:grabbing}
+.deal-card-accent{position:absolute;left:0;top:0;bottom:0;width:3px}
+.deal-card-body{padding-left:4px}
+.deal-card-name{font-family:'Sora',sans-serif;font-weight:600;font-size:12.5px;line-height:1.3}
+.deal-card-co{font-size:11px;color:var(--gray);margin-top:2px}
+.deal-card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:9px;gap:8px}
+.deal-card-val{font-family:'Sora',sans-serif;font-weight:800;font-size:14px}
+.deal-card-val.zero{color:var(--dim);font-size:12px;font-weight:400}
+.deal-card-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.deal-card:hover .deal-card-actions{opacity:1}
+.dca-btn{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:3px 6px;font-family:'Inter',sans-serif;transition:color .12s}
+.dca-btn:hover{color:var(--white)}
+.dca-del:hover{color:var(--red)}
+.deal-card-note{font-size:10.5px;color:var(--dim);margin-top:5px;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+/* Pipeline modal */
+#pipe-modal{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.87);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px}
+#pipe-modal.open{display:flex}
+.pipe-modal-box{background:#111;border:1px solid var(--border2);padding:28px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto}
+.pipe-modal-title{font-family:'Sora',sans-serif;font-weight:700;font-size:17px;letter-spacing:-.02em;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.pipe-modal-close-x{background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:0;line-height:1}
+.pipe-modal-close-x:hover{color:var(--white)}
+.pipe-modal-actions{display:flex;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.pipe-save-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:12px 22px;border:none;cursor:pointer;flex:1}
+.pipe-save-btn:hover{opacity:.85}
+.pipe-cancel-btn{background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:11px 18px;cursor:pointer}
+.pipe-cancel-btn:hover{border-color:#555;color:var(--white)}
+.pipe-del-btn{background:transparent;border:1px solid transparent;color:var(--dim);font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;padding:11px 12px;cursor:pointer;margin-left:auto}
+.pipe-del-btn:hover{color:var(--red)}
 </style>
 </head>
 <body>
@@ -420,6 +476,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
     <button class="tab-btn" onclick="switchTab('proposals')">Proposals</button>
     <button class="tab-btn" onclick="switchTab('invoices')">Invoices</button>
     <button class="tab-btn" onclick="switchTab('contracts')">Contracts</button>
+    <button class="tab-btn" onclick="switchTab('pipeline')">Pipeline</button>
     <button class="tab-btn" onclick="switchTab('clients')">Clients</button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
   </nav>
@@ -896,6 +953,23 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
     </div>
   </div>
 
+  <!-- TAB: PIPELINE -->
+  <div class="tab-panel" id="tab-pipeline">
+    <div class="pipe-wrap">
+      <div class="pipe-topbar">
+        <div>
+          <div class="pipe-h2">Sales Pipeline</div>
+          <div class="pipe-summary" id="pipe-summary"></div>
+        </div>
+        <div class="pipe-topbar-right">
+          <div class="pipe-total-pill" id="pipe-total-pill"></div>
+          <button class="crm-new-btn" onclick="pipeOpenAdd(null)">+ Add Deal</button>
+        </div>
+      </div>
+      <div class="board-scroll" id="pipe-board"></div>
+    </div>
+  </div>
+
   <!-- TAB: SETTINGS -->
   <div class="tab-panel" id="tab-settings">
     <div class="settings-content">
@@ -938,6 +1012,48 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 
 <!-- TOAST CONTAINER -->
 <div id="toast"></div>
+
+<!-- PIPELINE DEAL MODAL -->
+<div id="pipe-modal">
+  <div class="pipe-modal-box">
+    <div class="pipe-modal-title">
+      <span id="pipe-modal-title-txt">New Deal</span>
+      <button class="pipe-modal-close-x" onclick="closePipeModal()">✕</button>
+    </div>
+
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Client Name *</label><input class="f-input" id="pd-name" placeholder="Client Name"/></div>
+      <div class="f-row"><label class="f-label">Company</label><input class="f-input" id="pd-company" placeholder="Company"/></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Deal Value (USD)</label><input class="f-input" id="pd-value" type="number" min="0" placeholder="0"/></div>
+      <div class="f-row">
+        <label class="f-label">Stage</label>
+        <select class="f-select" id="pd-stage">
+          <option value="lead">Lead</option>
+          <option value="proposal">Proposal Sent</option>
+          <option value="negotiation">Negotiation</option>
+          <option value="won">Closed Won</option>
+          <option value="lost">Closed Lost</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-row"><label class="f-label">Notes</label><textarea class="f-input f-textarea" id="pd-notes" placeholder="Event details, scope, next steps…" style="min-height:64px;resize:vertical"></textarea></div>
+
+    <div class="f-row">
+      <label class="f-label">Import from CRM</label>
+      <select class="f-select" id="pd-crm-pick" onchange="pipeImportCRM(this.value)" style="color:var(--gray)">
+        <option value="">— Load a saved client —</option>
+      </select>
+    </div>
+
+    <div class="pipe-modal-actions">
+      <button class="pipe-save-btn" onclick="pipeSaveDeal()">Save Deal</button>
+      <button class="pipe-cancel-btn" onclick="closePipeModal()">Cancel</button>
+      <button class="pipe-del-btn" id="pipe-del-btn" onclick="pipeDeleteFromModal()" style="display:none">Delete</button>
+    </div>
+  </div>
+</div>
 
 <!-- PUBLISH SUCCESS MODAL -->
 <div id="publish-modal">
@@ -1040,7 +1156,7 @@ function renderDashboard() {
 
   // Summary line
   document.getElementById('dash-summary').textContent =
-    `${totalClients} client${totalClients!==1?'s':''} · $${rev.toLocaleString()} tracked · ${activeLinks.length} active link${activeLinks.length!==1?'s':''}`;
+    `${totalClients} client${totalClients!==1?'s':''} · $${outstanding.toLocaleString()} outstanding · ${activeLinks.length} active link${activeLinks.length!==1?'s':''}`;
 
   // Pipeline bar
   const total = leads + active + vip + past || 1;
@@ -1111,7 +1227,7 @@ function _timeAgo(ts) {
 // ── TAB SYSTEM ──────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    const names = ['dashboard','links','proposals','invoices','contracts','clients','settings'];
+    const names = ['dashboard','links','proposals','invoices','contracts','pipeline','clients','settings'];
     b.classList.toggle('active', names[i] === name);
   });
   document.querySelectorAll('.tab-panel').forEach(p => {
@@ -1120,6 +1236,7 @@ function switchTab(name) {
   if (name === 'clients') renderCRMList();
   if (name === 'dashboard') renderDashboard();
   if (name === 'contracts') renderContractHistory();
+  if (name === 'pipeline') renderPipeline();
 }
 
 // ── AUTH ────────────────────────────────────────────────────
@@ -1856,6 +1973,204 @@ function _crmOnInvoicePublish(d, invoiceNum, amount) {
   if (c.status === 'lead') { c.status = 'active'; }
   _crmSave(contacts);
 }
+
+// ── PIPELINE ─────────────────────────────────────────────────
+const PIPE_STAGES = [
+  { id:'lead',        label:'Lead',          color:'#c8a84b' },
+  { id:'proposal',    label:'Proposal Sent', color:'#60a5fa' },
+  { id:'negotiation', label:'Negotiation',   color:'#c084fc' },
+  { id:'won',         label:'Closed Won',    color:'#4ade80' },
+  { id:'lost',        label:'Closed Lost',   color:'#555'    },
+];
+
+function _pipeLoad() { return JSON.parse(localStorage.getItem('shift-pipeline')||'[]'); }
+function _pipeSave(d) { localStorage.setItem('shift-pipeline', JSON.stringify(d)); }
+
+let _pipeDragId  = null;
+let _pipeEditId  = null;
+
+function renderPipeline() {
+  const deals  = _pipeLoad();
+  const board  = document.getElementById('pipe-board');
+  if (!board) return;
+
+  // topbar totals
+  const activeDeals = deals.filter(d => d.stage !== 'lost');
+  const pipeValue   = activeDeals.reduce((s,d) => s + (d.value||0), 0);
+  const wonValue    = deals.filter(d => d.stage === 'won').reduce((s,d) => s + (d.value||0), 0);
+  const totalDeals  = deals.length;
+  document.getElementById('pipe-summary').textContent =
+    `${totalDeals} deal${totalDeals!==1?'s':''} · $${pipeValue.toLocaleString()} in active pipeline`;
+  document.getElementById('pipe-total-pill').textContent =
+    wonValue > 0 ? `$${wonValue.toLocaleString()} won` : 'No closed deals yet';
+
+  board.innerHTML = PIPE_STAGES.map(stage => {
+    const stageDeal = deals.filter(d => d.stage === stage.id);
+    const stageVal  = stageDeal.reduce((s,d) => s + (d.value||0), 0);
+    const cards     = stageDeal.map(d => _buildDealCard(d, stage.color)).join('');
+    return `
+<div class="board-col" id="bcol-${stage.id}">
+  <div class="board-col-hd">
+    <div class="board-col-accent" style="background:${stage.color}"></div>
+    <div class="board-col-title" style="color:${stage.color}">${stage.label}</div>
+    <div class="board-col-count">${stageDeal.length} deal${stageDeal.length!==1?'s':''}</div>
+    <div class="board-col-value" style="color:${stageVal>0?stage.color:'var(--dim)'}">${stageVal>0?'$'+stageVal.toLocaleString():'—'}</div>
+  </div>
+  <div class="board-cards" id="bcards-${stage.id}"
+    ondragover="pipeDragOver(event,'${stage.id}')"
+    ondragleave="pipeDragLeave(event,'${stage.id}')"
+    ondrop="pipeDrop(event,'${stage.id}')">${cards}</div>
+  <button class="board-add" onclick="pipeOpenAdd('${stage.id}')">+ Add</button>
+</div>`;
+  }).join('');
+}
+
+function _buildDealCard(d, stageColor) {
+  const valFmt = d.value > 0 ? '$'+d.value.toLocaleString() : '—';
+  const valCls = d.value > 0 ? '' : ' zero';
+  const noteHtml = d.notes ? `<div class="deal-card-note">${esc(d.notes)}</div>` : '';
+  return `<div class="deal-card" id="dcard-${d.id}" draggable="true"
+    ondragstart="pipeDragStart(event,'${d.id}')"
+    ondragend="pipeDragEnd(event)">
+  <div class="deal-card-accent" style="background:${stageColor}"></div>
+  <div class="deal-card-body">
+    <div class="deal-card-name">${esc(d.name)}</div>
+    ${d.company?`<div class="deal-card-co">${esc(d.company)}</div>`:''}
+    ${noteHtml}
+    <div class="deal-card-foot">
+      <div class="deal-card-val${valCls}">${valFmt}</div>
+      <div class="deal-card-actions">
+        <button class="dca-btn" onclick="pipeOpenEdit('${d.id}');event.stopPropagation()">Edit</button>
+      </div>
+    </div>
+  </div>
+</div>`;
+}
+
+// ── Drag & Drop ───────────────────────────────────────────────
+function pipeDragStart(e, id) {
+  _pipeDragId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  const card = document.getElementById('dcard-'+id);
+  if (card) setTimeout(()=>card.classList.add('dragging'), 0);
+}
+function pipeDragEnd(e) {
+  if (_pipeDragId) {
+    const card = document.getElementById('dcard-'+_pipeDragId);
+    if (card) card.classList.remove('dragging');
+  }
+  document.querySelectorAll('.board-cards').forEach(c=>c.classList.remove('drag-over'));
+}
+function pipeDragOver(e, stageId) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.getElementById('bcards-'+stageId)?.classList.add('drag-over');
+}
+function pipeDragLeave(e, stageId) {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    document.getElementById('bcards-'+stageId)?.classList.remove('drag-over');
+  }
+}
+function pipeDrop(e, stageId) {
+  e.preventDefault();
+  document.getElementById('bcards-'+stageId)?.classList.remove('drag-over');
+  if (!_pipeDragId) return;
+  const deals = _pipeLoad();
+  const deal  = deals.find(d => d.id === _pipeDragId);
+  if (deal && deal.stage !== stageId) {
+    deal.stage   = stageId;
+    deal.updated = Date.now();
+    _pipeSave(deals);
+    renderPipeline();
+    toast(`Moved to ${PIPE_STAGES.find(s=>s.id===stageId)?.label}`, 'ok');
+  }
+  _pipeDragId = null;
+}
+
+// ── Modal ─────────────────────────────────────────────────────
+function pipeOpenAdd(stage) {
+  _pipeEditId = null;
+  document.getElementById('pipe-modal-title-txt').textContent = 'New Deal';
+  document.getElementById('pd-name').value    = '';
+  document.getElementById('pd-company').value = '';
+  document.getElementById('pd-value').value   = '';
+  document.getElementById('pd-notes').value   = '';
+  document.getElementById('pd-stage').value   = stage || 'lead';
+  document.getElementById('pipe-del-btn').style.display = 'none';
+  _pipePopulateCRMPicker();
+  document.getElementById('pipe-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('pd-name').focus(), 50);
+}
+function pipeOpenEdit(id) {
+  const deal = _pipeLoad().find(d => d.id === id);
+  if (!deal) return;
+  _pipeEditId = id;
+  document.getElementById('pipe-modal-title-txt').textContent = 'Edit Deal';
+  document.getElementById('pd-name').value    = deal.name    || '';
+  document.getElementById('pd-company').value = deal.company || '';
+  document.getElementById('pd-value').value   = deal.value   || '';
+  document.getElementById('pd-notes').value   = deal.notes   || '';
+  document.getElementById('pd-stage').value   = deal.stage   || 'lead';
+  document.getElementById('pipe-del-btn').style.display = 'block';
+  _pipePopulateCRMPicker();
+  document.getElementById('pipe-modal').classList.add('open');
+}
+function closePipeModal() {
+  document.getElementById('pipe-modal').classList.remove('open');
+  _pipeEditId = null;
+}
+function pipeSaveDeal() {
+  const name = document.getElementById('pd-name').value.trim();
+  if (!name) { toast('Enter a client name','err'); return; }
+  const deals = _pipeLoad();
+  const val   = parseFloat(document.getElementById('pd-value').value)||0;
+  if (_pipeEditId) {
+    const deal = deals.find(d => d.id === _pipeEditId);
+    if (deal) {
+      deal.name    = name;
+      deal.company = document.getElementById('pd-company').value.trim();
+      deal.value   = val;
+      deal.stage   = document.getElementById('pd-stage').value;
+      deal.notes   = document.getElementById('pd-notes').value.trim();
+      deal.updated = Date.now();
+    }
+  } else {
+    deals.unshift({
+      id: 'deal_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+      name, company: document.getElementById('pd-company').value.trim(),
+      value: val, stage: document.getElementById('pd-stage').value,
+      notes: document.getElementById('pd-notes').value.trim(),
+      created: Date.now(), updated: Date.now()
+    });
+  }
+  _pipeSave(deals);
+  closePipeModal();
+  renderPipeline();
+  toast(_pipeEditId ? 'Deal updated' : 'Deal added', 'ok');
+}
+function pipeDeleteFromModal() {
+  if (!_pipeEditId) return;
+  if (!confirm('Delete this deal?')) return;
+  _pipeSave(_pipeLoad().filter(d => d.id !== _pipeEditId));
+  closePipeModal();
+  renderPipeline();
+  toast('Deal deleted', 'ok');
+}
+function _pipePopulateCRMPicker() {
+  const sel = document.getElementById('pd-crm-pick');
+  const contacts = _crmLoad().filter(c => c.status !== 'past');
+  sel.innerHTML = '<option value="">— Load a saved client —</option>' +
+    contacts.map(c => `<option value="${c.id}">${esc(c.name)}${c.company?' · '+esc(c.company):''}</option>`).join('');
+}
+function pipeImportCRM(crmId) {
+  if (!crmId) return;
+  const contact = _crmById(crmId);
+  if (!contact) return;
+  document.getElementById('pd-name').value    = contact.name;
+  document.getElementById('pd-company').value = contact.company || '';
+  document.getElementById('pd-crm-pick').value = '';
+}
+document.addEventListener('keydown', e => { if (e.key==='Escape') closePipeModal(); });
 
 // ── CONTRACT BUILDER ─────────────────────────────────────────
 const DEFAULT_CANCEL =
