@@ -817,7 +817,11 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
   <div class="app-header">
     <div class="logo"><img src="SHIFT-ICON.svg" alt=""/><span>SHIFT</span></div>
     <div class="header-badge">Manager</div>
-    <div style="display:flex;align-items:center;gap:12px">
+    <div style="display:flex;align-items:center;gap:18px">
+      <div id="sync-status" style="font-size:9px; color:var(--dim); font-weight:700; text-transform:uppercase; letter-spacing:.12em; display:flex; align-items:center; gap:6px;">
+        <span id="sync-dot" style="width:6px; height:6px; border-radius:50%; background:var(--dim);"></span>
+        <span id="sync-text">Syncing...</span>
+      </div>
       <button class="open-portal-btn" onclick="openPortal()">View Portal ↗</button>
       <button class="logout-btn" onclick="doLogout()">Log Out</button>
     </div>
@@ -2532,6 +2536,7 @@ function initForms() {
   if (!document.querySelector('#invoice-items tr')) addInvoiceItem();
   _populateCRMPickers();
   renderClientCards();
+  startAutoSync();
 }
 
 function applyPaymentTerms() {
@@ -2655,6 +2660,7 @@ async function publishProposal() {
       console.warn('Hub update skipped:', hubErr.message);
     }
     showPublishModal('Proposal Published', url, card);
+    syncDataToGitHub(true);
   } catch(e) {
     toast('Publish failed: ' + e.message, 'err');
   }
@@ -4031,6 +4037,7 @@ async function publishContract() {
     localStorage.setItem('shift-contracts', JSON.stringify(records.slice(0,100)));
     renderContractHistory();
     showPublishModal('Contract Published', url, `<!-- Contract: ${d.contractNum} — ${d.client} -->`);
+    syncDataToGitHub(true);
   } catch(e) {
     toast('Publish failed: '+e.message,'err');
   }
@@ -4584,6 +4591,7 @@ async function publishInvoice() {
       console.warn('Hub update skipped:', hubErr.message);
     }
     showPublishModal('Invoice Published', url, card);
+    syncDataToGitHub(true);
   } catch(e) {
     toast('Publish failed: ' + e.message, 'err');
   }
@@ -4637,9 +4645,28 @@ async function autoUpdateHub(cardHTML, marker, token) {
 
 // ── GITHUB PUBLISH ───────────────────────────────────────────
 // ── CLOUD SYNC ──────────────────────────────────────────────
-async function syncDataToGitHub() {
+let _lastSyncHash = '';
+function _getSyncHash(data) {
+  // Simple hash for change detection
+  return btoa(unescape(encodeURIComponent(JSON.stringify({
+    t: data.tasks.length, c: data.crm.length, i: data.invoices.length, p: data.productions.length,
+    e: data.events.length, ts: data.timestamp
+  }))));
+}
+
+function updateSyncStatus(status, type) {
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-text');
+  if (!dot || !txt) return;
+  txt.textContent = status;
+  if (type === 'ok') { dot.style.background = 'var(--green)'; dot.style.boxShadow = '0 0 8px var(--green)'; }
+  else if (type === 'err') { dot.style.background = 'var(--red)'; dot.style.boxShadow = '0 0 8px var(--red)'; }
+  else { dot.style.background = 'var(--gold)'; dot.style.boxShadow = '0 0 8px var(--gold)'; }
+}
+
+async function syncDataToGitHub(isAuto = false) {
   const token = getGHToken();
-  if (!token) { toast('GitHub token required','err'); return; }
+  if (!token) { updateSyncStatus('Cloud: Off', ''); return; }
   
   const data = {
     tasks: _tasksLoad(),
@@ -4659,14 +4686,31 @@ async function syncDataToGitHub() {
     timestamp: Date.now()
   };
 
+  // Skip if nothing meaningful changed during auto-sync
+  const currentHash = _getSyncHash(data);
+  if (isAuto && currentHash === _lastSyncHash) return;
+
   try {
-    toast('Syncing to Cloud...', 'ok');
+    if (!isAuto) toast('Syncing to Cloud...', 'ok');
+    updateSyncStatus('Syncing...', 'sync');
+    
     const json = JSON.stringify(data, null, 2);
     await publishToGitHub('SHIFT_DATABASE_BACKUP.json', json, 'Database Backup Update', token);
-    toast('Cloud Sync Complete ✓', 'ok');
+    
+    _lastSyncHash = currentHash;
+    updateSyncStatus('Cloud Secure', 'ok');
+    if (!isAuto) toast('Cloud Sync Complete ✓', 'ok');
   } catch(e) {
-    toast('Sync Failed: ' + e.message, 'err');
+    updateSyncStatus('Sync Failed', 'err');
+    if (!isAuto) toast('Sync Failed: ' + e.message, 'err');
   }
+}
+
+function startAutoSync() {
+  // Initial sync check
+  syncDataToGitHub(true);
+  // Every 10 minutes
+  setInterval(() => syncDataToGitHub(true), 10 * 60 * 1000);
 }
 
 async function loadDataFromGitHub() {
