@@ -544,6 +544,33 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .qq-hist-del:hover{color:var(--red)}
 .qq-hist-copy.copied{border-color:var(--green);color:var(--green)}
 
+/* ── TASKS ───────────────────────────────────────────────────── */
+.task-widget{margin-top:12px}
+.task-add-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.task-add-row .f-input{padding:9px 12px;font-size:13px}
+.task-add-row .f-input.task-date{flex:0 0 140px}
+.task-add-row .f-input.task-text{flex:1;min-width:140px}
+.task-add-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;padding:10px 18px;border:none;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.task-list{display:flex;flex-direction:column;gap:6px}
+.task-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--border);transition:opacity .15s}
+.task-item.done-item{opacity:.4}
+.task-check{width:17px;height:17px;flex-shrink:0;border:1.5px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.task-check.checked{background:var(--green);border-color:var(--green)}
+.task-check.checked::after{content:'✓';font-size:10px;color:#000;font-weight:900}
+.task-body{flex:1;min-width:0}
+.task-text{font-size:13px;font-weight:500;line-height:1.3}
+.task-text.done-text{text-decoration:line-through;color:var(--dim)}
+.task-meta{font-size:10.5px;color:var(--dim);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
+.task-due-overdue{color:#ff6b6b;font-weight:600}
+.task-due-today{color:var(--gold);font-weight:600}
+.task-due-soon{color:#fb923c}
+.task-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:3px 6px;flex-shrink:0;transition:color .12s;font-family:'Inter',sans-serif}
+.task-del:hover{color:var(--red)}
+.task-empty{font-size:12px;color:var(--dim);padding:10px 0}
+.task-count-badge{display:inline-flex;align-items:center;justify-content:center;background:#ff6b6b;color:#000;font-size:8px;font-weight:900;width:16px;height:16px;border-radius:0;margin-left:7px;vertical-align:middle;flex-shrink:0}
+/* CRM profile task section */
+.crm-task-add{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.crm-task-add .f-input{padding:8px 11px;font-size:12.5px}
 /* ── PRODUCTIONS ────────────────────────────────────────────── */
 .prod-layout{display:flex;flex:1;overflow:hidden;min-height:0}
 .prod-list-pane{width:320px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
@@ -823,6 +850,21 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         <div class="dash-panel">
           <div class="dash-panel-lbl">Links Expiring Soon</div>
           <div id="dash-expiring-links"></div>
+        </div>
+      </div>
+
+      <div class="dash-row wide">
+        <div class="dash-panel" style="flex:1">
+          <div class="dash-panel-lbl">Tasks &amp; Follow-ups <span id="dash-task-badge" class="task-count-badge" style="display:none"></span></div>
+          <div class="task-widget">
+            <div class="task-add-row">
+              <input class="f-input task-text" id="task-input-text" placeholder="New task or follow-up…" onkeydown="if(event.key==='Enter')addGlobalTask()"/>
+              <input class="f-input task-date" id="task-input-date" type="date" title="Due date (optional)"/>
+              <select class="f-input" id="task-input-client" style="flex:0 0 180px;padding:9px 12px;font-size:13px"><option value="">— Client (optional) —</option></select>
+              <button class="task-add-btn" onclick="addGlobalTask()">+ Add</button>
+            </div>
+            <div class="task-list" id="dash-task-list"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1706,6 +1748,8 @@ function renderDashboard() {
       </div>`;
     }).join('');
   }
+
+  renderDashboardTasks();
 }
 
 function _timeAgo(ts) {
@@ -1716,6 +1760,167 @@ function _timeAgo(ts) {
   if (s < 86400) return Math.floor(s/3600) + 'h ago';
   if (s < 604800) return Math.floor(s/86400) + 'd ago';
   return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+// ── TASKS ─────────────────────────────────────────────────
+function _tasksLoad() { return JSON.parse(localStorage.getItem('shift-tasks')||'[]'); }
+function _tasksSave(t) { localStorage.setItem('shift-tasks', JSON.stringify(t)); }
+
+function _taskDueClass(dueDate, done) {
+  if (done || !dueDate) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = new Date(dueDate+'T00:00:00'); due.setHours(0,0,0,0);
+  const diff = Math.round((due-today)/86400000);
+  if (diff < 0) return 'task-due-overdue';
+  if (diff === 0) return 'task-due-today';
+  if (diff <= 3) return 'task-due-soon';
+  return '';
+}
+
+function _taskDueLabel(dueDate, done) {
+  if (done || !dueDate) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = new Date(dueDate+'T00:00:00'); due.setHours(0,0,0,0);
+  const diff = Math.round((due-today)/86400000);
+  const fmtd = new Date(dueDate+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  if (diff < 0) return `Overdue · ${fmtd}`;
+  if (diff === 0) return 'Due today';
+  if (diff === 1) return 'Due tomorrow';
+  return `Due ${fmtd}`;
+}
+
+function _refreshTaskBadge() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const overdue = _tasksLoad().filter(t => {
+    if (t.done || !t.dueDate) return false;
+    const d = new Date(t.dueDate+'T00:00:00'); d.setHours(0,0,0,0);
+    return d < today;
+  }).length;
+  const badge = document.getElementById('dash-task-badge');
+  if (badge) { badge.style.display = overdue ? '' : 'none'; badge.textContent = overdue; }
+}
+
+function renderDashboardTasks() {
+  const el = document.getElementById('dash-task-list');
+  if (!el) return;
+  const tasks = _tasksLoad();
+  const pending = tasks.filter(t=>!t.done).sort((a,b)=>{
+    if (!a.dueDate && !b.dueDate) return b.created-a.created;
+    if (!a.dueDate) return 1; if (!b.dueDate) return -1;
+    return a.dueDate.localeCompare(b.dueDate);
+  });
+  const done = tasks.filter(t=>t.done).slice(0,5);
+  const all = [...pending, ...done];
+  if (!all.length) {
+    el.innerHTML = '<div class="task-empty">No tasks yet. Add one above.</div>';
+  } else {
+    el.innerHTML = all.map(t => {
+      const dueClass = _taskDueClass(t.dueDate, t.done);
+      const dueLabel = _taskDueLabel(t.dueDate, t.done);
+      const clientSpan = t.clientId
+        ? `<span style="cursor:pointer;color:var(--gray)" onclick="switchTab('clients');crmSelectContact('${t.clientId}')">${esc(t.client)}</span>`
+        : (t.client ? `<span style="color:var(--dim)">${esc(t.client)}</span>` : '');
+      return `<div class="task-item${t.done?' done-item':''}">
+        <div class="task-check${t.done?' checked':''}" onclick="taskToggleDone('${t.id}')"></div>
+        <div class="task-body">
+          <div class="task-text${t.done?' done-text':''}">${esc(t.text)}</div>
+          <div class="task-meta">${clientSpan}${dueLabel?`<span class="${dueClass}">${dueLabel}</span>`:''}</div>
+        </div>
+        <button class="task-del" onclick="taskDelete('${t.id}')" title="Remove">✕</button>
+      </div>`;
+    }).join('');
+  }
+  _refreshTaskBadge();
+  // Populate client dropdown
+  const clientSel = document.getElementById('task-input-client');
+  if (clientSel) {
+    const crm = JSON.parse(localStorage.getItem('shift-crm')||'[]');
+    clientSel.innerHTML = '<option value="">— Client (optional) —</option>' +
+      crm.map(c=>`<option value="${c.id}">${esc(c.name)}${c.company?' — '+esc(c.company):''}</option>`).join('');
+  }
+}
+
+function addGlobalTask() {
+  const textEl = document.getElementById('task-input-text');
+  const dateEl = document.getElementById('task-input-date');
+  const clientEl = document.getElementById('task-input-client');
+  const text = textEl ? textEl.value.trim() : '';
+  if (!text) return;
+  const crm = JSON.parse(localStorage.getItem('shift-crm')||'[]');
+  let clientId = '', clientName = '';
+  if (clientEl && clientEl.value) {
+    const c = crm.find(x=>x.id===clientEl.value);
+    if (c) { clientId = c.id; clientName = c.name; }
+  }
+  const tasks = _tasksLoad();
+  tasks.unshift({ id:'task-'+Date.now(), text, dueDate: dateEl?.value||'', clientId, client: clientName, done: false, created: Date.now() });
+  _tasksSave(tasks);
+  if (textEl) textEl.value = '';
+  if (dateEl) dateEl.value = '';
+  if (clientEl) clientEl.value = '';
+  renderDashboardTasks();
+}
+
+function taskToggleDone(id) {
+  const tasks = _tasksLoad();
+  const t = tasks.find(x=>x.id===id);
+  if (!t) return;
+  t.done = !t.done;
+  _tasksSave(tasks);
+  renderDashboardTasks();
+  if (_crmSelected) { const el = document.getElementById(`crm-task-list-${_crmSelected}`); if (el) renderCRMTasks(_crmSelected); }
+}
+
+function taskDelete(id) {
+  _tasksSave(_tasksLoad().filter(t=>t.id!==id));
+  renderDashboardTasks();
+  if (_crmSelected) { const el = document.getElementById(`crm-task-list-${_crmSelected}`); if (el) renderCRMTasks(_crmSelected); }
+}
+
+function renderCRMTasks(clientId) {
+  const el = document.getElementById(`crm-task-list-${clientId}`);
+  if (!el) return;
+  const cName = _crmById(clientId)?.name||'';
+  const tasks = _tasksLoad().filter(t => t.clientId===clientId || (!t.clientId&&t.client&&t.client===cName));
+  const pending = tasks.filter(t=>!t.done).sort((a,b)=>{
+    if (!a.dueDate&&!b.dueDate) return b.created-a.created;
+    if (!a.dueDate) return 1; if (!b.dueDate) return -1;
+    return a.dueDate.localeCompare(b.dueDate);
+  });
+  const done = tasks.filter(t=>t.done);
+  const all = [...pending, ...done];
+  if (!all.length) {
+    el.innerHTML = '<div class="task-empty">No tasks for this client.</div>';
+    return;
+  }
+  el.innerHTML = all.map(t => {
+    const dueClass = _taskDueClass(t.dueDate, t.done);
+    const dueLabel = _taskDueLabel(t.dueDate, t.done);
+    return `<div class="task-item${t.done?' done-item':''}">
+      <div class="task-check${t.done?' checked':''}" onclick="taskToggleDone('${t.id}')"></div>
+      <div class="task-body">
+        <div class="task-text${t.done?' done-text':''}">${esc(t.text)}</div>
+        ${dueLabel?`<div class="task-meta"><span class="${dueClass}">${dueLabel}</span></div>`:''}
+      </div>
+      <button class="task-del" onclick="taskDelete('${t.id}')" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function crmAddTask(clientId) {
+  const textEl = document.getElementById(`crm-task-text-${clientId}`);
+  const dateEl = document.getElementById(`crm-task-date-${clientId}`);
+  const text = textEl ? textEl.value.trim() : '';
+  if (!text) return;
+  const c = _crmById(clientId);
+  const tasks = _tasksLoad();
+  tasks.unshift({ id:'task-'+Date.now(), text, dueDate: dateEl?.value||'', clientId, client: c?.name||'', done: false, created: Date.now() });
+  _tasksSave(tasks);
+  if (textEl) textEl.value = '';
+  if (dateEl) dateEl.value = '';
+  renderCRMTasks(clientId);
+  _refreshTaskBadge();
+  renderDashboardTasks();
 }
 
 // ── TAB SYSTEM ──────────────────────────────────────────────
@@ -1768,7 +1973,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { initForms(); renderHistory(); loadGHToken(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); initContractForm(); initQuoteForm(); });
+  document.addEventListener('DOMContentLoaded', () => { initForms(); renderHistory(); loadGHToken(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -2282,6 +2487,14 @@ function showCRMProfile(id) {
 
     ${_renderClientActivity(id, c.name)}
 
+    <div class="crm-section-lbl">Tasks &amp; Follow-ups</div>
+    <div class="crm-task-add">
+      <input class="f-input" id="crm-task-text-${id}" placeholder="Add a task or follow-up…" style="flex:1;min-width:120px" onkeydown="if(event.key==='Enter')crmAddTask('${id}')"/>
+      <input class="f-input" id="crm-task-date-${id}" type="date" style="flex:0 0 130px" title="Due date (optional)"/>
+      <button class="task-add-btn" onclick="crmAddTask('${id}')">+ Add</button>
+    </div>
+    <div id="crm-task-list-${id}" class="task-list" style="margin-bottom:22px"></div>
+
     <div class="crm-section-lbl">Notes</div>
     <div class="crm-note-row">
       <textarea class="crm-note-input" id="crm-note-text-${id}" placeholder="Add a note…" rows="1"></textarea>
@@ -2290,6 +2503,7 @@ function showCRMProfile(id) {
     <div id="crm-notes-list-${id}">${notesHTML}</div>
     <div style="height:40px"></div>
   `;
+  renderCRMTasks(id);
 }
 
 function crmSetStatus(id, status) {
