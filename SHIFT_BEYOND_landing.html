@@ -23,8 +23,22 @@
   @font-face{font-family:'SHIFTBrand';src:url('fonts/shift-brand.woff2') format('woff2'),url('fonts/shift-brand.woff') format('woff');font-weight:normal;font-style:normal;font-display:swap;}
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{background:var(--bg);color:var(--white);font-family:'Inter',system-ui,sans-serif;font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  body{background:var(--bg);color:var(--white);font-family:'Inter',system-ui,sans-serif;font-weight:400;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;cursor:none;}
+  a,button{cursor:none;}
+  @media(hover:none){body{cursor:auto;}a,button{cursor:auto;}}
   ::selection{background:#fff;color:#000}
+
+  /* Canvas background */
+  #bg-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+
+  /* Custom cursor */
+  #cur-dot,#cur-ring{position:fixed;pointer-events:none;z-index:9998;border-radius:50%;transition:opacity .3s;opacity:0;}
+  #cur-dot{width:5px;height:5px;background:#fff;transform:translate(-50%,-50%);}
+  #cur-ring{width:36px;height:36px;border:1px solid rgba(255,255,255,.35);transform:translate(-50%,-50%);transition:width .2s,height .2s,border-color .2s;}
+  @media(hover:none){#cur-dot,#cur-ring{display:none;}}
+
+  /* Expired overlay */
+  #expired-overlay{display:none;position:fixed;inset:0;z-index:9997;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;}
 
   /* NAV */
   nav{position:fixed;top:0;left:0;width:100%;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:20px 48px;border-bottom:1px solid var(--line);background:rgba(10,10,11,.88);backdrop-filter:blur(20px);}
@@ -36,13 +50,13 @@
   @media(max-width:600px){nav{padding:16px 24px;}}
 
   /* HERO */
-  .hero{position:relative;height:100svh;min-height:640px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;}
+  .hero{position:relative;height:100svh;min-height:640px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;z-index:1;}
   .hero-bg{position:absolute;inset:0;z-index:0;}
   .hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center;filter:brightness(.45) saturate(.8);}
   .hero-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(to top,rgba(10,10,11,1) 0%,rgba(10,10,11,.6) 40%,rgba(10,10,11,.2) 100%);}
   .hero-content{position:relative;z-index:2;padding:clamp(32px,6vw,80px);padding-bottom:clamp(48px,8vh,96px);}
   .eyebrow{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--mute);margin-bottom:20px;}
-  .hero-client{font-family:'Sora',sans-serif;font-weight:300;font-size:clamp(13px,1.4vw,16px);letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;}
+  .hero-client{font-family:'Inter',sans-serif;font-size:clamp(13px,1.4vw,16px);letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;}
   .hero-title{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(48px,10vw,130px);line-height:.92;letter-spacing:-.03em;max-width:14ch;}
   .hero-sub{margin-top:24px;font-size:clamp(15px,1.8vw,19px);color:var(--mute);max-width:52ch;line-height:1.6;}
   .hero-meta{margin-top:48px;display:flex;gap:48px;flex-wrap:wrap;}
@@ -52,8 +66,13 @@
   .scroll-cue i{width:1px;height:32px;background:linear-gradient(var(--dim),transparent);animation:drift 2s ease-in-out infinite;}
   @keyframes drift{0%,100%{transform:scaleY(.5);opacity:.4}50%{transform:scaleY(1);opacity:1}}
 
+  /* Expiry badge in hero */
+  .expiry-badge{display:inline-flex;align-items:center;gap:8px;margin-bottom:16px;padding:6px 14px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);}
+  .expiry-badge .dot{width:6px;height:6px;border-radius:50%;background:#4caf50;box-shadow:0 0 8px #4caf50;}
+  .expiry-badge.expiring .dot{background:var(--gold);box-shadow:0 0 8px var(--gold);}
+
   /* SECTIONS */
-  main{position:relative;z-index:4;background:var(--bg);}
+  main{position:relative;z-index:1;background:var(--bg);}
   .wrap{max-width:var(--maxw);margin:0 auto;padding:0 clamp(24px,5vw,64px);}
   section{padding:clamp(80px,14vh,160px) 0;border-top:1px solid var(--line-soft);}
   .sec-eyebrow{font-size:10.5px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);}
@@ -138,8 +157,15 @@
   .contact-block{margin-top:2.8em;font-size:13px;color:var(--mute);letter-spacing:.04em;line-height:1.9;}
   .contact-block b{color:var(--white);font-weight:600;}
 
+  /* QR / FORMS SECTION */
+  .qr-wrap{display:flex;flex-direction:column;align-items:center;gap:clamp(32px,5vw,56px);text-align:center;}
+  .qr-card{display:inline-flex;flex-direction:column;align-items:center;gap:22px;border:1px solid var(--line);background:var(--panel);padding:clamp(28px,4vw,44px);}
+  .qr-card img{display:block;width:clamp(140px,18vw,180px);height:auto;padding:14px;background:#fff;}
+  .qr-label{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);}
+  .qr-lead{font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(28px,4.5vw,52px);line-height:1.04;letter-spacing:-.02em;max-width:22ch;margin-top:.4em;}
+
   /* FOOTER */
-  footer{border-top:1px solid var(--line-soft);padding:48px 0;}
+  footer{border-top:1px solid var(--line-soft);padding:48px 0;position:relative;z-index:1;}
   footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
   .fmark{display:inline-flex;align-items:center;gap:10px;text-decoration:none;}
   .fmark img{height:22px;filter:brightness(0) invert(1);opacity:.5;}
@@ -153,6 +179,24 @@
 </style>
 </head>
 <body>
+
+<!-- Canvas background -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- Custom cursor -->
+<div id="cur-dot"></div>
+<div id="cur-ring"></div>
+
+<!-- Expired overlay -->
+<div id="expired-overlay">
+  <img src="SHIFT-ICON.svg" alt="" style="height:44px;filter:brightness(0) invert(1);opacity:.3;margin-bottom:28px;"/>
+  <div style="font-size:11px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:20px;">Propuesta Vencida</div>
+  <h2 style="font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(28px,5vw,48px);line-height:1.04;letter-spacing:-.02em;margin-bottom:20px;">Esta propuesta ya no está activa.</h2>
+  <p style="font-size:clamp(14px,1.6vw,17px);color:var(--mute);max-width:38ch;line-height:1.65;">Esta propuesta expiró el <strong id="expiry-date-label" style="color:var(--white);"></strong>. Contacta a SHIFT para una propuesta actualizada.</p>
+  <a href="mailto:Produccion@5hift.com.mx?subject=Beyond%20Restaurant%20%E2%80%94%20Nueva%20Propuesta" style="display:inline-flex;align-items:center;gap:14px;margin-top:40px;padding:18px 36px;border:1px solid var(--white);color:var(--white);text-decoration:none;font-family:'Sora',sans-serif;font-weight:600;font-size:14px;letter-spacing:.04em;transition:background .25s,color .25s;" onmouseenter="this.style.background='#fff';this.style.color='#000'" onmouseleave="this.style.background='transparent';this.style.color='#fff'">
+    Contactar SHIFT →
+  </a>
+</div>
 
 <!-- NAV -->
 <nav>
@@ -170,6 +214,10 @@
   </div>
   <div class="hero-overlay"></div>
   <div class="hero-content">
+    <div class="expiry-badge" id="expiry-badge">
+      <span class="dot"></span>
+      <span id="expiry-badge-text">Propuesta activa</span>
+    </div>
     <div class="hero-client">Alex Padilla · Beyond Restaurant</div>
     <h1 class="hero-title">Propuesta Integral de Servicios</h1>
     <p class="hero-sub">Un portal sensorial en Houston donde la tecnología y la gastronomía se fusionan.</p>
@@ -412,13 +460,36 @@
     </div>
   </section>
 
+  <!-- 07 — VALIDAR PROPUESTA (GOOGLE FORMS) -->
+  <section>
+    <div class="wrap">
+      <div class="qr-wrap">
+        <div>
+          <div class="sec-eyebrow reveal" style="text-align:center;">07 — Validar Propuesta</div>
+          <h2 class="qr-lead reveal">¿Todo listo? Demos el primer paso.</h2>
+          <p class="sec-para reveal" style="margin:1em auto 0;text-align:center;">Escanea el código QR o haz clic en el botón para completar el formulario de validación y arrancar el proyecto.</p>
+        </div>
+        <div class="qr-card reveal">
+          <img src="google_form_qr.png" alt="QR — Formulario Google Forms" style="image-rendering:pixelated;"/>
+          <div class="qr-label">Escanea para validar</div>
+        </div>
+        <div style="text-align:center;">
+          <a class="btn reveal" href="https://docs.google.com/forms/d/14ZscvSsOWFNRmGuZYyJf42cQtFRYr-M-YxMAuy4gepY/viewform" target="_blank" rel="noopener">
+            Completar Formulario <span class="arr">→</span>
+          </a>
+          <p class="note reveal" style="margin-top:1.4em;text-align:center;">Responde el cuestionario de validación y nos ponemos en contacto en menos de 24 horas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- CTA -->
   <section style="border-top:1px solid var(--line-soft);padding-bottom:clamp(80px,14vh,160px);">
     <div class="wrap">
-      <div class="sec-eyebrow reveal">Siguiente Paso</div>
-      <h2 class="cta-lead reveal">Aprobemos esta propuesta y comenzamos la transformación.</h2>
+      <div class="sec-eyebrow reveal">Contacto Directo</div>
+      <h2 class="cta-lead reveal">¿Prefieres hablar directamente?</h2>
       <a class="btn reveal" href="mailto:Produccion@5hift.com.mx?subject=Beyond%20Restaurant%20%E2%80%94%20Aprobaci%C3%B3n%20Propuesta%20Integral">
-        Aprobar Propuesta <span class="arr">→</span>
+        Escribir a SHIFT <span class="arr">→</span>
       </a>
       <div class="contact-block reveal">
         <b>SHIFT</b><br>
@@ -441,6 +512,168 @@
 </footer>
 
 <script>
+// ── PROPOSAL CONFIG ──────────────────────────────────────────
+const EXPIRY = '2026-07-16'; // Set proposal expiration date (YYYY-MM-DD)
+
+// ── EXPIRY CHECK ─────────────────────────────────────────────
+(function() {
+  const expiry = new Date(EXPIRY + 'T23:59:59');
+  const now = new Date();
+  const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+
+  // Format expiry for display
+  const fmt = expiry.toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('expiry-date-label').textContent = fmt;
+
+  if (now > expiry) {
+    // Show expired overlay
+    const ov = document.getElementById('expired-overlay');
+    ov.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  } else {
+    // Show active badge
+    const badge = document.getElementById('expiry-badge');
+    const badgeText = document.getElementById('expiry-badge-text');
+    if (daysLeft <= 7) {
+      badge.classList.add('expiring');
+      badgeText.textContent = 'Vence en ' + daysLeft + ' día' + (daysLeft === 1 ? '' : 's');
+    } else {
+      badgeText.textContent = 'Propuesta activa · Válida hasta ' + fmt;
+    }
+  }
+})();
+
+// ── RECTANGLE FIELD ANIMATION ────────────────────────────────
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const COLS = 52, ROWS = 30;
+  const RECT_W_FRAC = 0.52;
+  const RECT_H = 1.5;
+  const BASE_OPA = 0.028;
+  const PEAK_OPA = 0.22;
+  const RADIUS = 260;
+  const SPRING = 0.22;
+  const DAMP   = 0.68;
+  const IDLE_AMP = 0.035;
+  const IDLE_SPD = 0.28;
+
+  let W, H, rects = [];
+  let mx = -9999, my = -9999;
+  let tx = -9999, ty = -9999;
+  let t0 = performance.now();
+
+  function build() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    const cw = W / COLS, ch = H / ROWS;
+    rects = [];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        rects.push({
+          x: (c + 0.5) * cw,
+          y: (r + 0.5) * ch,
+          w: cw * RECT_W_FRAC,
+          ang: 0, vel: 0,
+          phase: (c * 0.31 + r * 0.47)
+        });
+      }
+    }
+  }
+
+  function loop() {
+    requestAnimationFrame(loop);
+    const t = (performance.now() - t0) * 0.001;
+
+    mx += (tx - mx) * 0.09;
+    my += (ty - my) * 0.09;
+
+    ctx.clearRect(0, 0, W, H);
+
+    for (let i = 0; i < rects.length; i++) {
+      const rec = rects[i];
+      const dx = rec.x - mx, dy = rec.y - my;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const inf = Math.max(0, 1 - dist / RADIUS);
+      const falloff = inf * inf * inf;
+
+      let target;
+      if (falloff > 0.005) {
+        target = Math.atan2(dy, dx);
+      } else {
+        target = Math.sin(t * IDLE_SPD + rec.phase) * IDLE_AMP;
+      }
+
+      let diff = target - rec.ang;
+      diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+      rec.vel += diff * SPRING * (falloff > 0.005 ? 1.0 : 0.15);
+      rec.vel *= DAMP;
+      rec.ang += rec.vel;
+
+      const opa = BASE_OPA + falloff * (PEAK_OPA - BASE_OPA);
+
+      ctx.save();
+      ctx.translate(rec.x, rec.y);
+      ctx.rotate(rec.ang);
+      ctx.fillStyle = 'rgba(255,255,255,' + opa.toFixed(4) + ')';
+      ctx.fillRect(-rec.w * 0.5, -RECT_H * 0.5, rec.w, RECT_H);
+      ctx.restore();
+    }
+  }
+
+  document.addEventListener('mousemove', function(e) { tx = e.clientX; ty = e.clientY; });
+  document.addEventListener('mouseleave', function() { tx = -9999; ty = -9999; });
+  window.addEventListener('resize', build, { passive: true });
+  build();
+  loop();
+})();
+
+// ── CUSTOM CURSOR ────────────────────────────────────────────
+(function() {
+  const inIframe = (function(){ try{ return window.self !== window.top; }catch(e){ return true; }})();
+  const dot  = document.getElementById('cur-dot');
+  const ring = document.getElementById('cur-ring');
+  if (inIframe || !dot || !ring) return;
+
+  let rx = 0, ry = 0;
+  let mx = 0, my = 0;
+  let visible = false;
+
+  document.addEventListener('mousemove', function(e) {
+    mx = e.clientX; my = e.clientY;
+    if (!visible) { dot.style.opacity = '1'; ring.style.opacity = '1'; visible = true; }
+    dot.style.left = mx + 'px';
+    dot.style.top  = my + 'px';
+  });
+
+  document.addEventListener('mouseleave', function() {
+    visible = false;
+    dot.style.opacity = '0'; ring.style.opacity = '0';
+  });
+
+  document.querySelectorAll('a,button').forEach(function(el) {
+    el.addEventListener('mouseenter', function() {
+      ring.style.width = '56px'; ring.style.height = '56px';
+      ring.style.borderColor = 'rgba(255,255,255,.6)';
+    });
+    el.addEventListener('mouseleave', function() {
+      ring.style.width = '36px'; ring.style.height = '36px';
+      ring.style.borderColor = 'rgba(255,255,255,.35)';
+    });
+  });
+
+  (function lagRing() {
+    requestAnimationFrame(lagRing);
+    rx += (mx - rx) * 0.11;
+    ry += (my - ry) * 0.11;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+  })();
+})();
+
+// ── SCROLL REVEAL ────────────────────────────────────────────
 (function(){
   const io = new IntersectionObserver(function(entries){
     entries.forEach(function(en){
