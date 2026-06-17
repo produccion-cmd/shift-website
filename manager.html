@@ -2771,7 +2771,7 @@ function _populateCRMPickers() {
   const clients = _crmLoad();
   const opts = '<option value="">— Pick a client —</option>' +
     clients.map(c => `<option value="${c.id}">${esc(c.name)}${c.company?' — '+esc(c.company):''}</option>`).join('');
-  ['client-picker','p-client-picker','qq-client-picker','cal-ev-client-picker','c-client-picker'].forEach(id => {
+  ['client-picker','p-client-picker','qq-client-picker','cal-ev-client-picker','c-client-picker','pm-client-picker'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = opts.replace('— Pick a client —', id === 'client-picker' ? '— Pick a client —' : '— Pick a client —');
   });
