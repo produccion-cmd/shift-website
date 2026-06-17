@@ -553,6 +553,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 
 /* ── QUICK TASK FAB ─────────────────────────────────────────── */
 #qt-fab{position:fixed;bottom:28px;right:28px;z-index:900;display:none}
+@media(max-width:600px){ #qt-fab{ bottom:16px; right:16px; } .qt-fab-btn{ padding:10px 16px; font-size:8.5px; } }
 .qt-fab-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;padding:13px 22px;border:none;cursor:pointer;display:flex;align-items:center;gap:7px;transition:opacity .15s;box-shadow:0 6px 28px rgba(0,0,0,.8)}
 .qt-fab-btn:hover{opacity:.85}
 .qt-fab-icon{font-size:15px;line-height:1;font-weight:400}
@@ -1154,7 +1155,10 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 
         <div class="f-grid">
           <div class="f-row"><label class="f-label">Invoice #</label><div class="inv-num-row"><input class="f-input" id="i-num" placeholder="AV2613" oninput="scheduleInvoicePreview()"/><button class="inv-autonumber-btn" onclick="_setNextInvoiceNum()" title="Suggest next number">↻</button></div></div>
-          <div class="f-row"><label class="f-label">Language</label>
+          <div class="f-row"><label class="f-label">PO # (Optional)</label><input class="f-input" id="i-po" placeholder="PO-12345" oninput="scheduleInvoicePreview()"/></div>
+        </div>
+        <div class="f-row">
+          <label class="f-label">Language</label>
             <select class="f-select" id="i-lang" onchange="scheduleInvoicePreview()">
               <option value="es">Español</option>
               <option value="en">English</option>
@@ -1534,14 +1538,26 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 
       <div class="settings-block">
         <div class="settings-block-label">Invoice Defaults</div>
-        <label class="f-label" style="margin-bottom:7px">Default Payment Terms</label>
-        <select class="f-select" id="default-payment-terms" onchange="saveSettings()">
-          <option value="Net 14">Net 14</option>
-          <option value="Net 30">Net 30</option>
-          <option value="Due on receipt">Due on receipt</option>
-          <option value="50% deposit">50% deposit</option>
-        </select>
-        <div class="settings-hint">This will be the default selected option for new invoices.</div>
+        <div class="f-grid">
+          <div class="f-row">
+            <label class="f-label">Default Tax Rate (%)</label>
+            <input class="f-input" type="number" id="default-tax-rate" placeholder="0" onchange="saveSettings()"/>
+          </div>
+          <div class="f-row">
+            <label class="f-label">Invoice Prefix</label>
+            <input class="f-input" id="default-invoice-prefix" placeholder="AV" onchange="saveSettings()"/>
+          </div>
+        </div>
+        <div class="f-row">
+          <label class="f-label">Default Payment Terms</label>
+          <select class="f-select" id="default-payment-terms" onchange="saveSettings()">
+            <option value="Net 14">Net 14</option>
+            <option value="Net 30">Net 30</option>
+            <option value="Due on receipt">Due on receipt</option>
+            <option value="50% deposit">50% deposit</option>
+          </select>
+        </div>
+        <div class="settings-hint">These defaults will be applied to new invoices.</div>
       </div>
 
       <div class="settings-block">
@@ -2268,6 +2284,41 @@ if (sessionStorage.getItem('shift-mgr') === '1') {
   document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); });
 }
 
+// ── GLOBAL KEYBOARD SHORTCUTS ──────────────────────────────
+window.addEventListener('keydown', e => {
+  // ESC: Close open modals
+  if (e.key === 'Escape') {
+    const modals = [
+      'publish-modal', 'pipe-modal', 'rc-modal', 'rcp-modal', 
+      'prod-modal', 'cal-modal', 'qt-modal'
+    ];
+    modals.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && (el.style.display === 'flex' || el.classList.contains('open'))) {
+        if (id === 'qt-modal') closeQuickTask();
+        else if (id === 'cal-modal') calCloseModal();
+        else if (id === 'prod-modal') prodCloseModal();
+        else if (id === 'rc-modal') closeRCModal();
+        else if (id === 'rcp-modal') closeRCPicker();
+        else if (id === 'pipe-modal') closePipeModal();
+        else if (id === 'publish-modal') closePublishModal();
+      }
+    });
+  }
+
+  // CMD+S: Save/Publish current view
+  if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+    e.preventDefault();
+    const activeTab = document.querySelector('.tab-btn.active')?.textContent.trim().toLowerCase();
+    if (activeTab === 'proposals') publishProposal();
+    else if (activeTab === 'invoices') publishInvoice();
+    else if (activeTab === 'contracts') publishContract();
+    else if (activeTab === 'settings') saveSettings();
+    else if (activeTab === 'quick quote') generateQuickQuote();
+    else toast('Nothing to save on this tab', 'info');
+  }
+});
+
 // ── SETTINGS ────────────────────────────────────────────────
 function saveGHToken() {
   const t = document.getElementById('gh-token-input').value.trim();
@@ -2287,14 +2338,31 @@ function getGHToken() { return sessionStorage.getItem('shift-gh-token'); }
 
 function saveSettings() {
   const terms = document.getElementById('default-payment-terms').value;
+  const tax = document.getElementById('default-tax-rate').value;
+  const prefix = document.getElementById('default-invoice-prefix').value.trim();
+  
   localStorage.setItem('shift-default-payment-terms', terms);
+  localStorage.setItem('shift-default-tax-rate', tax);
+  localStorage.setItem('shift-default-invoice-prefix', prefix);
+  
   toast('Settings saved ✓');
 }
 function loadSettings() {
   const terms = localStorage.getItem('shift-default-payment-terms');
+  const tax = localStorage.getItem('shift-default-tax-rate');
+  const prefix = localStorage.getItem('shift-default-invoice-prefix');
+  
   if (terms) {
     const el = document.getElementById('default-payment-terms');
     if (el) el.value = terms;
+  }
+  if (tax) {
+    const el = document.getElementById('default-tax-rate');
+    if (el) el.value = tax;
+  }
+  if (prefix) {
+    const el = document.getElementById('default-invoice-prefix');
+    if (el) el.value = prefix;
   }
 }
 
@@ -2396,10 +2464,11 @@ let _pTimeout = null, _pBlob = null, _pServiceCount = 0;
 
 function _nextInvoiceNum() {
   const records = _invoicesLoad();
+  const defPrefix = (localStorage.getItem('shift-default-invoice-prefix') || 'AV').trim();
   const nums = records.map(r => (r.invoiceNum || r.num || '').trim()).filter(Boolean);
   if (!nums.length) {
     const n = parseInt(localStorage.getItem('shift-invoice-counter')||'2612') + 1;
-    return 'AV' + n;
+    return defPrefix + n;
   }
   // Parse: prefix (letters/dashes) + integer + optional suffix
   const parsed = nums.map(raw => {
@@ -2408,13 +2477,18 @@ function _nextInvoiceNum() {
   }).filter(Boolean);
   if (!parsed.length) {
     const n = parseInt(localStorage.getItem('shift-invoice-counter')||'2612') + 1;
-    return 'AV' + n;
+    return defPrefix + n;
   }
-  // Most-used prefix wins
-  const freq = {};
-  parsed.forEach(p => { freq[p.prefix] = (freq[p.prefix]||0) + 1; });
-  const topPrefix = Object.entries(freq).sort((a,b) => b[1]-a[1])[0][0];
+  // If we have a setting, it overrides the auto-detected prefix IF the user just changed it
+  // But usually, we want to follow the established pattern.
+  // We'll prioritize the setting if it's non-empty.
+  const topPrefix = defPrefix; 
   const group = parsed.filter(p => p.prefix === topPrefix);
+  if (group.length === 0) {
+     // If the setting prefix isn't found in history, just start from highest number found or counter
+     const best = parsed.reduce((a, b) => b.num > a.num ? b : a);
+     return topPrefix + (best.num + 1);
+  }
   const best  = group.reduce((a, b) => b.num > a.num ? b : a);
   const next  = best.num + 1;
   const pad   = best.padLen > String(next).length ? best.padLen : 0;
@@ -2431,8 +2505,12 @@ function initForms() {
   document.getElementById('p-expiry').value = addDaysISO(30);
   if (!document.querySelector('.svc-row')) addService();
   document.getElementById('i-num').value = _nextInvoiceNum();
+  document.getElementById('i-po').value = '';
   document.getElementById('i-date').value = todayISO();
   document.getElementById('i-due').value = addDaysISO(30);
+
+  const defaultTax = localStorage.getItem('shift-default-tax-rate');
+  if (defaultTax) document.getElementById('i-tax').value = defaultTax;
 
   const defaultTerms = localStorage.getItem('shift-default-payment-terms');
   if (defaultTerms) {
@@ -2645,6 +2723,7 @@ function getInvoiceData() {
   const tax = parseFloat(document.getElementById('i-tax').value)||0;
   return {
     invoiceNum: document.getElementById('i-num').value.trim(),
+    poNum: document.getElementById('i-po').value.trim(),
     lang: document.getElementById('i-lang').value,
     date: document.getElementById('i-date').value,
     dueDate: document.getElementById('i-due').value,
@@ -4926,6 +5005,7 @@ table thead th{border-bottom-color:#ccc!important}tr td{border-bottom-color:#eee
     <div class="inv-num-block">
       <div class="inv-word">${es?'Factura':'Invoice'}</div>
       <div class="inv-num">${esc(d.invoiceNum)}</div>
+      ${d.poNum ? `<div class="inv-num" style="margin-top:2px;font-size:11px;opacity:0.8">PO: ${esc(d.poNum)}</div>` : ''}
     </div>
   </div>
 
