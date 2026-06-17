@@ -579,6 +579,9 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .task-list{display:flex;flex-direction:column;gap:6px}
 .task-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--border);transition:opacity .15s}
 .task-item.done-item{opacity:.4}
+.task-p-badge { font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 4px; margin-right: 6px; letter-spacing: .05em; vertical-align: middle; display: inline-block; line-height: 1; }
+.task-p-badge.p-high { background: rgba(255, 68, 68, 0.2); color: #ff4444; border: 1px solid rgba(255, 68, 68, 0.3); }
+.task-p-badge.p-low { background: rgba(0, 191, 255, 0.15); color: #00bfff; border: 1px solid rgba(0, 191, 255, 0.2); }
 .task-check{width:17px;height:17px;flex-shrink:0;border:1.5px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s}
 .task-check.checked{background:var(--green);border-color:var(--green)}
 .task-check.checked::after{content:'✓';font-size:10px;color:#000;font-weight:900}
@@ -756,6 +759,10 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .cal-month-hd{font-size:9.5px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);padding:18px 0 10px;border-top:1px solid var(--border);margin-top:10px}
 .cal-month-hd:first-child{border-top:none;margin-top:0;padding-top:0}
 .cal-event{display:flex;align-items:flex-start;gap:0;border:1px solid var(--border);margin-bottom:6px;overflow:hidden;transition:border-color .12s}
+.cal-event.type-show { border-left: 4px solid #60a5fa; }
+.cal-event.type-loadin { border-left: 4px solid #c8a84b; }
+.cal-event.type-pickup { border-left: 4px solid #c084fc; }
+.cal-event.type-invoice { border-left: 4px solid #4ade80; }
 .cal-event:hover{border-color:#333}
 .cal-event-date-col{width:70px;flex-shrink:0;padding:14px 12px;text-align:center;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--surface)}
 .cal-ev-day{font-family:'Sora',sans-serif;font-weight:800;font-size:22px;line-height:1;letter-spacing:-.02em}
@@ -908,6 +915,11 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
             <div class="task-add-row">
               <input class="f-input task-text" id="task-input-text" placeholder="New task or follow-up…" onkeydown="if(event.key==='Enter')addGlobalTask()"/>
               <input class="f-input task-date" id="task-input-date" type="date" title="Due date (optional)"/>
+              <select class="f-select" id="task-input-priority" style="flex:0 0 100px;padding:9px 12px;font-size:13px">
+                <option value="normal">Normal</option>
+                <option value="high">High</option>
+                <option value="low">Low</option>
+              </select>
               <select class="f-input" id="task-input-client" style="flex:0 0 180px;padding:9px 12px;font-size:13px"><option value="">— Client (optional) —</option></select>
               <button class="task-add-btn" onclick="addGlobalTask()">+ Add</button>
             </div>
@@ -1152,6 +1164,16 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         <div class="f-grid">
           <div class="f-row"><label class="f-label">Invoice Date</label><input class="f-input" type="date" id="i-date" oninput="scheduleInvoicePreview()"/></div>
           <div class="f-row"><label class="f-label">Due Date</label><input class="f-input" type="date" id="i-due" oninput="scheduleInvoicePreview()"/></div>
+        </div>
+        <div class="f-row">
+          <label class="f-label">Payment Terms</label>
+          <select class="f-select" id="i-payment-terms" onchange="applyPaymentTerms();scheduleInvoicePreview()">
+            <option value="">— Select terms —</option>
+            <option value="Net 14">Net 14</option>
+            <option value="Net 30">Net 30</option>
+            <option value="Due on receipt">Due on receipt</option>
+            <option value="50% deposit">50% deposit</option>
+          </select>
         </div>
 
         <div class="f-section">
@@ -1508,6 +1530,18 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         </div>
         <button class="save-btn" onclick="saveGHToken()">Save Token</button>
         <div class="token-status" id="token-status"></div>
+      </div>
+
+      <div class="settings-block">
+        <div class="settings-block-label">Invoice Defaults</div>
+        <label class="f-label" style="margin-bottom:7px">Default Payment Terms</label>
+        <select class="f-select" id="default-payment-terms" onchange="saveSettings()">
+          <option value="Net 14">Net 14</option>
+          <option value="Net 30">Net 30</option>
+          <option value="Due on receipt">Due on receipt</option>
+          <option value="50% deposit">50% deposit</option>
+        </select>
+        <div class="settings-hint">This will be the default selected option for new invoices.</div>
       </div>
 
       <div class="settings-block">
@@ -1949,10 +1983,12 @@ function renderDashboardTasks() {
       const clientSpan = t.clientId
         ? `<span style="cursor:pointer;color:var(--gray)" onclick="switchTab('clients');crmSelectContact('${t.clientId}')">${esc(t.client)}</span>`
         : (t.client ? `<span style="color:var(--dim)">${esc(t.client)}</span>` : '');
+      const p = t.priority || 'normal';
+      const pBadge = p!=='normal' ? `<span class="task-p-badge p-${p}">${p.toUpperCase()}</span> ` : '';
       return `<div class="task-item${t.done?' done-item':''}">
         <div class="task-check${t.done?' checked':''}" onclick="taskToggleDone('${t.id}')"></div>
         <div class="task-body">
-          <div class="task-text${t.done?' done-text':''}">${esc(t.text)}</div>
+          <div class="task-text${t.done?' done-text':''}">${pBadge}${esc(t.text)}</div>
           <div class="task-meta">${clientSpan}${dueLabel?`<span class="${dueClass}">${dueLabel}</span>`:''}</div>
         </div>
         <button class="task-del" onclick="taskDelete('${t.id}')" title="Remove">✕</button>
@@ -1973,6 +2009,7 @@ function addGlobalTask() {
   const textEl = document.getElementById('task-input-text');
   const dateEl = document.getElementById('task-input-date');
   const clientEl = document.getElementById('task-input-client');
+  const priorityEl = document.getElementById('task-input-priority');
   const text = textEl ? textEl.value.trim() : '';
   if (!text) return;
   const crm = JSON.parse(localStorage.getItem('shift-crm')||'[]');
@@ -1982,7 +2019,7 @@ function addGlobalTask() {
     if (c) { clientId = c.id; clientName = c.name; }
   }
   const tasks = _tasksLoad();
-  tasks.unshift({ id:'task-'+Date.now(), text, dueDate: dateEl?.value||'', clientId, client: clientName, done: false, created: Date.now() });
+  tasks.unshift({ id:'task-'+Date.now(), text, dueDate: dateEl?.value||'', clientId, client: clientName, priority: priorityEl?.value||'normal', done: false, created: Date.now() });
   _tasksSave(tasks);
   if (textEl) textEl.value = '';
   if (dateEl) dateEl.value = '';
@@ -2025,10 +2062,12 @@ function renderCRMTasks(clientId) {
   el.innerHTML = all.map(t => {
     const dueClass = _taskDueClass(t.dueDate, t.done);
     const dueLabel = _taskDueLabel(t.dueDate, t.done);
+    const p = t.priority || 'normal';
+    const pBadge = p!=='normal' ? `<span class="task-p-badge p-${p}">${p.toUpperCase()}</span> ` : '';
     return `<div class="task-item${t.done?' done-item':''}">
       <div class="task-check${t.done?' checked':''}" onclick="taskToggleDone('${t.id}')"></div>
       <div class="task-body">
-        <div class="task-text${t.done?' done-text':''}">${esc(t.text)}</div>
+        <div class="task-text${t.done?' done-text':''}">${pBadge}${esc(t.text)}</div>
         ${dueLabel?`<div class="task-meta"><span class="${dueClass}">${dueLabel}</span></div>`:''}
       </div>
       <button class="task-del" onclick="taskDelete('${t.id}')" title="Remove">✕</button>
@@ -2039,11 +2078,12 @@ function renderCRMTasks(clientId) {
 function crmAddTask(clientId) {
   const textEl = document.getElementById(`crm-task-text-${clientId}`);
   const dateEl = document.getElementById(`crm-task-date-${clientId}`);
+  const priorityEl = document.getElementById(`crm-task-priority-${clientId}`);
   const text = textEl ? textEl.value.trim() : '';
   if (!text) return;
   const c = _crmById(clientId);
   const tasks = _tasksLoad();
-  tasks.unshift({ id:'task-'+Date.now(), text, dueDate: dateEl?.value||'', clientId, client: c?.name||'', done: false, created: Date.now() });
+  tasks.unshift({ id:'task-'+Date.now(), text, dueDate: dateEl?.value||'', clientId, client: c?.name||'', priority: priorityEl?.value||'normal', done: false, created: Date.now() });
   _tasksSave(tasks);
   if (textEl) textEl.value = '';
   if (dateEl) dateEl.value = '';
@@ -2225,7 +2265,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); });
+  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -2244,6 +2284,20 @@ function loadGHToken() {
   }
 }
 function getGHToken() { return sessionStorage.getItem('shift-gh-token'); }
+
+function saveSettings() {
+  const terms = document.getElementById('default-payment-terms').value;
+  localStorage.setItem('shift-default-payment-terms', terms);
+  toast('Settings saved ✓');
+}
+function loadSettings() {
+  const terms = localStorage.getItem('shift-default-payment-terms');
+  if (terms) {
+    const el = document.getElementById('default-payment-terms');
+    if (el) el.value = terms;
+  }
+}
+
 function setStatus(id, msg, type) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -2379,9 +2433,27 @@ function initForms() {
   document.getElementById('i-num').value = _nextInvoiceNum();
   document.getElementById('i-date').value = todayISO();
   document.getElementById('i-due').value = addDaysISO(30);
+
+  const defaultTerms = localStorage.getItem('shift-default-payment-terms');
+  if (defaultTerms) {
+    const ptEl = document.getElementById('i-payment-terms');
+    if (ptEl) {
+      ptEl.value = defaultTerms;
+      applyPaymentTerms();
+    }
+  }
+
   if (!document.querySelector('#invoice-items tr')) addInvoiceItem();
   _populateCRMPickers();
   renderClientCards();
+}
+
+function applyPaymentTerms() {
+  const terms = document.getElementById('i-payment-terms').value;
+  if (!terms) return;
+  const area = document.getElementById('i-payment');
+  const baseInstructions = "PayPal: Produccion@5hift.com.mx\nBank transfer available on request.";
+  area.value = `Payment Terms: ${terms}\n\n${baseInstructions}`;
 }
 
 function addService() {
@@ -2775,6 +2847,11 @@ function showCRMProfile(id) {
     <div class="crm-task-add">
       <input class="f-input" id="crm-task-text-${id}" placeholder="Add a task or follow-up…" style="flex:1;min-width:120px" onkeydown="if(event.key==='Enter')crmAddTask('${id}')"/>
       <input class="f-input" id="crm-task-date-${id}" type="date" style="flex:0 0 130px" title="Due date (optional)"/>
+      <select class="f-select" id="crm-task-priority-${id}" style="flex:0 0 100px;padding:9px 12px;font-size:13px">
+        <option value="normal">Normal</option>
+        <option value="high">High</option>
+        <option value="low">Low</option>
+      </select>
       <button class="task-add-btn" onclick="crmAddTask('${id}')">+ Add</button>
     </div>
     <div id="crm-task-list-${id}" class="task-list" style="margin-bottom:22px"></div>
@@ -4982,7 +5059,7 @@ function renderCalendar() {
     const delBtn   = ev.manual
       ? `<button class="cal-ev-del" onclick="calDelete('${ev.id}')">✕</button><button class="cal-ev-edit" onclick="calOpenEdit('${ev.id}')">Edit</button>`
       : '';
-    html += `<div class="cal-event${isPast?' past':''}">
+    html += `<div class="cal-event${isPast?' past':''} type-${ev.type}">
       <div class="cal-event-date-col">
         <div class="cal-ev-day${isToday?' cal-ev-today':''}">${day}</div>
         <div class="cal-ev-dow${isToday?' cal-ev-today':''}">${dow}</div>
@@ -5287,6 +5364,17 @@ function renderProdDetail(id) {
     </div>
 
     <div class="prod-section">
+      <div class="prod-section-hd">
+        <div class="prod-section-lbl">Suppliers & Contacts</div>
+      </div>
+      <div class="prod-contacts-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:10px">
+        <div class="f-row" style="margin-bottom:0"><label class="f-label">Rental House</label><input class="f-input" value="${esc(p.rentalHouse||'')}" onchange="prodUpdateField('${id}','rentalHouse',this.value)" placeholder="e.g. PRG, 4Wall…"/></div>
+        <div class="f-row" style="margin-bottom:0"><label class="f-label">Venue Contact</label><input class="f-input" value="${esc(p.venueContact||'')}" onchange="prodUpdateField('${id}','venueContact',this.value)" placeholder="Name & Phone"/></div>
+        <div class="f-row" style="margin-bottom:0"><label class="f-label">Catering / Other</label><input class="f-input" value="${esc(p.catering||'')}" onchange="prodUpdateField('${id}','catering',this.value)" placeholder="Vendor info"/></div>
+      </div>
+    </div>
+
+    <div class="prod-section">
       <div class="prod-section-hd"><div class="prod-section-lbl">Linked Documents</div></div>
       <div id="prod-docs-${id}">${docsHTML||'<div style="font-size:12px;color:var(--dim);padding:4px 0">No documents linked yet.</div>'}</div>
       <div class="prod-link-row">
@@ -5327,6 +5415,13 @@ function prodSaveTime(id, key, val) {
   if (!p) return;
   if (!p.times) p.times = {};
   p.times[key] = val; p.updated = Date.now();
+  _prodsSave(prods);
+}
+function prodUpdateField(id, field, val) {
+  const prods = _prodsLoad();
+  const p = prods.find(x=>x.id===id);
+  if (!p) return;
+  p[field] = val; p.updated = Date.now();
   _prodsSave(prods);
 }
 
