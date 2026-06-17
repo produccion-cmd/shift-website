@@ -247,14 +247,14 @@ tailwind.config = {
         </div>
       </a>
 
+<!-- PROPOSALS_INSERT -->
       <!-- ADD NEW -->
-      <div class="portal-card bg-background flex flex-col items-center justify-center gap-4 p-12 cursor-pointer group border border-dashed border-outline-variant hover:border-primary transition-all min-h-[260px]"
-        onclick="alert('Duplicate SHIFT_proposal_template.html, fill in the brackets, then add a new card here.')">
+      <a href="manager.html" class="portal-card bg-background flex flex-col items-center justify-center gap-4 p-12 cursor-pointer group border border-dashed border-outline-variant hover:border-primary transition-all min-h-[260px]" style="text-decoration:none">
         <div class="w-10 h-10 border border-outline-variant flex items-center justify-center group-hover:border-primary transition-colors">
           <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">add</span>
         </div>
         <span class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors">New Proposal</span>
-      </div>
+      </a>
     </div>
   </div>
 
@@ -267,6 +267,7 @@ tailwind.config = {
       </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-outline-variant/20 border border-outline-variant/20 mb-8">
+<!-- INVOICES_INSERT -->
       <!-- Invoice row placeholder -->
       <div class="portal-card bg-background flex flex-col gap-4 p-8 group cursor-pointer">
         <div class="flex justify-between items-start gap-3">
@@ -286,8 +287,7 @@ tailwind.config = {
         </div>
       </div>
       <!-- Add new invoice -->
-      <div class="portal-card bg-background flex flex-col items-center justify-center gap-4 p-12 cursor-pointer group border border-dashed border-outline-variant hover:border-primary transition-all min-h-[220px]"
-        onclick="alert('Invoice builder coming soon.')">
+      <a href="manager.html" class="portal-card bg-background flex flex-col items-center justify-center gap-4 p-12 cursor-pointer group border border-dashed border-outline-variant hover:border-primary transition-all min-h-[220px]" style="text-decoration:none">
         <div class="w-10 h-10 border border-outline-variant flex items-center justify-center group-hover:border-primary transition-colors">
           <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">add</span>
         </div>
@@ -331,7 +331,7 @@ tailwind.config = {
       </div>
       <!-- Add -->
       <div class="portal-card bg-background flex flex-col items-center justify-center gap-4 p-12 cursor-pointer group border border-dashed border-outline-variant hover:border-primary transition-all min-h-[220px]"
-        onclick="alert('Contract builder coming soon.')">
+        onclick="window.location='manager.html'">
         <div class="w-10 h-10 border border-outline-variant flex items-center justify-center group-hover:border-primary transition-colors">
           <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">add</span>
         </div>
