@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SHIFT · Quotation</title>
+<link rel="icon" type="image/svg+xml" href="SHIFT-ICON.svg"/>
+<script>
+const _SK = 'SHIFTportal#2026$key!xK9mPq3';
+async function _hmac(msg) {
+  const k = await crypto.subtle.importKey('raw',new TextEncoder().encode(_SK),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+  const s = await crypto.subtle.sign('HMAC',k,new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(s)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function _b64dec(b64) {
+  try {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  } catch(e){return null;}
+}
+function _deny(reason) {
+  document.getElementById('_gate').style.display='flex';
+  document.getElementById('_quote').style.display='none';
+  const msgs = {
+    expired: 'This quote has expired. Contact SHIFT for an updated quote.',
+    'no-token': 'This page requires a private quote link. Please check your email from SHIFT.',
+    invalid:  'This link is not valid. Please use the link sent to you by SHIFT.',
+    'no-data':'Quote data could not be loaded. Please request a new link.',
+    error:    'Something went wrong verifying this link. Please contact SHIFT.'
+  };
+  document.getElementById('_gate-msg').textContent = msgs[reason]||msgs.error;
+}
+async function _init() {
+  const p = new URLSearchParams(location.search);
+  const t = p.get('t'), q = p.get('q');
+  if (!t) { _deny('no-token'); return; }
+  if (!q) { _deny('no-data'); return; }
+  try {
+    const [b64,sig] = t.split('.');
+    const payload = _b64dec(b64);
+    if (!payload) { _deny('invalid'); return; }
+    const parts = payload.split('|');
+    const exp = parseInt(parts[parts.length-1],10);
+    if (isNaN(exp)||Date.now()/1000>exp) { _deny('expired'); return; }
+    if (sig !== (await _hmac(payload)).slice(0,32)) { _deny('invalid'); return; }
+    const clientName = parts.slice(0,-1).join('|');
+    const rawQ = _b64dec(decodeURIComponent(q));
+    if (!rawQ) { _deny('no-data'); return; }
+    const d = JSON.parse(rawQ);
+    _render(clientName, d, exp);
+  } catch(e) { _deny('error'); }
+}
+function _render(client, d, expTs) {
+  const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const fmtAmt = n => parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const validDate = d.validUntil
+    ? new Date(d.validUntil+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})
+    : new Date(expTs*1000).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  document.title = `SHIFT · ${d.num||'Quotation'} · ${client}`;
+  document.getElementById('_gate').style.display='none';
+  document.getElementById('_quote').style.display='block';
+  if (d.num) document.getElementById('_q-num').textContent = d.num;
+  document.getElementById('_q-client').textContent = client;
+  document.getElementById('_q-amount').textContent = '$'+fmtAmt(d.amount);
+  if (d.desc) {
+    document.getElementById('_q-desc').innerHTML = esc(d.desc).replace(/\n/g,'<br>');
+    document.getElementById('_q-desc-sec').style.display='block';
+  }
+  if (d.notes) {
+    document.getElementById('_q-notes').innerHTML = esc(d.notes).replace(/\n/g,'<br>');
+    document.getElementById('_q-notes-sec').style.display='block';
+  }
+  document.getElementById('_q-valid').textContent = validDate;
+  const subj = encodeURIComponent(`Quote Acceptance — ${d.num||'Quotation'} · ${client}`);
+  const body = encodeURIComponent(`Hi SHIFT team,\n\nI'd like to proceed with ${d.num||'the quote'} for $${fmtAmt(d.amount)} USD.\n\nPlease send the full contract and next steps.\n\nThanks,\n${client}`);
+  document.getElementById('_q-accept').href = `mailto:Produccion@5hift.com.mx?subject=${subj}&body=${body}`;
+}
+window.addEventListener('DOMContentLoaded',_init);
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+@font-face{font-family:'SHIFTBrand';src:url('fonts/shift-brand.woff2') format('woff2'),url('fonts/shift-brand.woff') format('woff');font-display:swap}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0a0b;--surface:#111114;--border:#1e1e22;--w:#f2f2f4;--gray:#8a8a96;--dim:#3a3a44}
+body{background:var(--bg);color:var(--w);font-family:'Inter',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+#_gate{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px;text-align:center;gap:16px}
+.gate-logo{display:flex;align-items:center;gap:10px;opacity:.45;margin-bottom:4px}
+.gate-logo img{height:26px;filter:brightness(0) invert(1)}
+.gate-logo span{font-family:'SHIFTBrand',sans-serif;font-size:20px;letter-spacing:.5em}
+#_gate-msg{font-size:14px;color:var(--gray);max-width:360px;line-height:1.75}
+.gate-hint{font-size:11.5px;color:var(--dim)}
+.gate-hint a{color:var(--gray);text-decoration:none}
+.gate-hint a:hover{color:var(--w)}
+#_quote{display:none;max-width:680px;margin:0 auto;padding:clamp(48px,7vw,80px) clamp(24px,5vw,60px) 80px}
+/* Header */
+.q-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:clamp(40px,6vw,64px)}
+.q-logo{display:flex;align-items:center;gap:9px}
+.q-logo img{height:22px;filter:brightness(0) invert(1)}
+.q-logo-txt{font-family:'SHIFTBrand',sans-serif;font-size:17px;letter-spacing:.5em;color:var(--w)}
+.q-hd-r{text-align:right}
+.q-word{font-size:9.5px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--dim)}
+.q-num{font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:var(--gray);margin-top:5px;letter-spacing:-.01em}
+/* Client */
+.q-for-lbl{font-size:9.5px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+.q-client{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(22px,5vw,34px);letter-spacing:-.03em;line-height:1.15;margin-bottom:clamp(32px,5vw,48px)}
+/* Amount hero */
+.q-amount-block{border:1px solid var(--border);padding:clamp(28px,5vw,44px) clamp(24px,4vw,40px);text-align:center;margin-bottom:clamp(28px,4vw,44px);background:var(--surface)}
+.q-amt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
+.q-amount{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(52px,10vw,80px);letter-spacing:-.04em;line-height:1}
+.q-currency{font-size:11px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--gray);margin-top:10px}
+/* Sections */
+.q-sec{border-top:1px solid var(--border);padding-top:clamp(18px,3vw,26px);margin-bottom:clamp(18px,3vw,26px)}
+.q-sec-lbl{font-size:9.5px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);margin-bottom:11px}
+.q-desc{font-size:14.5px;color:var(--gray);line-height:1.8}
+.q-notes{font-size:13px;color:var(--dim);line-height:1.75}
+/* Meta */
+.q-meta{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:clamp(28px,4vw,40px)}
+.q-mc{background:var(--bg);padding:15px 18px}
+.q-mc-lbl{font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.q-mc-val{font-family:'Sora',sans-serif;font-weight:700;font-size:14px}
+/* CTA */
+.q-cta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:clamp(40px,6vw,60px)}
+.q-btn-primary{display:inline-flex;align-items:center;gap:7px;background:var(--w);color:#000;font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:14px 26px;text-decoration:none;transition:opacity .2s}
+.q-btn-primary:hover{opacity:.85}
+.q-btn-secondary{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:13px 22px;text-decoration:none;transition:border-color .2s,color .2s}
+.q-btn-secondary:hover{border-color:#555;color:var(--w)}
+/* Footer */
+.q-footer{border-top:1px solid var(--border);padding-top:22px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.q-ft-brand{display:flex;align-items:center;gap:7px}
+.q-ft-brand img{height:16px;filter:brightness(0) invert(1);opacity:.35}
+.q-ft-brand span{font-family:'SHIFTBrand',sans-serif;font-size:13px;letter-spacing:.5em;color:var(--dim)}
+.q-ft-info p{font-size:10.5px;color:var(--dim);line-height:1.9;text-align:right}
+.q-ft-info a{color:var(--dim);text-decoration:none}
+.q-ft-info a:hover{color:var(--gray)}
+@media(max-width:420px){.q-meta{grid-template-columns:1fr}.q-hd{flex-direction:column;gap:16px}.q-hd-r{text-align:left}}
+@media print{
+  body,#_quote{background:#fff!important;color:#000!important}
+  :root{--bg:#fff;--surface:#f7f7f7;--border:#d8d8d8;--w:#000;--gray:#444;--dim:#888}
+  .q-amount{color:#000!important}
+  .q-cta{display:none!important}
+  .q-ft-info a{color:#555!important}
+  @page{margin:40px}
+}
+</style>
+</head>
+<body>
+
+<div id="_gate">
+  <div class="gate-logo"><img src="SHIFT-ICON.svg" alt=""/><span>SHIFT</span></div>
+  <p id="_gate-msg"></p>
+  <p class="gate-hint">Questions? <a href="mailto:Produccion@5hift.com.mx">Produccion@5hift.com.mx</a></p>
+</div>
+
+<div id="_quote">
+  <div class="q-hd">
+    <div class="q-logo"><img src="SHIFT-ICON.svg" alt=""/><span class="q-logo-txt">SHIFT</span></div>
+    <div class="q-hd-r">
+      <div class="q-word">Quotation</div>
+      <div class="q-num" id="_q-num"></div>
+    </div>
+  </div>
+
+  <div class="q-for-lbl">Prepared for</div>
+  <div class="q-client" id="_q-client"></div>
+
+  <div class="q-amount-block">
+    <div class="q-amt-lbl">Total Investment</div>
+    <div class="q-amount" id="_q-amount"></div>
+    <div class="q-currency">USD</div>
+  </div>
+
+  <div class="q-sec" id="_q-desc-sec" style="display:none">
+    <div class="q-sec-lbl">Scope of Work</div>
+    <div class="q-desc" id="_q-desc"></div>
+  </div>
+
+  <div class="q-sec" id="_q-notes-sec" style="display:none">
+    <div class="q-sec-lbl">Notes &amp; Terms</div>
+    <div class="q-notes" id="_q-notes"></div>
+  </div>
+
+  <div class="q-meta">
+    <div class="q-mc">
+      <div class="q-mc-lbl">Valid Until</div>
+      <div class="q-mc-val" id="_q-valid"></div>
+    </div>
+    <div class="q-mc">
+      <div class="q-mc-lbl">Issued by</div>
+      <div class="q-mc-val">Shift Events LLC</div>
+    </div>
+  </div>
+
+  <div class="q-cta">
+    <a class="q-btn-primary" id="_q-accept" href="#">Accept Quote →</a>
+    <a class="q-btn-secondary" href="mailto:Produccion@5hift.com.mx">Contact SHIFT →</a>
+  </div>
+
+  <div class="q-footer">
+    <div class="q-ft-brand"><img src="SHIFT-ICON.svg" alt=""/><span>SHIFT</span></div>
+    <div class="q-ft-info">
+      <p>Shift Events LLC · Houston, Texas 77064</p>
+      <p><a href="tel:+13463327077">+1 (346) 332-7077</a> · <a href="mailto:Produccion@5hift.com.mx">Produccion@5hift.com.mx</a></p>
+      <p><a href="https://shiftevnts.com">shiftevnts.com</a></p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
