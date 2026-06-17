@@ -4659,9 +4659,19 @@ function updateSyncStatus(status, type) {
   const txt = document.getElementById('sync-text');
   if (!dot || !txt) return;
   txt.textContent = status;
-  if (type === 'ok') { dot.style.background = 'var(--green)'; dot.style.boxShadow = '0 0 8px var(--green)'; }
-  else if (type === 'err') { dot.style.background = 'var(--red)'; dot.style.boxShadow = '0 0 8px var(--red)'; }
-  else { dot.style.background = 'var(--gold)'; dot.style.boxShadow = '0 0 8px var(--gold)'; }
+  if (type === 'ok') { 
+    dot.style.background = 'var(--green)'; 
+    dot.style.boxShadow = '0 0 8px var(--green)'; 
+  } else if (type === 'err') { 
+    dot.style.background = 'var(--red)'; 
+    dot.style.boxShadow = '0 0 8px var(--red)'; 
+  } else if (type === 'sync') { 
+    dot.style.background = 'var(--gold)'; 
+    dot.style.boxShadow = '0 0 8px var(--gold)'; 
+  } else { 
+    dot.style.background = 'var(--dim)'; 
+    dot.style.boxShadow = 'none'; 
+  }
 }
 
 async function syncDataToGitHub(isAuto = false) {
