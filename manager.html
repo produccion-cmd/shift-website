@@ -1805,8 +1805,11 @@ function _statusLabel(s) {
   return {lead:'Lead',active:'Active',vip:'VIP',past:'Past Client'}[s] || s;
 }
 
+let _crmInitDone = false;
 function crmInit() {
-  // Migrate existing shift-clients into CRM (one-time import)
+  if (_crmInitDone) return;
+  _crmInitDone = true;
+  // One-time migration: import legacy shift-clients into CRM
   const existing = _crmLoad();
   const legacy = JSON.parse(localStorage.getItem('shift-clients')||'[]');
   let changed = false;
@@ -1975,8 +1978,18 @@ function crmDeleteNote(id, idx) {
 
 function crmDelete(id) {
   if (!confirm('Remove this client from CRM?')) return;
-  const contacts = _crmLoad().filter(c => c.id !== id);
-  _crmSave(contacts);
+  const target = _crmById(id);
+  // Remove from CRM
+  _crmSave(_crmLoad().filter(c => c.id !== id));
+  // Also purge from legacy shift-clients so crmInit won't re-import on reload
+  if (target) {
+    const key = (target.name+'|'+(target.company||'')).toLowerCase().trim();
+    const legacy = JSON.parse(localStorage.getItem('shift-clients')||'[]');
+    const pruned = legacy.filter(lc =>
+      (lc.name+'|'+(lc.company||'')).toLowerCase().trim() !== key
+    );
+    localStorage.setItem('shift-clients', JSON.stringify(pruned));
+  }
   _crmSelected = null;
   document.getElementById('crm-profile-view').style.display = 'none';
   document.getElementById('crm-edit-view').style.display = 'none';
@@ -2166,6 +2179,7 @@ function rcInit() {
 }
 
 function renderRateCard() {
+  rcInit(); // seed defaults if localStorage is empty
   const all = _rcLoad();
   const q   = (document.getElementById('rc-search')?.value||'').toLowerCase();
   const filtered = q ? all.filter(s => (s.name+' '+s.description+' '+s.category).toLowerCase().includes(q)) : all;
