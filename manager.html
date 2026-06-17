@@ -150,6 +150,101 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .hist-del:hover{color:var(--red)}
 .hist-copy.copied{border-color:var(--green);color:var(--green)}
 
+/* ── CRM ──────────────────────────────────────────────────── */
+.crm-layout{display:flex;flex:1;overflow:hidden;min-height:0}
+.crm-list-pane{width:310px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+@media(max-width:750px){.crm-list-pane{width:100%;border-right:none;border-bottom:1px solid var(--border)}}
+.crm-toolbar{padding:14px 14px 10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.crm-search{background:transparent;border:1px solid var(--border);color:var(--white);font-family:'Inter',sans-serif;font-size:13px;padding:9px 12px;outline:none;width:100%}
+.crm-search:focus{border-color:#444}
+.crm-search::placeholder{color:var(--dim)}
+.crm-toolbar-row{display:flex;gap:7px}
+.crm-filter{flex:1;background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'Inter',sans-serif;font-size:11.5px;padding:7px 10px;outline:none;cursor:pointer}
+.crm-filter option{background:#111;color:#fff}
+.crm-new-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:7px 14px;border:none;cursor:pointer;white-space:nowrap}
+.crm-new-btn:hover{opacity:.85}
+.crm-list-inner{flex:1;overflow-y:auto;padding:8px}
+.crm-empty-list{font-size:12px;color:var(--dim);padding:28px 16px;text-align:center;line-height:1.7}
+.crm-card{border:1px solid var(--border);padding:13px 15px;margin-bottom:6px;cursor:pointer;transition:border-color .15s}
+.crm-card:hover,.crm-card.selected{border-color:#333}
+.crm-card.selected{background:#0d0d0d}
+.crm-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:3px}
+.crm-card-name{font-family:'Sora',sans-serif;font-weight:600;font-size:13px;line-height:1.3}
+.crm-card-company{font-size:11px;color:var(--gray);margin-top:2px}
+.crm-card-foot{font-size:10.5px;color:var(--dim);margin-top:6px}
+/* Status pills */
+.spill{display:inline-block;font-size:8.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:3px 8px;flex-shrink:0}
+.spill-lead{color:#c8a84b;border:1px solid rgba(200,168,75,.35);background:rgba(200,168,75,.08)}
+.spill-active{color:#4ade80;border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.07)}
+.spill-vip{color:#c084fc;border:1px solid rgba(192,132,252,.3);background:rgba(192,132,252,.07)}
+.spill-past{color:#545460;border:1px solid #222;background:transparent}
+/* Profile pane */
+.crm-profile-pane{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.crm-pane-empty{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:40px}
+.crm-pane-empty-label{font-size:11.5px;color:var(--dim);letter-spacing:.1em;text-align:center;line-height:1.7}
+.crm-profile-inner{padding:28px 32px;flex:1;max-width:660px}
+.crm-profile-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:6px;flex-wrap:wrap}
+.crm-profile-name{font-family:'Sora',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.02em;line-height:1.2}
+.crm-profile-company{font-size:13px;color:var(--gray);margin-top:4px}
+.crm-hd-btns{display:flex;gap:8px;flex-shrink:0;margin-top:4px}
+.crm-btn{font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--gray);padding:7px 14px;cursor:pointer;font-family:'Inter',sans-serif;transition:border-color .15s,color .15s}
+.crm-btn:hover{border-color:#555;color:var(--white)}
+.crm-btn-del:hover{color:var(--red);border-color:transparent}
+/* Status toggle row */
+.crm-status-row{display:flex;gap:6px;margin:16px 0 20px;flex-wrap:wrap}
+.crm-s-btn{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:6px 14px;cursor:pointer;border:1px solid #222;color:var(--dim);background:transparent;font-family:'Inter',sans-serif;transition:all .15s}
+.crm-s-btn[data-s="lead"].on{border-color:#c8a84b;color:#c8a84b}
+.crm-s-btn[data-s="active"].on{border-color:#4ade80;color:#4ade80}
+.crm-s-btn[data-s="vip"].on{border-color:#c084fc;color:#c084fc}
+.crm-s-btn[data-s="past"].on{border-color:#545460;color:#545460}
+/* Info grid */
+.crm-info-grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--border);margin-bottom:18px}
+.crm-info-cell{padding:13px 16px;border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
+.crm-info-cell:nth-child(2n){border-right:none}
+.crm-info-cell:nth-last-child(-n+2){border-bottom:none}
+.crm-info-lbl{font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+.crm-info-val{font-size:13px;color:var(--white);line-height:1.4}
+.crm-info-val.muted{color:var(--dim)}
+.crm-info-val a{color:var(--gray);text-decoration:none}.crm-info-val a:hover{color:var(--white)}
+/* Stats */
+.crm-stats{display:flex;border:1px solid var(--border);margin-bottom:18px}
+.crm-stat{flex:1;padding:14px 16px;border-right:1px solid var(--border);text-align:center}
+.crm-stat:last-child{border-right:none}
+.crm-stat-n{font-family:'Sora',sans-serif;font-weight:800;font-size:20px;color:var(--white)}
+.crm-stat-lbl{font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:4px}
+/* Quick actions */
+.crm-quick{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap}
+.crm-q-btn{font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--gray);padding:9px 16px;cursor:pointer;font-family:'Inter',sans-serif;transition:border-color .15s,color .15s}
+.crm-q-btn:hover{border-color:#555;color:var(--white)}
+.crm-q-btn.primary{background:var(--white);color:#000;border-color:var(--white)}
+.crm-q-btn.primary:hover{opacity:.85}
+/* Tags */
+.crm-tags-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:20px}
+.crm-tag{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--border);color:var(--dim);cursor:default;background:transparent}
+/* Notes */
+.crm-section-lbl{font-size:9px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;border-top:1px solid var(--border);padding-top:18px}
+.crm-note-row{display:flex;gap:8px;margin-bottom:14px}
+.crm-note-input{flex:1;background:transparent;border:1px solid var(--border);color:var(--white);font-family:'Inter',sans-serif;font-size:13px;padding:9px 13px;outline:none;resize:none;min-height:38px}
+.crm-note-input:focus{border-color:#444}
+.crm-note-add{background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'Inter',sans-serif;font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:9px 14px;cursor:pointer;white-space:nowrap;align-self:flex-start}
+.crm-note-add:hover{border-color:#555;color:var(--white)}
+.crm-note-item{border-left:2px solid var(--border);padding:8px 0 8px 14px;margin-bottom:10px}
+.crm-note-text{font-size:13px;color:var(--gray);line-height:1.55;white-space:pre-wrap}
+.crm-note-ts{font-size:9.5px;color:var(--dim);margin-top:4px;display:flex;justify-content:space-between}
+.crm-note-del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:0 2px}
+.crm-note-del:hover{color:var(--red)}
+/* Edit form */
+.crm-edit-inner{padding:28px 32px;flex:1;max-width:660px}
+.crm-edit-h2{font-family:'Sora',sans-serif;font-weight:800;font-size:20px;margin-bottom:22px;letter-spacing:-.02em}
+.crm-edit-actions{display:flex;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+.crm-save-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:13px 24px;border:none;cursor:pointer}
+.crm-save-btn:hover{opacity:.85}
+.crm-cancel-btn{background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;padding:13px 20px;cursor:pointer}
+.crm-cancel-btn:hover{border-color:#555;color:var(--white)}
+.crm-tag-opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.crm-tag-opt{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;border:1px solid var(--border);color:var(--dim);cursor:pointer;background:transparent;font-family:'Inter',sans-serif;transition:all .15s}
+.crm-tag-opt:hover{border-color:#444;color:var(--gray)}
+.crm-tag-opt.on{border-color:#333;color:var(--white);background:#111}
 /* SETTINGS TAB */
 .settings-content{flex:1;overflow-y:auto;padding:40px 32px;max-width:680px;width:100%;margin:0 auto}
 .settings-h2{font-family:'Sora',sans-serif;font-weight:700;font-size:22px;letter-spacing:-.02em;margin-bottom:6px}
@@ -214,6 +309,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
     <button class="tab-btn active" onclick="switchTab('links')">Portal Links</button>
     <button class="tab-btn" onclick="switchTab('proposals')">Proposals</button>
     <button class="tab-btn" onclick="switchTab('invoices')">Invoices</button>
+    <button class="tab-btn" onclick="switchTab('clients')">Clients</button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
   </nav>
 
@@ -411,6 +507,82 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
     </div>
   </div>
 
+  <!-- TAB: CLIENTS (CRM) -->
+  <div class="tab-panel" id="tab-clients">
+    <div class="crm-layout">
+
+      <!-- LEFT: client list -->
+      <div class="crm-list-pane">
+        <div class="crm-toolbar">
+          <input class="crm-search" id="crm-search" placeholder="Search name, company, email…" oninput="filterCRM()"/>
+          <div class="crm-toolbar-row">
+            <select class="crm-filter" id="crm-filter" onchange="filterCRM()">
+              <option value="">All clients</option>
+              <option value="lead">Lead</option>
+              <option value="active">Active</option>
+              <option value="vip">VIP</option>
+              <option value="past">Past Client</option>
+            </select>
+            <button class="crm-new-btn" onclick="crmOpenNew()">+ New</button>
+          </div>
+        </div>
+        <div class="crm-list-inner" id="crm-list"></div>
+      </div>
+
+      <!-- RIGHT: profile / edit -->
+      <div class="crm-profile-pane" id="crm-profile-pane">
+        <div class="crm-pane-empty" id="crm-empty-state">
+          <div class="crm-pane-empty-label">Select a client to view their profile,<br>or create a new one with "+ New".</div>
+        </div>
+        <div class="crm-profile-inner" id="crm-profile-view" style="display:none"></div>
+        <div class="crm-edit-inner" id="crm-edit-view" style="display:none">
+          <div class="crm-edit-h2" id="crm-edit-title">New Client</div>
+          <div class="f-grid">
+            <div class="f-row"><label class="f-label">Name *</label><input class="f-input" id="ce-name" placeholder="Alex Padilla"/></div>
+            <div class="f-row"><label class="f-label">Company</label><input class="f-input" id="ce-company" placeholder="Stage Directions Inc"/></div>
+          </div>
+          <div class="f-grid">
+            <div class="f-row"><label class="f-label">Email</label><input class="f-input" id="ce-email" placeholder="client@example.com"/></div>
+            <div class="f-row"><label class="f-label">Phone</label><input class="f-input" id="ce-phone" placeholder="+1 (713) 555-0000"/></div>
+          </div>
+          <div class="f-row"><label class="f-label">Street Address</label><input class="f-input" id="ce-addr" placeholder="8311 Hempstead Rd"/></div>
+          <div class="f-grid">
+            <div class="f-row"><label class="f-label">City, State ZIP</label><input class="f-input" id="ce-city" placeholder="Houston, Texas 77008"/></div>
+            <div class="f-row"><label class="f-label">Country</label><input class="f-input" id="ce-country" placeholder="United States"/></div>
+          </div>
+          <div class="f-row"><label class="f-label">Website</label><input class="f-input" id="ce-website" placeholder="https://..."/></div>
+          <div class="f-row">
+            <label class="f-label">Status</label>
+            <div class="crm-status-row" id="ce-status-row">
+              <button class="crm-s-btn" data-s="lead" onclick="crmSetEditStatus('lead')">Lead</button>
+              <button class="crm-s-btn" data-s="active" onclick="crmSetEditStatus('active')">Active</button>
+              <button class="crm-s-btn" data-s="vip" onclick="crmSetEditStatus('vip')">VIP</button>
+              <button class="crm-s-btn" data-s="past" onclick="crmSetEditStatus('past')">Past Client</button>
+            </div>
+          </div>
+          <div class="f-row">
+            <label class="f-label">Tags</label>
+            <div class="crm-tag-opts" id="ce-tags">
+              <button class="crm-tag-opt" data-tag="Wedding" onclick="crmToggleTag(this)">Wedding</button>
+              <button class="crm-tag-opt" data-tag="Corporate" onclick="crmToggleTag(this)">Corporate</button>
+              <button class="crm-tag-opt" data-tag="Festival" onclick="crmToggleTag(this)">Festival</button>
+              <button class="crm-tag-opt" data-tag="Private" onclick="crmToggleTag(this)">Private</button>
+              <button class="crm-tag-opt" data-tag="Restaurant" onclick="crmToggleTag(this)">Restaurant</button>
+              <button class="crm-tag-opt" data-tag="Nightclub" onclick="crmToggleTag(this)">Nightclub</button>
+              <button class="crm-tag-opt" data-tag="Brand" onclick="crmToggleTag(this)">Brand</button>
+              <button class="crm-tag-opt" data-tag="Media" onclick="crmToggleTag(this)">Media</button>
+            </div>
+          </div>
+          <div class="crm-edit-actions">
+            <button class="crm-save-btn" onclick="crmSaveEdit()">Save Client</button>
+            <button class="crm-cancel-btn" onclick="crmCancelEdit()">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- TAB: SETTINGS -->
   <div class="tab-panel" id="tab-settings">
     <div class="settings-content">
@@ -503,12 +675,13 @@ function toast(msg, type='ok') {
 // ── TAB SYSTEM ──────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    const names = ['links','proposals','invoices','settings'];
+    const names = ['links','proposals','invoices','clients','settings'];
     b.classList.toggle('active', names[i] === name);
   });
   document.querySelectorAll('.tab-panel').forEach(p => {
     p.classList.toggle('active', p.id === 'tab-'+name);
   });
+  if (name === 'clients') { renderCRMList(); }
 }
 
 // ── AUTH ────────────────────────────────────────────────────
@@ -521,6 +694,7 @@ function doLogin() {
     initForms();
     renderHistory();
     loadGHToken();
+    crmInit();
   } else {
     document.getElementById('login-err').textContent = 'Incorrect password.';
     document.getElementById('pw').value = '';
@@ -536,7 +710,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { initForms(); renderHistory(); loadGHToken(); });
+  document.addEventListener('DOMContentLoaded', () => { initForms(); renderHistory(); loadGHToken(); crmInit(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -896,6 +1070,349 @@ async function downloadInvoicePDF() {
   const win = window.open(URL.createObjectURL(new Blob([generateInvoiceHTML(d)],{type:'text/html'})),'_blank');
   if (win) setTimeout(()=>win.print(),1200);
 }
+// ── CRM ──────────────────────────────────────────────────────
+let _crmSelected = null; // id of selected contact
+let _crmEditId = null;   // null = new, string = editing existing
+let _crmEditStatus = 'active';
+
+function _crmLoad() {
+  const raw = localStorage.getItem('shift-crm');
+  return raw ? JSON.parse(raw) : [];
+}
+function _crmSave(contacts) {
+  localStorage.setItem('shift-crm', JSON.stringify(contacts));
+}
+function _crmById(id) {
+  return _crmLoad().find(c => c.id === id) || null;
+}
+function _statusLabel(s) {
+  return {lead:'Lead',active:'Active',vip:'VIP',past:'Past Client'}[s] || s;
+}
+
+function crmInit() {
+  // Migrate existing shift-clients into CRM (one-time import)
+  const existing = _crmLoad();
+  const legacy = JSON.parse(localStorage.getItem('shift-clients')||'[]');
+  let changed = false;
+  legacy.forEach(lc => {
+    const key = (lc.name+'|'+(lc.company||'')).toLowerCase().trim();
+    if (!existing.find(c => (c.name+'|'+(c.company||'')).toLowerCase().trim() === key)) {
+      existing.unshift({
+        id: 'crm_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+        name:lc.name, company:lc.company||'', email:lc.email||'',
+        phone:'', addr:lc.addr||'', city:lc.city||'', country:lc.country||'',
+        website:'', status:'active', tags:[],
+        notes:[], lastInvoice:lc.lastInvoice||'',
+        invoiceCount:lc.invoiceCount||0, totalRevenue:0,
+        created:lc.updated||Date.now(), updated:lc.updated||Date.now()
+      });
+      changed = true;
+    }
+  });
+  if (changed) _crmSave(existing);
+}
+
+function renderCRMList() {
+  crmInit();
+  const contacts = _crmLoad();
+  const q = (document.getElementById('crm-search')||{}).value?.toLowerCase()||'';
+  const sf = (document.getElementById('crm-filter')||{}).value||'';
+  const filtered = contacts.filter(c => {
+    if (sf && c.status !== sf) return false;
+    if (q) {
+      const hay = (c.name+' '+c.company+' '+c.email).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  const el = document.getElementById('crm-list');
+  if (!el) return;
+  if (!filtered.length) {
+    el.innerHTML = `<div class="crm-empty-list">${contacts.length ? 'No matches.' : 'No clients yet.<br>Hit "+ New" to add your first.'}</div>`;
+    return;
+  }
+  el.innerHTML = filtered.map(c => {
+    const sel = c.id === _crmSelected ? ' selected' : '';
+    const inv = c.invoiceCount ? `${c.invoiceCount} invoice${c.invoiceCount===1?'':'s'}` : 'No invoices';
+    const rev = c.totalRevenue ? ` · $${c.totalRevenue.toLocaleString()}` : '';
+    return `<div class="crm-card${sel}" onclick="crmSelectContact('${c.id}')">
+      <div class="crm-card-top">
+        <div>
+          <div class="crm-card-name">${esc(c.name)}</div>
+          ${c.company?`<div class="crm-card-company">${esc(c.company)}</div>`:''}
+        </div>
+        <span class="spill spill-${c.status}">${_statusLabel(c.status)}</span>
+      </div>
+      <div class="crm-card-foot">${inv}${rev}${c.email?' · '+esc(c.email):''}</div>
+    </div>`;
+  }).join('');
+}
+
+function filterCRM() { renderCRMList(); }
+
+function crmSelectContact(id) {
+  _crmSelected = id;
+  renderCRMList();
+  showCRMProfile(id);
+}
+
+function showCRMProfile(id) {
+  const c = _crmById(id);
+  if (!c) return;
+  document.getElementById('crm-empty-state').style.display = 'none';
+  document.getElementById('crm-edit-view').style.display = 'none';
+  const pv = document.getElementById('crm-profile-view');
+  pv.style.display = '';
+  const fmtDate = ts => ts ? new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+  const tagsHTML = c.tags?.length ? c.tags.map(t=>`<span class="crm-tag">${esc(t)}</span>`).join('') : '';
+  const notesHTML = (c.notes||[]).slice().reverse().map((n,i,arr) => {
+    const realIdx = arr.length-1-i;
+    return `<div class="crm-note-item">
+      <div class="crm-note-text">${esc(n.text)}</div>
+      <div class="crm-note-ts"><span>${fmtDate(n.ts)}</span><button class="crm-note-del" onclick="crmDeleteNote('${id}',${realIdx})" title="Delete">✕</button></div>
+    </div>`;
+  }).join('') || '<div style="font-size:12px;color:var(--dim);padding:4px 0">No notes yet.</div>';
+
+  pv.innerHTML = `
+    <div class="crm-profile-hd">
+      <div>
+        <div class="crm-profile-name">${esc(c.name)}</div>
+        ${c.company?`<div class="crm-profile-company">${esc(c.company)}</div>`:''}
+      </div>
+      <div class="crm-hd-btns">
+        <button class="crm-btn" onclick="crmOpenEdit('${id}')">Edit</button>
+        <button class="crm-btn crm-btn-del" onclick="crmDelete('${id}')">✕</button>
+      </div>
+    </div>
+
+    <div class="crm-status-row">
+      ${['lead','active','vip','past'].map(s=>`<button class="crm-s-btn${c.status===s?' on':''}" data-s="${s}" onclick="crmSetStatus('${id}','${s}')">${_statusLabel(s)}</button>`).join('')}
+    </div>
+
+    ${tagsHTML ? `<div class="crm-tags-row" style="margin-bottom:18px">${tagsHTML}</div>` : ''}
+
+    <div class="crm-info-grid">
+      <div class="crm-info-cell"><div class="crm-info-lbl">Email</div><div class="crm-info-val">${c.email?`<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`:'<span class="muted">—</span>'}</div></div>
+      <div class="crm-info-cell"><div class="crm-info-lbl">Phone</div><div class="crm-info-val">${c.phone?`<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a>`:'<span class="muted">—</span>'}</div></div>
+      <div class="crm-info-cell"><div class="crm-info-lbl">Address</div><div class="crm-info-val">${[c.addr,c.city,c.country].filter(Boolean).join(', ')||'<span class="muted">—</span>'}</div></div>
+      <div class="crm-info-cell"><div class="crm-info-lbl">Website</div><div class="crm-info-val">${c.website?`<a href="${esc(c.website)}" target="_blank">${esc(c.website)}</a>`:'<span class="muted">—</span>'}</div></div>
+    </div>
+
+    <div class="crm-stats">
+      <div class="crm-stat"><div class="crm-stat-n">${c.invoiceCount||0}</div><div class="crm-stat-lbl">Invoices</div></div>
+      <div class="crm-stat"><div class="crm-stat-n">$${(c.totalRevenue||0).toLocaleString()}</div><div class="crm-stat-lbl">Revenue</div></div>
+      <div class="crm-stat"><div class="crm-stat-n" style="font-size:14px">${c.lastInvoice||'—'}</div><div class="crm-stat-lbl">Last Invoice</div></div>
+      <div class="crm-stat"><div class="crm-stat-n" style="font-size:13px">${fmtDate(c.updated)}</div><div class="crm-stat-lbl">Last Activity</div></div>
+    </div>
+
+    <div class="crm-quick">
+      <button class="crm-q-btn primary" onclick="crmNewInvoice('${id}')">New Invoice</button>
+      <button class="crm-q-btn" onclick="crmNewProposal('${id}')">New Proposal</button>
+      ${c.email?`<button class="crm-q-btn" onclick="navigator.clipboard.writeText('${esc(c.email)}').then(()=>toast('Email copied','ok'))">Copy Email</button>`:''}
+    </div>
+
+    <div class="crm-section-lbl">Notes</div>
+    <div class="crm-note-row">
+      <textarea class="crm-note-input" id="crm-note-text-${id}" placeholder="Add a note…" rows="1"></textarea>
+      <button class="crm-note-add" onclick="crmAddNote('${id}')">Add Note</button>
+    </div>
+    <div id="crm-notes-list-${id}">${notesHTML}</div>
+    <div style="height:40px"></div>
+  `;
+}
+
+function crmSetStatus(id, status) {
+  const contacts = _crmLoad();
+  const c = contacts.find(x => x.id === id);
+  if (!c) return;
+  c.status = status; c.updated = Date.now();
+  _crmSave(contacts);
+  showCRMProfile(id);
+  renderCRMList();
+}
+
+function crmAddNote(id) {
+  const ta = document.getElementById(`crm-note-text-${id}`);
+  if (!ta || !ta.value.trim()) return;
+  const contacts = _crmLoad();
+  const c = contacts.find(x => x.id === id);
+  if (!c) return;
+  if (!c.notes) c.notes = [];
+  c.notes.push({ text: ta.value.trim(), ts: Date.now() });
+  c.updated = Date.now();
+  _crmSave(contacts);
+  showCRMProfile(id);
+}
+
+function crmDeleteNote(id, idx) {
+  const contacts = _crmLoad();
+  const c = contacts.find(x => x.id === id);
+  if (!c || !c.notes) return;
+  c.notes.splice(idx, 1);
+  c.updated = Date.now();
+  _crmSave(contacts);
+  showCRMProfile(id);
+}
+
+function crmDelete(id) {
+  if (!confirm('Remove this client from CRM?')) return;
+  const contacts = _crmLoad().filter(c => c.id !== id);
+  _crmSave(contacts);
+  _crmSelected = null;
+  document.getElementById('crm-profile-view').style.display = 'none';
+  document.getElementById('crm-edit-view').style.display = 'none';
+  document.getElementById('crm-empty-state').style.display = '';
+  renderCRMList();
+}
+
+function crmOpenNew() {
+  _crmEditId = null;
+  _crmEditStatus = 'active';
+  document.getElementById('crm-empty-state').style.display = 'none';
+  document.getElementById('crm-profile-view').style.display = 'none';
+  const ev = document.getElementById('crm-edit-view');
+  ev.style.display = '';
+  document.getElementById('crm-edit-title').textContent = 'New Client';
+  ['name','company','email','phone','addr','city','country','website'].forEach(f => {
+    document.getElementById('ce-'+f).value = '';
+  });
+  crmSetEditStatus('active');
+  document.querySelectorAll('.crm-tag-opt').forEach(b => b.classList.remove('on'));
+}
+
+function crmOpenEdit(id) {
+  const c = _crmById(id);
+  if (!c) return;
+  _crmEditId = id;
+  _crmEditStatus = c.status || 'active';
+  document.getElementById('crm-profile-view').style.display = 'none';
+  document.getElementById('crm-empty-state').style.display = 'none';
+  const ev = document.getElementById('crm-edit-view');
+  ev.style.display = '';
+  document.getElementById('crm-edit-title').textContent = 'Edit Client';
+  document.getElementById('ce-name').value = c.name || '';
+  document.getElementById('ce-company').value = c.company || '';
+  document.getElementById('ce-email').value = c.email || '';
+  document.getElementById('ce-phone').value = c.phone || '';
+  document.getElementById('ce-addr').value = c.addr || '';
+  document.getElementById('ce-city').value = c.city || '';
+  document.getElementById('ce-country').value = c.country || '';
+  document.getElementById('ce-website').value = c.website || '';
+  crmSetEditStatus(c.status || 'active');
+  document.querySelectorAll('.crm-tag-opt').forEach(b => {
+    b.classList.toggle('on', (c.tags||[]).includes(b.dataset.tag));
+  });
+}
+
+function crmSetEditStatus(s) {
+  _crmEditStatus = s;
+  document.querySelectorAll('#ce-status-row .crm-s-btn').forEach(b => {
+    b.classList.toggle('on', b.dataset.s === s);
+  });
+}
+
+function crmToggleTag(btn) { btn.classList.toggle('on'); }
+
+function crmSaveEdit() {
+  const name = document.getElementById('ce-name').value.trim();
+  if (!name) { toast('Name is required', 'err'); return; }
+  const tags = [...document.querySelectorAll('.crm-tag-opt.on')].map(b => b.dataset.tag);
+  const contacts = _crmLoad();
+  if (_crmEditId) {
+    const c = contacts.find(x => x.id === _crmEditId);
+    if (c) {
+      c.name=name; c.company=document.getElementById('ce-company').value.trim();
+      c.email=document.getElementById('ce-email').value.trim();
+      c.phone=document.getElementById('ce-phone').value.trim();
+      c.addr=document.getElementById('ce-addr').value.trim();
+      c.city=document.getElementById('ce-city').value.trim();
+      c.country=document.getElementById('ce-country').value.trim();
+      c.website=document.getElementById('ce-website').value.trim();
+      c.status=_crmEditStatus; c.tags=tags; c.updated=Date.now();
+    }
+    _crmSave(contacts);
+    _crmSelected = _crmEditId;
+    renderCRMList();
+    showCRMProfile(_crmEditId);
+    toast('Client updated ✓', 'ok');
+  } else {
+    const newContact = {
+      id:'crm_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+      name, company:document.getElementById('ce-company').value.trim(),
+      email:document.getElementById('ce-email').value.trim(),
+      phone:document.getElementById('ce-phone').value.trim(),
+      addr:document.getElementById('ce-addr').value.trim(),
+      city:document.getElementById('ce-city').value.trim(),
+      country:document.getElementById('ce-country').value.trim(),
+      website:document.getElementById('ce-website').value.trim(),
+      status:_crmEditStatus, tags, notes:[],
+      invoiceCount:0, totalRevenue:0, lastInvoice:'',
+      created:Date.now(), updated:Date.now()
+    };
+    contacts.unshift(newContact);
+    _crmSave(contacts);
+    _crmSelected = newContact.id;
+    renderCRMList();
+    showCRMProfile(newContact.id);
+    toast('Client added ✓', 'ok');
+  }
+}
+
+function crmCancelEdit() {
+  document.getElementById('crm-edit-view').style.display = 'none';
+  if (_crmSelected) { showCRMProfile(_crmSelected); }
+  else { document.getElementById('crm-empty-state').style.display = ''; }
+}
+
+function crmNewInvoice(id) {
+  const c = _crmById(id);
+  if (!c) return;
+  switchTab('invoices');
+  document.getElementById('i-client').value = c.name;
+  document.getElementById('i-company').value = c.company||'';
+  document.getElementById('i-addr').value = c.addr||'';
+  document.getElementById('i-city').value = c.city||'';
+  document.getElementById('i-country').value = c.country||'';
+  document.getElementById('i-email').value = c.email||'';
+  scheduleInvoicePreview();
+  toast(`${c.name} loaded into Invoice builder`, 'ok');
+}
+
+function crmNewProposal(id) {
+  const c = _crmById(id);
+  if (!c) return;
+  switchTab('proposals');
+  document.getElementById('p-client').value = c.name;
+  document.getElementById('p-company').value = c.company||'';
+  if (document.getElementById('p-city')) document.getElementById('p-city').value = c.city||'';
+  scheduleProposalPreview();
+  toast(`${c.name} loaded into Proposal builder`, 'ok');
+}
+
+// Update CRM when an invoice is published
+function _crmOnInvoicePublish(d, invoiceNum, amount) {
+  const contacts = _crmLoad();
+  const key = (d.client+'|'+(d.company||'')).toLowerCase().trim();
+  let c = contacts.find(x => (x.name+'|'+(x.company||'')).toLowerCase().trim() === key);
+  if (!c) {
+    c = {
+      id:'crm_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+      name:d.client, company:d.company||'', email:d.email||'',
+      phone:'', addr:d.addr||'', city:d.city||'', country:d.country||'',
+      website:'', status:'active', tags:[], notes:[],
+      invoiceCount:0, totalRevenue:0, lastInvoice:'',
+      created:Date.now(), updated:Date.now()
+    };
+    contacts.unshift(c);
+  }
+  c.invoiceCount = (c.invoiceCount||0) + 1;
+  c.totalRevenue = (c.totalRevenue||0) + (parseFloat(amount)||0);
+  c.lastInvoice = invoiceNum;
+  c.updated = Date.now();
+  if (c.status === 'lead') { c.status = 'active'; }
+  _crmSave(contacts);
+}
+
 // ── CLIENT HISTORY ───────────────────────────────────────────
 function _clientKey(name, company) {
   return (name + '|' + (company||'')).toLowerCase().trim();
@@ -1026,6 +1543,7 @@ async function publishInvoice() {
     const counter = parseInt(localStorage.getItem('shift-invoice-counter')||'2612') + 1;
     localStorage.setItem('shift-invoice-counter', String(counter));
     _saveClientOnPublish(d, d.invoiceNum);
+    _crmOnInvoicePublish(d, d.invoiceNum, d.total);
     try {
       await autoUpdateHub(card, '<!-- INVOICES_INSERT -->', token);
       toast('Hub updated with new card ✓', 'ok');
