@@ -810,16 +810,16 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 
   <nav class="tab-nav">
     <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
-    <button class="tab-btn" onclick="switchTab('productions')">Productions</button>
-    <button class="tab-btn" onclick="switchTab('links')">Portal Links</button>
-    <button class="tab-btn" onclick="switchTab('quickquote')">Quick Quote</button>
+    <button class="tab-btn" onclick="switchTab('clients')">Clients</button>
+    <button class="tab-btn" onclick="switchTab('pipeline')">Pipeline</button>
     <button class="tab-btn" onclick="switchTab('proposals')">Proposals</button>
     <button class="tab-btn" onclick="switchTab('invoices')">Invoices</button>
     <button class="tab-btn" onclick="switchTab('contracts')">Contracts</button>
-    <button class="tab-btn" onclick="switchTab('pipeline')">Pipeline</button>
+    <button class="tab-btn" onclick="switchTab('quickquote')">Quick Quote</button>
+    <button class="tab-btn" onclick="switchTab('productions')">Productions</button>
     <button class="tab-btn" onclick="switchTab('calendar')">Calendar</button>
+    <button class="tab-btn" onclick="switchTab('links')">Portal Links</button>
     <button class="tab-btn" onclick="switchTab('ratecards')">Rate Card</button>
-    <button class="tab-btn" onclick="switchTab('clients')">Clients</button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
   </nav>
 
@@ -869,6 +869,17 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
             <button class="dash-qa-btn" onclick="switchTab('clients');setTimeout(crmOpenNew,50)">↗ Add Client</button>
             <button class="dash-qa-btn" onclick="switchTab('links')">↗ Generate Portal Link</button>
           </div>
+        </div>
+      </div>
+
+      <div class="dash-row">
+        <div class="dash-panel">
+          <div class="dash-panel-lbl">Upcoming Events <span id="dash-ev-count" style="color:var(--dim);font-weight:400;text-transform:none;letter-spacing:0;font-size:11px"></span></div>
+          <div id="dash-upcoming-events"></div>
+        </div>
+        <div class="dash-panel">
+          <div class="dash-panel-lbl" style="color:#ff6b6b">Overdue Invoices</div>
+          <div id="dash-overdue-invoices"></div>
         </div>
       </div>
 
@@ -1788,6 +1799,77 @@ function renderDashboard() {
     }).join('');
   }
 
+  // ── Upcoming events (next 14 days) ──────────────────────────
+  const evEl = document.getElementById('dash-upcoming-events');
+  const evCount = document.getElementById('dash-ev-count');
+  if (evEl) {
+    const today14 = new Date(); today14.setHours(0,0,0,0);
+    const cutoff14 = new Date(today14.getTime() + 14*86400000);
+    const evList = [];
+    _eventsLoad().forEach(e => {
+      const dt = new Date(e.date+'T12:00:00');
+      if (dt >= today14 && dt <= cutoff14) evList.push({ date:dt, title:e.title, client:e.client||'', type:e.type||'other', id:e.id });
+    });
+    (JSON.parse(localStorage.getItem('shift-contracts')||'[]')).forEach(c => {
+      if (!c.eventDate) return;
+      const dt = new Date(c.eventDate+'T12:00:00');
+      if (dt >= today14 && dt <= cutoff14) evList.push({ date:dt, title:c.eventName||'Event', client:c.client||'', type:'show', id:'ctr_'+c.id });
+    });
+    evList.sort((a,b)=>a.date-b.date);
+    const TYPE_COLOR = { show:'#c8a84b', loadin:'#c084fc', pickup:'#60a5fa', invoice:'#fb923c', other:'#444' };
+    const TYPE_LBL   = { show:'Show Day', loadin:'Load In', pickup:'Pickup', invoice:'Invoice Due', other:'Other' };
+    if (evCount) evCount.textContent = evList.length ? `· ${evList.length} in next 14 days` : '';
+    if (!evList.length) {
+      evEl.innerHTML = '<div class="dash-empty">No events in the next 14 days.</div>';
+    } else {
+      evEl.innerHTML = evList.slice(0,6).map(ev => {
+        const daysAway = Math.round((ev.date-today14)/86400000);
+        const dayLbl = daysAway===0?'Today':daysAway===1?'Tomorrow':`In ${daysAway}d`;
+        const dateFmt = ev.date.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const dot = TYPE_COLOR[ev.type]||'#444';
+        return `<div class="dash-row-item" style="cursor:pointer" onclick="switchTab('calendar')">
+          <div style="display:flex;align-items:center;gap:9px;min-width:0">
+            <div style="width:3px;height:36px;background:${dot};flex-shrink:0;border-radius:1px"></div>
+            <div style="min-width:0">
+              <div class="dash-item-name">${esc(ev.title)}</div>
+              <div class="dash-item-meta">${ev.client?esc(ev.client)+' · ':''}${TYPE_LBL[ev.type]||ev.type}</div>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:11.5px;font-weight:600;color:${daysAway<=2?'var(--gold)':'var(--gray)'}">${dayLbl}</div>
+            <div style="font-size:10px;color:var(--dim)">${dateFmt}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Overdue invoices ─────────────────────────────────────────
+  const odEl = document.getElementById('dash-overdue-invoices');
+  if (odEl) {
+    const overdue = _invoicesLoad().filter(inv => _invoiceStatus(inv) === 'overdue')
+      .sort((a,b) => (a.dueDate||'').localeCompare(b.dueDate||''));
+    if (!overdue.length) {
+      odEl.innerHTML = '<div class="dash-empty" style="color:var(--dim)">No overdue invoices. All clear.</div>';
+    } else {
+      odEl.innerHTML = overdue.slice(0,6).map(inv => {
+        const daysOver = inv.dueDate ? Math.floor((Date.now()-new Date(inv.dueDate+'T00:00:00').getTime())/86400000) : null;
+        const overLbl = daysOver !== null ? `${daysOver}d overdue` : 'Overdue';
+        const amt = '$'+(inv.amount||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+        return `<div class="dash-row-item" style="cursor:pointer" onclick="switchTab('invoices')">
+          <div>
+            <div class="dash-item-name">${esc(inv.client||'Unknown client')}</div>
+            <div class="dash-item-meta">${esc(inv.invoiceNum||inv.num||'Invoice')}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:13px;font-weight:700;color:#ff6b6b">${amt}</div>
+            <div style="font-size:10px;color:#ff6b6b;opacity:.7">${overLbl}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
   renderDashboardTasks();
 }
 
@@ -2084,7 +2166,7 @@ let _currentTab = 'dashboard';
 function switchTab(name) {
   _currentTab = name;
   document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    const names = ['dashboard','productions','links','quickquote','proposals','invoices','contracts','pipeline','calendar','ratecards','clients','settings'];
+    const names = ['dashboard','clients','pipeline','proposals','invoices','contracts','quickquote','productions','calendar','links','ratecards','settings'];
     b.classList.toggle('active', names[i] === name);
   });
   document.querySelectorAll('.tab-panel').forEach(p => {
