@@ -836,6 +836,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
     <button class="tab-btn" onclick="switchTab('quickquote')">Quick Quote</button>
     <button class="tab-btn" onclick="switchTab('productions')">Productions</button>
     <button class="tab-btn" onclick="switchTab('calendar')">Calendar</button>
+    <button class="tab-btn" onclick="switchTab('documents')">Documents</button>
     <button class="tab-btn" onclick="switchTab('links')">Portal Links</button>
     <button class="tab-btn" onclick="switchTab('ratecards')">Rate Card</button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
@@ -960,6 +961,76 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         <div class="prod-detail-inner" id="prod-detail-view" style="display:none"></div>
       </div>
     </div>
+  </div>
+
+  <!-- TAB: DOCUMENTS (unified hub — invoices + contracts + quotes + proposals + portal links) -->
+  <div class="tab-panel" id="tab-documents">
+    <div class="docs-content" style="padding:0 40px 40px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px;flex-wrap:wrap;gap:16px">
+        <div>
+          <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:28px;color:var(--white);letter-spacing:-.01em">Documents</div>
+          <div id="docs-summary" style="font-size:12.5px;color:var(--dim);margin-top:6px;letter-spacing:.06em"></div>
+        </div>
+        <input class="f-input" id="docs-search" placeholder="Search client, number, event…" oninput="renderDocumentsHub()" style="max-width:320px"/>
+      </div>
+
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="docs-chip on" data-typef="all"       onclick="docSetType('all')">All</button>
+        <button class="docs-chip"    data-typef="invoice"   onclick="docSetType('invoice')">Invoices</button>
+        <button class="docs-chip"    data-typef="proposal"  onclick="docSetType('proposal')">Proposals</button>
+        <button class="docs-chip"    data-typef="contract"  onclick="docSetType('contract')">Contracts</button>
+        <button class="docs-chip"    data-typef="quote"     onclick="docSetType('quote')">Quotes</button>
+        <button class="docs-chip"    data-typef="link"      onclick="docSetType('link')">Portal Links</button>
+      </div>
+
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px">
+        <button class="docs-chip on" data-statusf="all"       onclick="docSetStatus('all')">All statuses</button>
+        <button class="docs-chip"    data-statusf="active"    onclick="docSetStatus('active')">Active / Sent</button>
+        <button class="docs-chip"    data-statusf="paid"      onclick="docSetStatus('paid')">Paid</button>
+        <button class="docs-chip"    data-statusf="overdue"   onclick="docSetStatus('overdue')">Overdue</button>
+        <button class="docs-chip"    data-statusf="signed"    onclick="docSetStatus('signed')">Signed</button>
+        <button class="docs-chip"    data-statusf="expired"   onclick="docSetStatus('expired')">Expired</button>
+        <button class="docs-chip"    data-statusf="won"       onclick="docSetStatus('won')">Won</button>
+        <button class="docs-chip"    data-statusf="lost"      onclick="docSetStatus('lost')">Lost / Cancelled</button>
+      </div>
+
+      <div id="docs-list"></div>
+    </div>
+
+    <style>
+      .docs-chip{font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);background:transparent;border:1px solid var(--border);padding:7px 12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+      .docs-chip:hover{color:var(--white);border-color:var(--white)}
+      .docs-chip.on{color:var(--white);background:var(--white);color:var(--bg);border-color:var(--white)}
+      .doc-row{display:grid;grid-template-columns:110px 1fr 90px 90px 60px;gap:20px;align-items:center;padding:16px 20px;border:1px solid var(--border);border-top:none;background:var(--panel-2);font-size:12.5px}
+      .doc-row:first-child{border-top:1px solid var(--border)}
+      .doc-row:hover{background:rgba(255,255,255,.03)}
+      .doc-type-badge{font-size:9.5px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);display:inline-block;text-align:center}
+      .doc-type-badge.invoice {color:#60a5fa;border-color:rgba(96,165,250,.4)}
+      .doc-type-badge.proposal{color:#c8a84b;border-color:rgba(200,168,75,.4)}
+      .doc-type-badge.contract{color:#c084fc;border-color:rgba(192,132,252,.4)}
+      .doc-type-badge.quote   {color:#fb923c;border-color:rgba(251,146,60,.4)}
+      .doc-type-badge.link    {color:#94a3b8;border-color:rgba(148,163,184,.4)}
+      .doc-title{font-weight:600;color:var(--white);font-size:13.5px}
+      .doc-sub{font-size:11.5px;color:var(--dim);margin-top:2px}
+      .doc-amount{font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:var(--white);text-align:right}
+      .doc-amount .cur{font-size:9px;letter-spacing:.14em;color:var(--dim);font-weight:600;margin-left:2px}
+      .doc-status{font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:3px 7px;text-align:center}
+      .doc-status.paid    {color:#4ade80;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25)}
+      .doc-status.sent    {color:#60a5fa;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.25)}
+      .doc-status.overdue {color:#f87171;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25)}
+      .doc-status.signed  {color:#4ade80;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25)}
+      .doc-status.expired {color:#94a3b8;background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.25)}
+      .doc-status.won     {color:#4ade80;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25)}
+      .doc-status.lost    {color:#94a3b8;background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.25)}
+      .doc-status.cancelled{color:#94a3b8;background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.25)}
+      .doc-status.valid   {color:#c8a84b;background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.25)}
+      .doc-status.lead    {color:#c8a84b;background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.25)}
+      .doc-status.negotiation{color:#c084fc;background:rgba(192,132,252,.08);border:1px solid rgba(192,132,252,.25)}
+      .doc-open-btn{font-size:10px;font-weight:600;letter-spacing:.14em;color:var(--dim);background:none;border:1px solid var(--border);padding:6px 10px;cursor:pointer;font-family:'Inter',sans-serif}
+      .doc-open-btn:hover{color:var(--white);border-color:var(--white)}
+      .doc-empty{padding:60px 20px;text-align:center;color:var(--dim);font-size:13px}
+      @media(max-width:800px){.doc-row{grid-template-columns:1fr;gap:8px}.doc-row > *{text-align:left !important}}
+    </style>
   </div>
 
   <!-- TAB: LINKS -->
@@ -2258,7 +2329,7 @@ let _currentTab = 'dashboard';
 function switchTab(name) {
   _currentTab = name;
   document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    const names = ['dashboard','clients','pipeline','proposals','invoices','contracts','quickquote','productions','calendar','links','ratecards','settings'];
+    const names = ['dashboard','clients','pipeline','proposals','invoices','contracts','quickquote','productions','calendar','documents','links','ratecards','settings'];
     b.classList.toggle('active', names[i] === name);
   });
   document.querySelectorAll('.tab-panel').forEach(p => {
@@ -2273,6 +2344,7 @@ function switchTab(name) {
   if (name === 'calendar')    renderCalendar();
   if (name === 'productions') renderProdList();
   if (name === 'settings')    renderEmailTemplates();
+  if (name === 'documents')   renderDocumentsHub();
 }
 
 // ── AUTH ────────────────────────────────────────────────────
@@ -2360,6 +2432,193 @@ function changePW() {
   document.getElementById('pw-current').value = '';
   document.getElementById('pw-new').value = '';
   setStatus('pw-status','Password updated ✓','ok');
+}
+
+// ── DOCUMENTS HUB (unified view over invoices + contracts + quotes + proposals + links) ──
+let _docTypeFilter   = 'all';
+let _docStatusFilter = 'all';
+
+function docSetType(t) {
+  _docTypeFilter = t;
+  document.querySelectorAll('[data-typef]').forEach(b => b.classList.toggle('on', b.dataset.typef === t));
+  renderDocumentsHub();
+}
+function docSetStatus(s) {
+  _docStatusFilter = s;
+  document.querySelectorAll('[data-statusf]').forEach(b => b.classList.toggle('on', b.dataset.statusf === s));
+  renderDocumentsHub();
+}
+
+// Collect every document from every localStorage source into a single normalized shape:
+// { type, number, title, subtitle, client, amount, currency, status, date, url }
+function _docsCollect() {
+  const out = [];
+  const now = Date.now();
+  const todayMid = new Date(); todayMid.setHours(0,0,0,0);
+
+  // Invoices
+  try {
+    (JSON.parse(localStorage.getItem('shift-invoices') || '[]')).forEach(r => {
+      let status = r.status || 'sent';
+      if (status !== 'paid' && r.dueDate && new Date(r.dueDate + ' 00:00') < todayMid) status = 'overdue';
+      out.push({
+        type: 'invoice',
+        id: r.id, number: r.invoiceNum || '—',
+        title: r.invoiceNum || 'Invoice',
+        subtitle: (r.client || '') + (r.company && r.company !== r.client ? ' · ' + r.company : ''),
+        client: r.client || '',
+        amount: r.amount || 0, currency: r.currency || 'USD',
+        status, date: r.date || (r.created ? new Date(r.created).toISOString().slice(0,10) : ''),
+        url: r.url || '', sourceKey: 'shift-invoices'
+      });
+    });
+  } catch(e) {}
+
+  // Contracts
+  try {
+    (JSON.parse(localStorage.getItem('shift-contracts') || '[]')).forEach(r => {
+      out.push({
+        type: 'contract',
+        id: r.id, number: r.contractNum || '—',
+        title: r.contractNum || 'Contract',
+        subtitle: (r.client || '') + (r.eventName ? ' · ' + r.eventName : ''),
+        client: r.client || '',
+        amount: r.total || 0, currency: r.currency || 'USD',
+        status: r.status || 'sent',
+        date: r.eventDate || (r.created ? new Date(r.created).toISOString().slice(0,10) : ''),
+        url: r.url || '', sourceKey: 'shift-contracts'
+      });
+    });
+  } catch(e) {}
+
+  // Quotes (Quick Quote generator)
+  try {
+    (JSON.parse(localStorage.getItem('shift-quotes') || '[]')).forEach(r => {
+      const isExpired = r.exp && (now/1000 > r.exp);
+      out.push({
+        type: 'quote',
+        id: r.num, number: r.num || '—',
+        title: r.num || 'Quote',
+        subtitle: r.client || '',
+        client: r.client || '',
+        amount: parseFloat(r.amount || 0), currency: r.currency || 'USD',
+        status: isExpired ? 'expired' : 'valid',
+        date: r.created ? new Date(r.created).toISOString().slice(0,10) : '',
+        url: r.url || '', sourceKey: 'shift-quotes'
+      });
+    });
+  } catch(e) {}
+
+  // Portal Links (generic — non-quote links to portal)
+  try {
+    (JSON.parse(localStorage.getItem('shift-links') || '[]')).forEach(r => {
+      const isExpired = r.exp && (now/1000 > r.exp);
+      out.push({
+        type: 'link',
+        id: r.url, number: '—',
+        title: r.name || 'Portal Link',
+        subtitle: r.exp ? ('Expires ' + new Date(r.exp*1000).toLocaleDateString()) : '',
+        client: r.name || '',
+        amount: 0, currency: '',
+        status: isExpired ? 'expired' : 'valid',
+        date: r.created ? new Date(r.created).toISOString().slice(0,10) : '',
+        url: r.url || '', sourceKey: 'shift-links'
+      });
+    });
+  } catch(e) {}
+
+  // Proposals — proxied from pipeline deals in "proposal" stage (until real proposal records exist)
+  try {
+    (JSON.parse(localStorage.getItem('shift-pipeline') || '[]')).forEach(r => {
+      if (r.stage !== 'proposal' && r.stage !== 'won' && r.stage !== 'lost') return;
+      // Show all proposal-stage + won/lost as proposal docs since the pipeline is the closest we have
+      const statusMap = { proposal:'sent', won:'won', lost:'lost' };
+      out.push({
+        type: 'proposal',
+        id: r.id, number: '—',
+        title: r.name || 'Proposal',
+        subtitle: r.company || r.notes || '',
+        client: r.name || '',
+        amount: r.value || 0, currency: r.currency || 'USD',
+        status: statusMap[r.stage] || r.stage,
+        date: r.updated ? new Date(r.updated).toISOString().slice(0,10) : (r.created ? new Date(r.created).toISOString().slice(0,10) : ''),
+        url: '', sourceKey: 'shift-pipeline'
+      });
+    });
+  } catch(e) {}
+
+  return out;
+}
+
+function renderDocumentsHub() {
+  const listEl    = document.getElementById('docs-list');
+  const summaryEl = document.getElementById('docs-summary');
+  if (!listEl) return;
+
+  const q = ((document.getElementById('docs-search')?.value)||'').toLowerCase().trim();
+  const all = _docsCollect();
+
+  const filtered = all.filter(d => {
+    if (_docTypeFilter !== 'all' && d.type !== _docTypeFilter) return false;
+    if (_docStatusFilter !== 'all') {
+      const s = d.status;
+      if (_docStatusFilter === 'active' && !(s === 'sent' || s === 'valid' || s === 'lead' || s === 'negotiation')) return false;
+      else if (_docStatusFilter === 'lost' && !(s === 'lost' || s === 'cancelled')) return false;
+      else if (_docStatusFilter !== 'active' && _docStatusFilter !== 'lost' && s !== _docStatusFilter) return false;
+    }
+    if (q) {
+      const hay = (d.title + ' ' + d.subtitle + ' ' + d.client + ' ' + d.number).toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  // Sort by date desc
+  filtered.sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+
+  // Summary
+  const totalsByCur = {};
+  filtered.forEach(d => {
+    if (!d.amount || !d.currency) return;
+    totalsByCur[d.currency] = (totalsByCur[d.currency] || 0) + d.amount;
+  });
+  const totalsFmt = Object.entries(totalsByCur).filter(([,v]) => v > 0)
+    .map(([c,v]) => '$' + v.toLocaleString() + ' ' + c).join(' · ');
+  summaryEl.textContent = `${filtered.length} doc${filtered.length!==1?'s':''} shown${totalsFmt ? ' · ' + totalsFmt : ''} · ${all.length} total across the vault`;
+
+  if (!filtered.length) {
+    listEl.innerHTML = '<div class="doc-empty">No documents match these filters.</div>';
+    return;
+  }
+
+  const fmtDate = iso => iso ? new Date(iso + ' 00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+  const esc = s => (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  listEl.innerHTML = filtered.map(d => {
+    const amtHtml = d.amount > 0
+      ? `<div class="doc-amount">$${d.amount.toLocaleString()}${d.currency ? '<span class="cur">' + d.currency + '</span>' : ''}</div>`
+      : '<div class="doc-amount" style="color:var(--dim)">—</div>';
+    const openBtn = d.url
+      ? `<a href="${esc(d.url)}" target="_blank"><button class="doc-open-btn">Open ↗</button></a>`
+      : `<button class="doc-open-btn" onclick="docJumpToSource('${d.type}','${esc(d.id)}')">View</button>`;
+    return `<div class="doc-row">
+      <div><span class="doc-type-badge ${d.type}">${d.type}</span></div>
+      <div>
+        <div class="doc-title">${esc(d.title)}</div>
+        <div class="doc-sub">${esc(d.subtitle) || '—'}</div>
+      </div>
+      ${amtHtml}
+      <div><span class="doc-status ${d.status}">${d.status}</span></div>
+      <div style="text-align:right">${openBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+// When a doc doesn't have a published URL, clicking View jumps to the origin tab
+function docJumpToSource(type, id) {
+  const map = { invoice:'invoices', contract:'contracts', quote:'quickquote', link:'links', proposal:'pipeline' };
+  const tab = map[type] || 'documents';
+  switchTab(tab);
 }
 
 // ── VAULT SYNC ──────────────────────────────────────────────
