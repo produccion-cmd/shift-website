@@ -1163,7 +1163,14 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
           <div class="f-row"><label class="f-label">Expiry Date</label><input class="f-input" type="date" id="p-expiry" oninput="scheduleProposalPreview()"/></div>
         </div>
         <div class="f-row"><label class="f-label">Introduction (optional)</label><textarea class="f-textarea" id="p-intro" placeholder="Brief intro paragraph about the project..." oninput="scheduleProposalPreview()"></textarea></div>
-        <div class="f-row"><label class="f-label">Hero Image URL</label><input class="f-input" id="p-hero" placeholder="https://images.unsplash.com/..." oninput="scheduleProposalPreview()"/></div>
+        <div class="f-row">
+          <label class="f-label">Hero Image URL</label>
+          <input class="f-input" id="p-hero" placeholder="https://images.unsplash.com/photo-...  (direct image URL, not the Unsplash page)" oninput="onHeroImgChange()"/>
+          <div id="p-hero-preview-wrap" style="margin-top:10px;display:none">
+            <img id="p-hero-preview" style="width:100%;max-height:180px;object-fit:cover;border:1px solid var(--border);background:var(--panel-2)" onload="onHeroImgLoad(true)" onerror="onHeroImgLoad(false)"/>
+            <div id="p-hero-status" style="font-size:11px;letter-spacing:.06em;margin-top:6px"></div>
+          </div>
+        </div>
 
         <div class="f-section">
           <div class="f-section-label">Services</div>
@@ -2527,17 +2534,36 @@ function _docsCollect() {
     });
   } catch(e) {}
 
-  // Proposals — proxied from pipeline deals in "proposal" stage (until real proposal records exist)
+  // Proposals — real records first (published proposals with URLs), then pipeline
+  // deals in proposal/won/lost stages so nothing in-flight is missed.
+  const seenClientTitle = new Set();
+  try {
+    (JSON.parse(localStorage.getItem('shift-proposals') || '[]')).forEach(r => {
+      out.push({
+        type: 'proposal',
+        id: r.id, number: r.filename || '—',
+        title: r.title || 'Proposal',
+        subtitle: (r.client || '') + (r.company && r.company !== r.client ? ' · ' + r.company : ''),
+        client: r.client || '',
+        amount: r.amount || 0, currency: r.currency || 'USD',
+        status: r.status || 'sent',
+        date: r.date || (r.created ? new Date(r.created).toISOString().slice(0,10) : ''),
+        url: r.url || '', sourceKey: 'shift-proposals'
+      });
+      seenClientTitle.add(((r.client || '') + '|' + (r.title || '')).toLowerCase());
+    });
+  } catch(e) {}
   try {
     (JSON.parse(localStorage.getItem('shift-pipeline') || '[]')).forEach(r => {
       if (r.stage !== 'proposal' && r.stage !== 'won' && r.stage !== 'lost') return;
-      // Show all proposal-stage + won/lost as proposal docs since the pipeline is the closest we have
+      const key = ((r.name || '') + '|' + (r.name || '')).toLowerCase();
+      if (seenClientTitle.has(key)) return; // real record already covers this
       const statusMap = { proposal:'sent', won:'won', lost:'lost' };
       out.push({
         type: 'proposal',
         id: r.id, number: '—',
         title: r.name || 'Proposal',
-        subtitle: r.company || r.notes || '',
+        subtitle: (r.company || r.notes || '') + ' · from pipeline',
         client: r.name || '',
         amount: r.value || 0, currency: r.currency || 'USD',
         status: statusMap[r.stage] || r.stage,
@@ -2744,7 +2770,7 @@ const CLOUD_DB_FILE = 'SHIFT_DATABASE_V2.json';
 const CLOUD_SYNC_KEYS = [
   'shift-crm','shift-contracts','shift-tasks','shift-productions',
   'shift-ratecards','shift-links','shift-events','shift-pipeline',
-  'shift-quotes','shift-invoices','shift-invoice-counter',
+  'shift-quotes','shift-invoices','shift-proposals','shift-invoice-counter',
   'shift-contract-counter','shift-quote-counter','shift-default-payment-terms',
   'shift-clients'
 ];
@@ -3164,6 +3190,51 @@ async function downloadProposalPDF() {
   if (!d.client) { toast('Fill in the form first','err'); return; }
   _openPrintPDF(generateProposalHTML(d));
 }
+// Image-URL smells — quick input normalization for common paste mistakes.
+// Strips whitespace, warns if user pasted a page URL instead of an image URL.
+// Returns { url, warning?: string }.
+function _normalizeImageUrl(raw) {
+  let url = String(raw||'').trim();
+  if (!url) return { url:'' };
+  let warning;
+  // Unsplash page URL like https://unsplash.com/photos/some-slug — the CDN URL
+  // is images.unsplash.com/photo-<id>. There's no reliable slug→CDN mapping
+  // from JS alone, so warn instead of silently rewriting.
+  if (/^https?:\/\/unsplash\.com\/photos\//i.test(url)) {
+    warning = 'This looks like an Unsplash PAGE URL. Right-click the photo → Copy Image Address and paste that (it should start with images.unsplash.com).';
+  }
+  // Google Images redirect URL — never resolves to an image
+  if (/google\.com.*imgurl=/i.test(url) || /google\.com\/imgres/i.test(url)) {
+    warning = 'This is a Google Images redirect URL, not a real image. Click through to the source site, then right-click → Copy Image Address.';
+  }
+  return { url, warning };
+}
+
+function onHeroImgChange() {
+  const raw = document.getElementById('p-hero').value;
+  const { url, warning } = _normalizeImageUrl(raw);
+  const wrap = document.getElementById('p-hero-preview-wrap');
+  const img  = document.getElementById('p-hero-preview');
+  const status = document.getElementById('p-hero-status');
+  if (!url) { wrap.style.display = 'none'; scheduleProposalPreview(); return; }
+  wrap.style.display = 'block';
+  status.style.color = warning ? '#facc15' : 'var(--dim)';
+  status.textContent = warning || 'Loading preview…';
+  img.src = url;
+  scheduleProposalPreview();
+}
+function onHeroImgLoad(ok) {
+  const status = document.getElementById('p-hero-status');
+  if (!status) return;
+  if (ok) {
+    status.style.color = '#4ade80';
+    status.textContent = '✓ Image loads — this URL will render in the published proposal.';
+  } else {
+    status.style.color = '#f87171';
+    status.textContent = '✗ Image failed to load. Either the URL is a webpage (not a direct image), the site blocks hotlinking, or the URL is wrong. Try right-click → Copy Image Address on the source page.';
+  }
+}
+
 async function publishProposal() {
   const d = getProposalData();
   if (!d.client) { toast('Enter a client name','err'); return; }
@@ -3182,10 +3253,57 @@ async function publishProposal() {
     } catch(hubErr) {
       console.warn('Hub update skipped:', hubErr.message);
     }
+    // Persist real proposal record so Documents Hub can show it (no more
+    // relying on pipeline stage as the only proxy).
+    saveProposalRecord(d, url, filename);
     showPublishModal('Proposal Published', url, card, html);
   } catch(e) {
     toast('Publish failed: ' + e.message, 'err');
   }
+}
+
+// Real proposal records — persisted to shift-proposals. Documents hub reads these
+// alongside pipeline stage proposals so nothing sent to a client ever disappears.
+function _proposalsLoad() { return JSON.parse(localStorage.getItem('shift-proposals') || '[]'); }
+function _proposalsSave(r) { localStorage.setItem('shift-proposals', JSON.stringify(r.slice(0,200))); }
+
+function saveProposalRecord(d, url, filename) {
+  const records = _proposalsLoad();
+  const total = (d.services || []).reduce((s,x) => s + (parseFloat(x.price) || 0), 0);
+  records.unshift({
+    id: 'prop_' + Date.now(),
+    client: d.client || '',
+    company: d.company || '',
+    title: d.title || '',
+    filename: filename || '',
+    url: url || '',
+    date: d.proposalDate || todayISO(),
+    expiry: d.expiry || '',
+    amount: total,
+    currency: d.currency || 'USD',
+    lang: d.lang || 'en',
+    status: 'sent',      // sent | approved | declined | expired
+    signedDate: null,
+    created: Date.now()
+  });
+  _proposalsSave(records);
+  toast('Proposal record saved ✓','ok');
+}
+
+function markProposalStatus(id, status) {
+  const records = _proposalsLoad();
+  const r = records.find(x => x.id === id);
+  if (!r) return;
+  r.status = status;
+  if (status === 'approved' || status === 'declined') r.signedDate = todayISO();
+  _proposalsSave(records);
+  toast(`Proposal marked ${status} ✓`,'ok');
+  if (_currentTab === 'documents') renderDocumentsHub();
+}
+function deleteProposalRecord(id) {
+  if (!confirm('Delete this proposal record? (The published HTML file stays on GitHub.)')) return;
+  _proposalsSave(_proposalsLoad().filter(x => x.id !== id));
+  if (_currentTab === 'documents') renderDocumentsHub();
 }
 function buildProposalCard(d, filename) {
   const total = d.services.reduce((s,x)=>s+(x.price||0),0);
@@ -5446,7 +5564,7 @@ footer small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:
   </div>
 </nav>
 <header class="hero">
-  <div class="hero-bg"><img src="${esc(heroImg)}" alt=""/></div>
+  <div class="hero-bg"><img src="${esc(heroImg)}" alt="" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#111 0%,#000 100%)'"/></div>
   <div class="hero-overlay"></div>
   <div class="hero-content">
     <div class="expiry-badge" id="expiry-badge"><span class="dot"></span><span id="expiry-badge-text">${L.active}</span></div>
