@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>5HIFT × Indian Wedding CDMX — Feb 26–27, 2027</title>
+<link rel="icon" type="image/svg+xml" href="SHIFT-ICON.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0b;--panel:#111114;--line:#1e1e22;--line-soft:#161619;--white:#f2f2f4;--mute:#8a8a96;--dim:#545460;--gold:#c8a84b;--red:#e35d5d;--maxw:1100px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--white);font-family:'Inter',system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:#fff;color:#000}
+a{color:var(--gold);text-decoration:none}
+a:hover{color:var(--white)}
+nav{position:fixed;top:0;left:0;width:100%;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:18px 44px;border-bottom:1px solid var(--line);background:rgba(10,10,11,.88);backdrop-filter:blur(20px)}
+.nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.nav-logo img{height:26px;filter:brightness(0)invert(1)}
+.nav-logo span{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;line-height:1;color:var(--white);letter-spacing:.5em}
+nav .status{font-size:10.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+@media(max-width:600px){nav{padding:14px 22px}}
+.hero{position:relative;padding:160px 0 90px;z-index:1;border-bottom:1px solid var(--line-soft)}
+.hero-inner{max-width:var(--maxw);margin:0 auto;padding:0 clamp(24px,5vw,64px)}
+.expiry-badge{display:inline-flex;align-items:center;gap:8px;margin-bottom:22px;padding:5px 13px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:10.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.expiry-badge .dot{width:5px;height:5px;border-radius:50%;background:#4caf50;box-shadow:0 0 8px #4caf50}
+.hero-client{font-size:clamp(12px,1.3vw,15px);letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.hero-title{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(38px,7.5vw,92px);line-height:.94;letter-spacing:-.03em;max-width:16ch}
+.hero-sub{margin-top:22px;font-size:clamp(14px,1.6vw,17px);color:var(--mute);max-width:56ch;line-height:1.65}
+.hero-meta{margin-top:42px;display:flex;gap:44px;flex-wrap:wrap}
+.hero-meta-item .lbl{font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.hero-meta-item .val{font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:var(--white)}
+main{position:relative;z-index:1;background:var(--bg)}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 clamp(24px,5vw,64px)}
+section{padding:clamp(60px,10vh,110px) 0;border-top:1px solid var(--line-soft)}
+.sec-eyebrow{font-size:10.5px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--dim)}
+.sec-lead{font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(26px,4vw,44px);line-height:1.05;letter-spacing:-.02em;margin-top:.5em;max-width:22ch}
+.sec-para{font-size:clamp(14px,1.6vw,16px);color:var(--mute);max-width:64ch;margin-top:1.4em;line-height:1.7}
+.events-grid{margin-top:44px;display:flex;flex-direction:column;gap:2px;background:var(--line)}
+.event-card{background:var(--panel);padding:34px 32px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:start}
+@media(max-width:720px){.event-card{grid-template-columns:1fr}}
+.event-num{font-family:'Sora',sans-serif;font-size:11px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.event-title{font-family:'Sora',sans-serif;font-weight:700;font-size:22px;color:var(--white);letter-spacing:-.01em;margin-bottom:4px}
+.event-venue{font-size:13px;color:var(--mute);margin-bottom:20px}
+.event-specs{display:grid;grid-template-columns:1fr 1fr;gap:20px 32px}
+@media(max-width:520px){.event-specs{grid-template-columns:1fr}}
+.spec-block .spec-label{font-size:9.5px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.spec-block ul{list-style:none}
+.spec-block li{font-size:13px;color:var(--white);line-height:1.7;position:relative;padding-left:14px}
+.spec-block li:before{content:'—';position:absolute;left:0;color:var(--dim)}
+.event-price{text-align:right;padding-left:24px;border-left:1px solid var(--line-soft);align-self:center}
+@media(max-width:720px){.event-price{text-align:left;padding-left:0;border-left:none;border-top:1px solid var(--line-soft);padding-top:20px;margin-top:8px}}
+.price-lbl{font-size:9.5px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.price-val{font-family:'Sora',sans-serif;font-weight:700;font-size:26px;color:var(--white);letter-spacing:-.01em;white-space:nowrap}
+.price-val .mxn{font-size:12px;color:var(--dim);font-weight:600;letter-spacing:.1em;margin-left:4px}
+.summary-table{width:100%;border-collapse:collapse;margin-top:2.5em}
+.summary-table thead tr{border-bottom:1px solid var(--line)}
+.summary-table th{font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);padding:0 0 13px;text-align:left}
+.summary-table th:last-child{text-align:right}
+.summary-table tbody tr{border-bottom:1px solid var(--line-soft)}
+.summary-table td{padding:18px 0;vertical-align:top;font-size:14px}
+.summary-table td:last-child{text-align:right;font-family:'Sora',sans-serif;font-weight:700;font-size:16px;color:var(--white);white-space:nowrap}
+.summary-table .row-event{font-weight:600;color:var(--white)}
+.summary-table .row-venue{font-size:12.5px;color:var(--mute);margin-top:3px}
+.summary-table tfoot tr{border-top:1px solid var(--white)}
+.summary-table tfoot td{padding-top:20px;font-family:'Sora',sans-serif;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.summary-table tfoot td:last-child{font-size:14px;color:var(--white);text-transform:none;letter-spacing:0}
+.summary-table tfoot tr.total td{padding-top:14px;padding-bottom:24px;font-size:14px}
+.summary-table tfoot tr.total td:last-child{font-size:clamp(24px,4vw,36px);letter-spacing:-.02em;color:var(--gold)}
+.logistics-list{margin-top:32px;display:flex;flex-direction:column;gap:14px}
+.logistics-item{display:flex;gap:14px;align-items:flex-start;font-size:14px;color:var(--white);line-height:1.55}
+.logistics-item:before{content:'';flex-shrink:0;width:14px;height:1px;background:var(--gold);margin-top:11px}
+.terms-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:2.2em;background:var(--line)}
+@media(max-width:640px){.terms-grid{grid-template-columns:1fr}}
+.term-item{background:var(--panel);padding:26px 30px}
+.term-item .t-label{font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.term-item .t-val{font-size:14.5px;color:var(--white);line-height:1.6}
+footer{padding:60px 0 80px;border-top:1px solid var(--line-soft);text-align:center}
+footer .brand{font-family:'Sora',sans-serif;font-weight:800;font-size:13px;letter-spacing:.4em;color:var(--gold)}
+footer .tag{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin-top:10px}
+footer .contact{font-size:12px;color:var(--mute);margin-top:16px}
+footer .contact a{color:var(--gold)}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo"><img src="SHIFT-ICON.svg" alt=""/><span>5HIFT</span></a>
+  <div class="status">Proposal V1.0 · Preliminary</div>
+</nav>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="expiry-badge"><span class="dot"></span>Valid 30 Calendar Days</div>
+    <div class="hero-client">Preliminary Audiovisual Production Proposal</div>
+    <h1 class="hero-title">Indian Wedding<br/>Mexico City</h1>
+    <p class="hero-sub">Seven-event, two-day, multi-venue AV production spanning Palacio Metropolitano, General Prim, and Ex Convento San Hipólito — Haldi through Grand Reception.</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item"><div class="lbl">Dates</div><div class="val">February 26–27, 2027</div></div>
+      <div class="hero-meta-item"><div class="lbl">Location</div><div class="val">CDMX</div></div>
+      <div class="hero-meta-item"><div class="lbl">Events</div><div class="val">7 Productions</div></div>
+      <div class="hero-meta-item"><div class="lbl">Peak Guest Count</div><div class="val">200</div></div>
+      <div class="hero-meta-item"><div class="lbl">Total Investment</div><div class="val">$301,600 MXN</div></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <div class="wrap">
+    <div class="sec-eyebrow">01 — Scope</div>
+    <h2 class="sec-lead">Seven events, two days, three venues.</h2>
+    <p class="sec-para">Every event is delivered with dedicated audio engineering, wireless microphone systems, complete cabling infrastructure, and on-site technical crew scaled to guest count. Sangeet and Grand Reception scale up to Main Speakers + Side Fills, dual 18" subwoofers, DJ rider (Pioneer CDJ-3000 + DJM-V10), moving-head lighting and 40-fixture LED PAR rig.</p>
+
+    <div class="events-grid">
+
+      <div class="event-card">
+        <div>
+          <div class="event-num">Event 01 · Friday Feb 26</div>
+          <h3 class="event-title">Haldi</h3>
+          <div class="event-venue">Venue: TBD · Guest Count: 60</div>
+          <div class="event-specs">
+            <div class="spec-block">
+              <div class="spec-label">Audio System</div>
+              <ul><li>2 Professional Speakers</li><li>Audio Mixer</li><li>2 Wireless Microphones</li><li>DJ Controller &amp; DJ Monitor</li><li>Cabling Package</li></ul>
+              <div class="spec-label" style="margin-top:16px">DJ Support</div>
+              <ul><li>DJ Table, Laptop Stand, Power Distribution</li></ul>
+            </div>
+            <div class="spec-block">
+              <div class="spec-label">Personnel</div>
+              <ul><li>Audio Engineer</li><li>Audio Technician</li></ul>
+            </div>
+          </div>
+        </div>
+        <div class="event-price">
+          <div class="price-lbl">Investment</div>
+          <div class="price-val">$18,000<span class="mxn">MXN</span></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div>
+          <div class="event-num">Event 02 · Friday Feb 26</div>
+          <h3 class="event-title">Sangeet</h3>
+          <div class="event-venue">Palacio Metropolitano · Guest Count: 200</div>
+          <div class="event-specs">
+            <div class="spec-block">
+              <div class="spec-label">Audio System</div>
+              <ul><li>4 Main Speakers &amp; 2 Side Fill Speakers</li><li>2 Dual 18" Subwoofers</li><li>Digital Audio Console</li><li>2 Wireless Microphones &amp; DJ Monitor</li></ul>
+              <div class="spec-label" style="margin-top:16px">DJ Rider</div>
+              <ul><li>2 Pioneer CDJ-3000</li><li>1 Pioneer DJM-V10 Mixer</li><li>DJ Booth &amp; Laptop Stand</li></ul>
+            </div>
+            <div class="spec-block">
+              <div class="spec-label">Lighting System</div>
+              <ul><li>40 LED PAR Fixtures</li><li>6 Moving Heads</li><li>2 Lighting Towers</li></ul>
+              <div class="spec-label" style="margin-top:16px">Personnel &amp; Operations</div>
+              <ul><li>Audio Engineer (A1) &amp; Lighting Engineer (L1)</li><li>Audio Technician &amp; Lighting Technician</li></ul>
+            </div>
+          </div>
+        </div>
+        <div class="event-price">
+          <div class="price-lbl">Investment</div>
+          <div class="price-val">$78,000<span class="mxn">MXN</span></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div>
+          <div class="event-num">Event 03 · Saturday Feb 27</div>
+          <h3 class="event-title">Baraat</h3>
+          <div class="event-venue">General Prim (Procession)</div>
+          <div class="event-specs">
+            <div class="spec-block">
+              <div class="spec-label">Audio System</div>
+              <ul><li>Portable Sound System</li><li>DJ Controller (Serato Compatible)</li><li>1 Wireless Microphone &amp; 1 Wired Microphone</li><li>Portable Battery Power Unit</li></ul>
+              <div class="spec-label" style="margin-top:16px">DJ Support</div>
+              <ul><li>DJ Table &amp; Laptop Stand</li></ul>
+            </div>
+            <div class="spec-block">
+              <div class="spec-label">Personnel</div>
+              <ul><li>Audio Technician</li></ul>
+            </div>
+          </div>
+        </div>
+        <div class="event-price">
+          <div class="price-lbl">Investment</div>
+          <div class="price-val">$20,000<span class="mxn">MXN</span></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div>
+          <div class="event-num">Event 04 · Saturday Feb 27</div>
+          <h3 class="event-title">Hindu Ceremony</h3>
+          <div class="event-venue">General Prim · Guest Count: 200</div>
+          <div class="event-specs">
+            <div class="spec-block">
+              <div class="spec-label">Audio System</div>
+              <ul><li>4 Distribution Speakers</li><li>Audio Mixer</li><li>2 Wireless Microphones</li><li>1 Lavalier Microphone (Wireless)</li><li>Playback Connectivity for ceremony music</li></ul>
+            </div>
+            <div class="spec-block">
+              <div class="spec-label">Personnel</div>
+              <ul><li>Audio Engineer</li></ul>
+            </div>
+          </div>
+        </div>
+        <div class="event-price">
+          <div class="price-lbl">Investment</div>
+          <div class="price-val">$22,000<span class="mxn">MXN</span></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div>
+          <div class="event-num">Event 05 · Saturday Feb 27</div>
+          <h3 class="event-title">Lunch</h3>
+          <div class="event-venue">General Prim</div>
+          <div class="event-specs">
+            <div class="spec-block">
+              <div class="spec-label">Audio System</div>
+              <ul><li>Background Music System</li><li>Playback Connectivity</li></ul>
+            </div>
+            <div class="spec-block">
+              <div class="spec-label">Personnel</div>
+              <ul><li>Autonomous — monitored by ceremony crew</li></ul>
+            </div>
+          </div>
+        </div>
+        <div class="event-price">
+          <div class="price-lbl">Investment</div>
+          <div class="price-val">$8,000<span class="mxn">MXN</span></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div>
+          <div class="event-num">Event 06 · Saturday Feb 27</div>
+          <h3 class="event-title">Cocktail Hour</h3>
+          <div class="event-venue">Ex Convento San Hipólito</div>
+          <div class="event-specs">
+            <div class="spec-block">
+              <div class="spec-label">Audio System</div>
+              <ul><li>2 Speakers</li><li>Audio Mixer</li><li>DJ Controller &amp; DJ Monitor</li></ul>
+              <div class="spec-label" style="margin-top:16px">DJ Support</div>
+              <ul><li>DJ Table &amp; Laptop Stand</li></ul>
+            </div>
+            <div class="spec-block">
+              <div class="spec-label">Personnel</div>
+              <ul><li>Audio Technician</li></ul>
+            </div>
+          </div>
+        </div>
+        <div class="event-price">
+          <div class="price-lbl">Investment</div>
+          <div class="price-val">$14,000<span class="mxn">MXN</span></div>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div>
+          <div class="event-num">Event 07 · Saturday Feb 27</div>
+          <h3 class="event-title">Grand Reception</h3>
+          <div class="event-venue">Ex Convento San Hipólito · Guest Count: 200</div>
+          <div class="event-specs">
+            <div class="spec-block">
+              <div class="spec-label">Audio System</div>
+              <ul><li>4 Main Speakers &amp; 2 Side Fill Speakers</li><li>2 Dual 18" Subwoofers</li><li>Digital Audio Console</li><li>2 Wireless Microphones &amp; DJ Monitor</li></ul>
+              <div class="spec-label" style="margin-top:16px">DJ Rider</div>
+              <ul><li>2 Pioneer CDJ-3000</li><li>1 Pioneer DJM-V10 Mixer</li><li>DJ Booth &amp; Laptop Stand</li></ul>
+            </div>
+            <div class="spec-block">
+              <div class="spec-label">Lighting System</div>
+              <ul><li>40 LED PAR Fixtures</li><li>8 Moving Heads</li><li>2 Lighting Towers</li></ul>
+              <div class="spec-label" style="margin-top:16px">Personnel &amp; Operations</div>
+              <ul><li>Audio Engineer (A1) &amp; Lighting Engineer (L1)</li><li>Audio Technician &amp; Lighting Technician</li></ul>
+            </div>
+          </div>
+        </div>
+        <div class="event-price">
+          <div class="price-lbl">Investment</div>
+          <div class="price-val">$100,000<span class="mxn">MXN</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-eyebrow">02 — Logistics &amp; Production</div>
+    <h2 class="sec-lead">Fully built into event pricing.</h2>
+    <p class="sec-para">Every event above includes the full operational envelope to deliver 5HIFT's execution standard across the CDMX circuit — no hidden logistics surcharges.</p>
+    <div class="logistics-list">
+      <div class="logistics-item">Inter-venue transportation and equipment logistics across Mexico City.</div>
+      <div class="logistics-item">Technical crew coordination, scheduling, and on-site labor management.</div>
+      <div class="logistics-item">Full technical supervision and professional event production management.</div>
+      <div class="logistics-item">Vendor integration, engineering alignment, setup, and strike coordination.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-eyebrow">03 — Financial Summary</div>
+    <h2 class="sec-lead">Total investment.</h2>
+    <table class="summary-table">
+      <thead>
+        <tr><th>Event</th><th>Amount (MXN)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><div class="row-event">Event 1 · Haldi</div><div class="row-venue">TBD</div></td><td>$18,000.00</td></tr>
+        <tr><td><div class="row-event">Event 2 · Sangeet</div><div class="row-venue">Palacio Metropolitano</div></td><td>$78,000.00</td></tr>
+        <tr><td><div class="row-event">Event 3 · Baraat</div><div class="row-venue">General Prim</div></td><td>$20,000.00</td></tr>
+        <tr><td><div class="row-event">Event 4 · Hindu Ceremony</div><div class="row-venue">General Prim</div></td><td>$22,000.00</td></tr>
+        <tr><td><div class="row-event">Event 5 · Lunch</div><div class="row-venue">General Prim</div></td><td>$8,000.00</td></tr>
+        <tr><td><div class="row-event">Event 6 · Cocktail Hour</div><div class="row-venue">Ex Convento San Hipólito</div></td><td>$14,000.00</td></tr>
+        <tr><td><div class="row-event">Event 7 · Grand Reception</div><div class="row-venue">Ex Convento San Hipólito</div></td><td>$100,000.00</td></tr>
+        <tr><td><div class="row-event" style="color:var(--mute)">Logistics &amp; Project Management</div><div class="row-venue">Multi-venue</div></td><td style="color:var(--mute);font-style:italic">Included</td></tr>
+      </tbody>
+      <tfoot>
+        <tr><td>Subtotal</td><td>$260,000.00 MXN</td></tr>
+        <tr><td>VAT (16%)</td><td>$41,600.00 MXN</td></tr>
+        <tr class="total"><td>Total Amount</td><td>$301,600.00 MXN</td></tr>
+      </tfoot>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-eyebrow">04 — Commercial Terms</div>
+    <h2 class="sec-lead">Terms &amp; conditions.</h2>
+    <div class="terms-grid">
+      <div class="term-item">
+        <div class="t-label">Proposal Validity</div>
+        <div class="t-val">This proposal is valid for 30 calendar days from the date of issuance.</div>
+      </div>
+      <div class="term-item">
+        <div class="t-label">Payment Plan</div>
+        <div class="t-val">A 50% deposit is required to secure equipment availability and dates. The remaining 50% must be fully settled at least 7 days prior to the first scheduled setup.</div>
+      </div>
+      <div class="term-item">
+        <div class="t-label">Venue Adaptations</div>
+        <div class="t-val">Final venue confirmation for unconfirmed spaces (TBD) may result in minor adjustments to structural requirements or specialized logistics.</div>
+      </div>
+      <div class="term-item">
+        <div class="t-label">Vendor Exclusions</div>
+        <div class="t-val">Venue union fees, carga-descarga surcharges, silent generators, and Baraat procession permits (General Prim) are not included unless expressly stated. Client is responsible for those approvals and fees.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="brand">5HIFT</div>
+  <div class="tag">Premium Audiovisual Production · Corporate Events · Luxury Weddings · Live Entertainment</div>
+  <div class="contact">Produccion@5hift.com.mx · <a href="https://shiftevnts.com">shiftevnts.com</a></div>
+</footer>
+
+</body>
+</html>
