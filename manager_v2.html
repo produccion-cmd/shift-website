@@ -1686,8 +1686,15 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       <div class="f-row"><label class="f-label">Client Name *</label><input class="f-input" id="pd-name" placeholder="Client Name"/></div>
       <div class="f-row"><label class="f-label">Company</label><input class="f-input" id="pd-company" placeholder="Company"/></div>
     </div>
-    <div class="f-grid">
-      <div class="f-row"><label class="f-label">Deal Value (USD)</label><input class="f-input" id="pd-value" type="number" min="0" placeholder="0"/></div>
+    <div class="f-grid" style="grid-template-columns:2fr 1fr 1fr">
+      <div class="f-row"><label class="f-label">Deal Value</label><input class="f-input" id="pd-value" type="number" min="0" placeholder="0"/></div>
+      <div class="f-row">
+        <label class="f-label">Currency</label>
+        <select class="f-select" id="pd-currency">
+          <option value="USD">USD</option>
+          <option value="MXN">MXN</option>
+        </select>
+      </div>
       <div class="f-row">
         <label class="f-label">Stage</label>
         <select class="f-select" id="pd-stage">
@@ -3952,32 +3959,63 @@ function _pipeSave(d) { localStorage.setItem('shift-pipeline', JSON.stringify(d)
 let _pipeDragId  = null;
 let _pipeEditId  = null;
 
+// Sum deal values grouped by currency. Returns { USD: n, MXN: n }.
+function _pipeSumByCurrency(deals) {
+  const sums = { USD: 0, MXN: 0 };
+  deals.forEach(d => {
+    const cur = d.currency || 'USD'; // default USD for legacy deals
+    sums[cur] = (sums[cur] || 0) + (d.value || 0);
+  });
+  return sums;
+}
+
+// Format the { USD, MXN } sums as a readable string with currency tags.
+// Skips zero currencies. Returns '—' if both are zero.
+function _fmtCurrencySums(sums, opts = {}) {
+  const parts = [];
+  if ((sums.USD || 0) > 0) parts.push('$' + sums.USD.toLocaleString() + ' USD');
+  if ((sums.MXN || 0) > 0) parts.push('$' + sums.MXN.toLocaleString() + ' MXN');
+  if (parts.length === 0) return opts.zeroDash ? '—' : '';
+  return parts.join(opts.joiner || ' · ');
+}
+
 function renderPipeline() {
   const deals  = _pipeLoad();
   const board  = document.getElementById('pipe-board');
   if (!board) return;
 
-  // topbar totals
+  // topbar totals — split by currency to avoid apples-to-pesos math
   const activeDeals = deals.filter(d => d.stage !== 'lost');
-  const pipeValue   = activeDeals.reduce((s,d) => s + (d.value||0), 0);
-  const wonValue    = deals.filter(d => d.stage === 'won').reduce((s,d) => s + (d.value||0), 0);
+  const wonDeals    = deals.filter(d => d.stage === 'won');
+  const pipeSums    = _pipeSumByCurrency(activeDeals);
+  const wonSums     = _pipeSumByCurrency(wonDeals);
   const totalDeals  = deals.length;
+  const pipeFmt     = _fmtCurrencySums(pipeSums) || '$0';
   document.getElementById('pipe-summary').textContent =
-    `${totalDeals} deal${totalDeals!==1?'s':''} · $${pipeValue.toLocaleString()} in active pipeline`;
+    `${totalDeals} deal${totalDeals!==1?'s':''} · ${pipeFmt} in active pipeline`;
+  const wonFmt = _fmtCurrencySums(wonSums);
   document.getElementById('pipe-total-pill').textContent =
-    wonValue > 0 ? `$${wonValue.toLocaleString()} won` : 'No closed deals yet';
+    wonFmt ? `${wonFmt} won` : 'No closed deals yet';
 
   board.innerHTML = PIPE_STAGES.map(stage => {
     const stageDeal = deals.filter(d => d.stage === stage.id);
-    const stageVal  = stageDeal.reduce((s,d) => s + (d.value||0), 0);
-    const cards     = stageDeal.map(d => _buildDealCard(d, stage.color)).join('');
+    const stageSums = _pipeSumByCurrency(stageDeal);
+    const stageHasValue = (stageSums.USD||0) + (stageSums.MXN||0) > 0;
+    // Multi-currency column headers stack lines to keep the pill readable.
+    const stageValHTML = stageHasValue
+      ? [
+          (stageSums.USD||0) > 0 ? `<div>$${stageSums.USD.toLocaleString()} <span style="font-size:9px;letter-spacing:.14em;color:var(--dim)">USD</span></div>` : '',
+          (stageSums.MXN||0) > 0 ? `<div>$${stageSums.MXN.toLocaleString()} <span style="font-size:9px;letter-spacing:.14em;color:var(--dim)">MXN</span></div>` : ''
+        ].filter(Boolean).join('')
+      : '—';
+    const cards = stageDeal.map(d => _buildDealCard(d, stage.color)).join('');
     return `
 <div class="board-col" id="bcol-${stage.id}">
   <div class="board-col-hd">
     <div class="board-col-accent" style="background:${stage.color}"></div>
     <div class="board-col-title" style="color:${stage.color}">${stage.label}</div>
     <div class="board-col-count">${stageDeal.length} deal${stageDeal.length!==1?'s':''}</div>
-    <div class="board-col-value" style="color:${stageVal>0?stage.color:'var(--dim)'}">${stageVal>0?'$'+stageVal.toLocaleString():'—'}</div>
+    <div class="board-col-value" style="color:${stageHasValue?stage.color:'var(--dim)'};line-height:1.4">${stageValHTML}</div>
   </div>
   <div class="board-cards" id="bcards-${stage.id}"
     ondragover="pipeDragOver(event,'${stage.id}')"
@@ -3989,7 +4027,8 @@ function renderPipeline() {
 }
 
 function _buildDealCard(d, stageColor) {
-  const valFmt = d.value > 0 ? '$'+d.value.toLocaleString() : '—';
+  const cur = d.currency || 'USD';
+  const valFmt = d.value > 0 ? '$'+d.value.toLocaleString()+' <span style="font-size:9px;letter-spacing:.14em;color:var(--dim);font-weight:600">'+cur+'</span>' : '—';
   const valCls = d.value > 0 ? '' : ' zero';
   const noteHtml = d.notes ? `<div class="deal-card-note">${esc(d.notes)}</div>` : '';
   return `<div class="deal-card" id="dcard-${d.id}" draggable="true"
@@ -4052,29 +4091,46 @@ function pipeDrop(e, stageId) {
 }
 
 // ── Modal ─────────────────────────────────────────────────────
+// Guess currency from a deal name / company / notes. Keeps the modal
+// picker helpful when Edwin adds a new deal without thinking about it.
+function _pipeGuessCurrency(str) {
+  const s = (str || '').toLowerCase();
+  if (/\b(mxn|cdmx|mexico|méxico|d\.f\.|df)\b/.test(s)) return 'MXN';
+  return 'USD';
+}
+
 function pipeOpenAdd(stage) {
   _pipeEditId = null;
   document.getElementById('pipe-modal-title-txt').textContent = 'New Deal';
-  document.getElementById('pd-name').value    = '';
-  document.getElementById('pd-company').value = '';
-  document.getElementById('pd-value').value   = '';
-  document.getElementById('pd-notes').value   = '';
-  document.getElementById('pd-stage').value   = stage || 'lead';
+  document.getElementById('pd-name').value     = '';
+  document.getElementById('pd-company').value  = '';
+  document.getElementById('pd-value').value    = '';
+  document.getElementById('pd-currency').value = 'USD';
+  document.getElementById('pd-notes').value    = '';
+  document.getElementById('pd-stage').value    = stage || 'lead';
   document.getElementById('pipe-del-btn').style.display = 'none';
   _pipePopulateCRMPicker();
   document.getElementById('pipe-modal').classList.add('open');
   setTimeout(()=>document.getElementById('pd-name').focus(), 50);
+  // Auto-guess currency once the user types/pastes a name (only if untouched).
+  const nameEl = document.getElementById('pd-name');
+  const curEl  = document.getElementById('pd-currency');
+  const onNameChange = () => { if (!curEl.dataset.userTouched) curEl.value = _pipeGuessCurrency(nameEl.value); };
+  curEl.dataset.userTouched = '';
+  curEl.onchange = () => { curEl.dataset.userTouched = '1'; };
+  nameEl.oninput = onNameChange;
 }
 function pipeOpenEdit(id) {
   const deal = _pipeLoad().find(d => d.id === id);
   if (!deal) return;
   _pipeEditId = id;
   document.getElementById('pipe-modal-title-txt').textContent = 'Edit Deal';
-  document.getElementById('pd-name').value    = deal.name    || '';
-  document.getElementById('pd-company').value = deal.company || '';
-  document.getElementById('pd-value').value   = deal.value   || '';
-  document.getElementById('pd-notes').value   = deal.notes   || '';
-  document.getElementById('pd-stage').value   = deal.stage   || 'lead';
+  document.getElementById('pd-name').value     = deal.name     || '';
+  document.getElementById('pd-company').value  = deal.company  || '';
+  document.getElementById('pd-value').value    = deal.value    || '';
+  document.getElementById('pd-currency').value = deal.currency || 'USD';
+  document.getElementById('pd-notes').value    = deal.notes    || '';
+  document.getElementById('pd-stage').value    = deal.stage    || 'lead';
   document.getElementById('pipe-del-btn').style.display = 'block';
   _pipePopulateCRMPicker();
   document.getElementById('pipe-modal').classList.add('open');
@@ -4088,21 +4144,23 @@ function pipeSaveDeal() {
   if (!name) { toast('Enter a client name','err'); return; }
   const deals = _pipeLoad();
   const val   = parseFloat(document.getElementById('pd-value').value)||0;
+  const cur   = document.getElementById('pd-currency')?.value || 'USD';
   if (_pipeEditId) {
     const deal = deals.find(d => d.id === _pipeEditId);
     if (deal) {
-      deal.name    = name;
-      deal.company = document.getElementById('pd-company').value.trim();
-      deal.value   = val;
-      deal.stage   = document.getElementById('pd-stage').value;
-      deal.notes   = document.getElementById('pd-notes').value.trim();
-      deal.updated = Date.now();
+      deal.name     = name;
+      deal.company  = document.getElementById('pd-company').value.trim();
+      deal.value    = val;
+      deal.currency = cur;
+      deal.stage    = document.getElementById('pd-stage').value;
+      deal.notes    = document.getElementById('pd-notes').value.trim();
+      deal.updated  = Date.now();
     }
   } else {
     deals.unshift({
       id: 'deal_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
       name, company: document.getElementById('pd-company').value.trim(),
-      value: val, stage: document.getElementById('pd-stage').value,
+      value: val, currency: cur, stage: document.getElementById('pd-stage').value,
       notes: document.getElementById('pd-notes').value.trim(),
       created: Date.now(), updated: Date.now()
     });
