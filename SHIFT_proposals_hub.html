@@ -31,7 +31,55 @@ async function _gateCheck() {
     if (greet && clientName) greet.textContent = clientName;
     const exp_el = document.getElementById('_link-expires');
     if (exp_el) exp_el.textContent = new Date(exp*1000).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+    _filterCardsForClient(clientName);
   } catch(e) { _deny('error'); }
+}
+
+// Show a card only if this client owns it. Match is bidirectional substring
+// against data-client and data-company (case-insensitive, punctuation-tolerant),
+// so a token for "Palwinder Chamdal" reveals cards tagged with "DJD" or
+// "DJD (via Palwinder)". Cards without either attribute are hidden by default —
+// the portal is client-facing; no data-client == no proof of ownership == no show.
+// Admin-only tiles (New Proposal, New Invoice) are hidden across the board because
+// clients don't create records.
+function _filterCardsForClient(clientName) {
+  const norm = s => (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g,' ').trim();
+  const tokenNorm = norm(clientName);
+  if (!tokenNorm) return;
+  const tokenWords = tokenNorm.split(' ').filter(w => w.length >= 3);
+  // Hide admin-only tiles for anyone but the label owner
+  document.querySelectorAll('[data-admin-only]').forEach(el => { el.style.display = 'none'; });
+  document.querySelectorAll('.proposal-card, .portal-card').forEach(card => {
+    const cardClient = norm(card.dataset.client || '');
+    const cardCompany = norm(card.dataset.company || '');
+    const cardHay = cardClient + ' ' + cardCompany;
+    const noTags = !cardClient && !cardCompany;
+    if (card.hasAttribute('data-admin-only')) return; // already handled
+    if (noTags) { card.style.display = 'none'; return; }
+    // Match if any 3+-letter token word appears in the card's client/company,
+    // or if the card's client/company appears in the token name.
+    const match =
+      tokenWords.some(w => cardHay.includes(w)) ||
+      (cardClient && tokenNorm.includes(cardClient)) ||
+      (cardCompany && tokenNorm.includes(cardCompany));
+    card.style.display = match ? '' : 'none';
+  });
+  // If a whole tab now has zero visible cards, show an empty state
+  ['tab-proposals','tab-invoices'].forEach(id => {
+    const panel = document.getElementById(id);
+    if (!panel) return;
+    const visible = panel.querySelectorAll('.portal-card:not([style*="display: none"])');
+    if (visible.length === 0) {
+      let empty = panel.querySelector('.no-items-msg');
+      if (!empty) {
+        empty = document.createElement('div');
+        empty.className = 'no-items-msg';
+        empty.style.cssText = 'padding:60px 20px;text-align:center;color:#888;font-size:14px;grid-column:1/-1';
+        empty.textContent = 'No items on file for you yet. If you were expecting something here, reach out to Produccion@5hift.com.mx.';
+        panel.querySelector('.grid')?.appendChild(empty);
+      }
+    }
+  });
 }
 function _deny(reason) {
   document.getElementById('_gate').style.display = 'flex';
@@ -208,7 +256,7 @@ tailwind.config = {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-outline-variant/20 border border-outline-variant/20" id="proposalsGrid">
 
       <!-- CARD: Beyond Restaurant — Approved -->
-      <div onclick="openProposal('SHIFT_BEYOND_landing.html','Beyond Restaurant — Propuesta Integral')" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group cursor-pointer" data-status="approved">
+      <div onclick="openProposal('SHIFT_BEYOND_landing.html','Beyond Restaurant — Propuesta Integral')" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group cursor-pointer" data-status="approved" data-client="Beyond Visual" data-company="Beyond Restaurant">
         <div class="flex justify-between items-start gap-3">
           <div>
             <h3 class="font-display font-semibold text-primary text-xl tracking-tight">Beyond Restaurant</h3>
@@ -227,8 +275,8 @@ tailwind.config = {
         </div>
       </div>
 
-      <!-- CARD: Template -->
-      <a href="SHIFT_proposal_template.html" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group" data-status="draft">
+      <!-- CARD: Template (admin-only — never shown to clients) -->
+      <a href="SHIFT_proposal_template.html" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group" data-status="draft" data-admin-only="1">
         <div class="flex justify-between items-start gap-3">
           <div>
             <h3 class="font-display font-semibold text-primary text-xl tracking-tight">Proposal Template</h3>
@@ -247,7 +295,7 @@ tailwind.config = {
         </div>
       </a>
 
-<div onclick="openProposal('SHIFT_PROPUESTA_EDWIN.html','ZOO — INTEGRAL SERVICES')" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group cursor-pointer" data-status="sent">
+<div onclick="openProposal('SHIFT_PROPUESTA_EDWIN.html','ZOO — INTEGRAL SERVICES')" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group cursor-pointer" data-status="sent" data-client="ZOO" data-company="ZOO">
   <div class="flex justify-between items-start gap-3">
     <div>
       <h3 class="font-display font-semibold text-primary text-xl tracking-tight">ZOO</h3>
@@ -265,9 +313,63 @@ tailwind.config = {
     Ver Propuesta <span class="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">arrow_forward</span>
   </div>
 </div>
+<!-- BACKFILLED CDMX cards (Palwinder / DJD) -->
+<div onclick="openProposal('SHIFT_PROPOSAL_INDIAN_WEDDING_CDMX_SEP2026.html','Indian Wedding CDMX — Sep 10-12 2026 (V9 Final)')" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group cursor-pointer" data-status="sent" data-client="Palwinder Chamdal" data-company="DJD Desi Junction DJs">
+  <div class="flex justify-between items-start gap-3">
+    <div>
+      <h3 class="font-display font-semibold text-primary text-xl tracking-tight">Indian Wedding CDMX</h3>
+      <p class="font-body text-sm text-on-surface-variant mt-1">Sep 10-12, 2026 — V9 Final Budget Fixed</p>
+    </div>
+    <span class="flex-none font-body text-label-sm uppercase px-3 py-1 border status-sent">Sent</span>
+  </div>
+  <div class="grid grid-cols-3 gap-4 pt-5 border-t border-outline-variant/20">
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Value</p><p class="font-display text-sm font-semibold text-primary">$317,840 MXN</p></div>
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Sent</p><p class="font-display text-sm font-semibold text-primary">Jun 2026</p></div>
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Location</p><p class="font-display text-sm font-semibold text-primary">CDMX</p></div>
+  </div>
+  <div class="flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors mt-auto">
+    Ver Propuesta <span class="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">arrow_forward</span>
+  </div>
+</div>
+
+<div onclick="openProposal('SHIFT_PROPOSAL_INDIAN_WEDDING_CDMX_FEB2027.html','Indian Wedding CDMX — Feb 26-27 2027')" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group cursor-pointer" data-status="sent" data-client="Palwinder Chamdal" data-company="DJD Desi Junction DJs">
+  <div class="flex justify-between items-start gap-3">
+    <div>
+      <h3 class="font-display font-semibold text-primary text-xl tracking-tight">Indian Wedding CDMX</h3>
+      <p class="font-body text-sm text-on-surface-variant mt-1">Feb 26-27, 2027 — V1 Preliminary</p>
+    </div>
+    <span class="flex-none font-body text-label-sm uppercase px-3 py-1 border status-sent">Sent</span>
+  </div>
+  <div class="grid grid-cols-3 gap-4 pt-5 border-t border-outline-variant/20">
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Value</p><p class="font-display text-sm font-semibold text-primary">$301,600 MXN</p></div>
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Sent</p><p class="font-display text-sm font-semibold text-primary">Jul 2026</p></div>
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Location</p><p class="font-display text-sm font-semibold text-primary">CDMX</p></div>
+  </div>
+  <div class="flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors mt-auto">
+    Ver Propuesta <span class="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">arrow_forward</span>
+  </div>
+</div>
+
+<div onclick="openProposal('SHIFT_PROPOSAL_INDIAN_WEDDING_CDMX_SEP2026_V1.html','Indian Wedding CDMX — Sep 2026 (V1 Preliminary — SUPERSEDED)')" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group cursor-pointer" data-status="expired" data-client="Palwinder Chamdal" data-company="DJD Desi Junction DJs">
+  <div class="flex justify-between items-start gap-3">
+    <div>
+      <h3 class="font-display font-semibold text-primary text-xl tracking-tight">Indian Wedding CDMX (V1)</h3>
+      <p class="font-body text-sm text-on-surface-variant mt-1">Sep 2026 — Preliminary (superseded by V9)</p>
+    </div>
+    <span class="flex-none font-body text-label-sm uppercase px-3 py-1 border status-expired">Superseded</span>
+  </div>
+  <div class="grid grid-cols-3 gap-4 pt-5 border-t border-outline-variant/20">
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Value</p><p class="font-display text-sm font-semibold text-primary">$290,000 MXN</p></div>
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Sent</p><p class="font-display text-sm font-semibold text-primary">Jun 2026</p></div>
+    <div><p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Location</p><p class="font-display text-sm font-semibold text-primary">CDMX</p></div>
+  </div>
+  <div class="flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors mt-auto">
+    Ver Propuesta <span class="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">arrow_forward</span>
+  </div>
+</div>
 <!-- PROPOSALS_INSERT -->
       <!-- ADD NEW -->
-      <a href="manager.html" class="portal-card bg-background flex flex-col items-center justify-center gap-4 p-12 cursor-pointer group border border-dashed border-outline-variant hover:border-primary transition-all min-h-[260px]" style="text-decoration:none">
+      <a href="manager.html" class="portal-card bg-background flex flex-col items-center justify-center gap-4 p-12 cursor-pointer group border border-dashed border-outline-variant hover:border-primary transition-all min-h-[260px]" style="text-decoration:none" data-admin-only="1">
         <div class="w-10 h-10 border border-outline-variant flex items-center justify-center group-hover:border-primary transition-colors">
           <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">add</span>
         </div>
@@ -285,7 +387,7 @@ tailwind.config = {
       </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-outline-variant/20 border border-outline-variant/20 mb-8">
-<div onclick="openProposal('SHIFT_INVOICE_AV2613.html','AV2613 — Alex Padilla')" class="portal-card bg-background flex flex-col gap-4 p-8 group cursor-pointer">
+<div onclick="openProposal('SHIFT_INVOICE_AV2613.html','AV2613 — Alex Padilla')" class="portal-card bg-background flex flex-col gap-4 p-8 group cursor-pointer" data-client="Alex Padilla" data-company="Alex Padilla">
   <div class="flex justify-between items-start gap-3">
     <div>
       <h3 class="font-display font-semibold text-primary text-xl tracking-tight">AV2613</h3>
@@ -305,7 +407,7 @@ tailwind.config = {
 <!-- INVOICES_INSERT -->
       
       <!-- Add new invoice -->
-      <a href="manager.html" class="portal-card bg-background flex flex-col items-center justify-center gap-4 p-12 cursor-pointer group border border-dashed border-outline-variant hover:border-primary transition-all min-h-[220px]" style="text-decoration:none">
+      <a href="manager.html" class="portal-card bg-background flex flex-col items-center justify-center gap-4 p-12 cursor-pointer group border border-dashed border-outline-variant hover:border-primary transition-all min-h-[220px]" style="text-decoration:none" data-admin-only="1">
         <div class="w-10 h-10 border border-outline-variant flex items-center justify-center group-hover:border-primary transition-colors">
           <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">add</span>
         </div>

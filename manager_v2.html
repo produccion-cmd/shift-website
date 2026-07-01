@@ -3313,7 +3313,7 @@ function buildProposalCard(d, filename) {
     return dt.toLocaleDateString('en-US',{month:'short',year:'numeric'});
   })();
   const viewLabel = d.lang === 'es' ? 'Ver Propuesta' : 'View Proposal';
-  return `<div onclick="openProposal('${filename}','${esc(d.company||d.client)} — ${esc(d.title)}')" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group cursor-pointer" data-status="sent">
+  return `<div onclick="openProposal('${filename}','${esc(d.company||d.client)} — ${esc(d.title)}')" class="proposal-card portal-card bg-background flex flex-col gap-5 p-8 group cursor-pointer" data-status="sent" data-client="${esc(d.client||'')}" data-company="${esc(d.company||'')}">
   <div class="flex justify-between items-start gap-3">
     <div>
       <h3 class="font-display font-semibold text-primary text-xl tracking-tight">${esc(d.company||d.client)}</h3>
