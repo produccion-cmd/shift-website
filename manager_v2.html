@@ -1542,8 +1542,9 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       <div class="settings-block">
         <div class="settings-block-label">Cloud Sync (Autosave)</div>
         <p class="settings-hint" style="margin-top:0;margin-bottom:14px">
-          <strong style="color:var(--gray)">Everything you type in this manager (clients, invoices, contracts, tasks, pipeline, productions, calendar events) is autosaved to your GitHub repo</strong> every few seconds after each edit. Open the manager on any device, log in, paste your GitHub PAT above, and your data loads.<br>
-          File: <code>SHIFT_DATABASE_V2.json</code> in <code>produccion-cmd/shift-website</code>. Not synced: password, PAT itself.
+          <strong style="color:var(--gray)">Everything you type in this manager (clients, invoices, contracts, tasks, pipeline, productions, calendar events) is autosaved to your PRIVATE GitHub repo</strong> every few seconds after each edit. Open the manager on any device, log in, paste your GitHub PAT above, and your data loads.<br>
+          File: <code>SHIFT_DATABASE_V2.json</code> in <strong style="color:var(--gold)">produccion-cmd/shift-data (private)</strong>. Only your PAT can read/write it. Not synced: password, PAT itself.<br>
+          <span style="color:var(--dim);font-size:11px">Your PAT needs <em>Contents: Read and write</em> on <code>shift-data</code>. Update via <a href="https://github.com/settings/personal-access-tokens" target="_blank" style="color:var(--gold)">Fine-grained tokens →</a></span>
         </p>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="save-btn" onclick="cloudSyncPush(false)">Sync Now ↑</button>
@@ -1556,7 +1557,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         <div class="settings-block-label">Vault Sync</div>
         <p class="settings-hint" style="margin-top:0;margin-bottom:14px">
           Import CRM + Rate Card from <strong style="color:var(--gray)">crm_seed.json</strong> — generated from Edwin's Obsidian vault (Contacts + Business &amp; LLC rate card).<br>
-          Merges by deterministic ID (<code>crm_vault_&lt;slug&gt;</code>). Existing entries with the same ID are updated in place; manual edits to other fields are preserved. Nothing is deleted.
+          Fetched from <strong style="color:var(--gold)">produccion-cmd/shift-data (private)</strong> via GitHub API using your PAT. Merges by deterministic ID (<code>crm_vault_&lt;slug&gt;</code>). Existing entries with the same ID are updated in place; manual edits to other fields are preserved. Nothing is deleted.
         </p>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="save-btn" onclick="vaultSyncImport(false)">Preview</button>
@@ -1744,6 +1745,7 @@ const PORTAL_URL = 'https://shiftevnts.com/SHIFT_proposals_hub.html';
 const QUOTE_URL  = 'https://shiftevnts.com/SHIFT_quick_quote.html';
 const SITE_URL   = 'https://shiftevnts.com';
 const REPO       = 'produccion-cmd/shift-website';
+const DATA_REPO  = 'produccion-cmd/shift-data'; // private repo — sync + seed lives here
 let MANAGER_PW   = localStorage.getItem('shift-mgr-pw') || 'SHIFT2026';
 
 // ── UTILS ────────────────────────────────────────────────────
@@ -2360,13 +2362,14 @@ function changePW() {
 async function vaultSyncImport(commit) {
   const statusEl = document.getElementById('vault-sync-status');
   setStatus('vault-sync-status', commit ? 'Importing…' : 'Loading preview…', 'ok');
-  let seed;
-  try {
-    const res = await fetch('crm_seed.json', {cache:'no-store'});
-    if (!res.ok) throw new Error('crm_seed.json returned ' + res.status);
-    seed = await res.json();
-  } catch(e) {
-    setStatus('vault-sync-status', 'Fetch failed: ' + e.message, 'err');
+  const token = getGHToken();
+  if (!token) {
+    setStatus('vault-sync-status', 'Set GitHub PAT above first — needed to read the private data repo.', 'err');
+    return;
+  }
+  const seed = await _apiGetJson(DATA_REPO, 'crm_seed.json', token, false, 'vault seed');
+  if (!seed) {
+    setStatus('vault-sync-status', 'Could not fetch crm_seed.json from ' + DATA_REPO, 'err');
     return;
   }
   const seedContacts = Array.isArray(seed.contacts) ? seed.contacts : [];
@@ -2528,7 +2531,7 @@ async function cloudSyncPush(isAuto = false) {
   try {
     updateSyncStatus('Syncing…', 'sync');
     const json = JSON.stringify(data, null, 2);
-    await publishToGitHub(CLOUD_DB_FILE, json, `Autosave ${new Date().toISOString()}`, token);
+    await _apiPut(DATA_REPO, CLOUD_DB_FILE, json, `Autosave ${new Date().toISOString()}`, token);
     _cloudLastSyncHash = h;
     _cloudSyncFailStreak = 0;
     localStorage.setItem('shift-cloud-last-sync', String(Date.now()));
@@ -2544,6 +2547,22 @@ async function cloudSyncPush(isAuto = false) {
   }
 }
 
+// PUT helper for arbitrary repo — mirrors publishToGitHub but takes repo as arg.
+async function _apiPut(repo, filename, content, message, token) {
+  const b64 = toBase64(content);
+  const apiUrl = `https://api.github.com/repos/${repo}/contents/${filename}`;
+  const headers = { 'Authorization':'token '+token, 'Accept':'application/vnd.github+json', 'Content-Type':'application/json' };
+  let sha;
+  try {
+    const check = await fetch(apiUrl, { headers });
+    if (check.ok) { const j = await check.json(); sha = j.sha; }
+  } catch(e) {}
+  const body = { message, content: b64, ...(sha ? {sha} : {}) };
+  const res = await fetch(apiUrl, { method:'PUT', headers, body: JSON.stringify(body) });
+  if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.message || res.status); }
+  return res.json();
+}
+
 function cloudScheduleSync() {
   if (_cloudSyncTimer) clearTimeout(_cloudSyncTimer);
   _cloudSyncTimer = setTimeout(() => cloudSyncPush(true), 3000);
@@ -2552,17 +2571,22 @@ function cloudScheduleSync() {
 async function cloudSyncPull(silent = false) {
   const token = getGHToken();
   if (!token) { if (!silent) toast('Set GitHub PAT in Settings first','err'); return null; }
+  return _apiGetJson(DATA_REPO, CLOUD_DB_FILE, token, silent, 'cloud backup');
+}
+
+// GET helper for JSON files in a private repo. Handles 404 as null.
+async function _apiGetJson(repo, filename, token, silent, kind) {
   try {
-    const url = `https://api.github.com/repos/${REPO}/contents/${CLOUD_DB_FILE}`;
+    const url = `https://api.github.com/repos/${repo}/contents/${filename}`;
     const res = await fetch(url, { headers: {'Authorization':'token '+token, 'Accept':'application/vnd.github+json'} });
-    if (res.status === 404) { if (!silent) toast('No cloud backup yet — creating one','ok'); return null; }
+    if (res.status === 404) { if (!silent) toast(`No ${kind} yet in ${repo}`,'ok'); return null; }
     if (!res.ok) throw new Error(res.status);
     const meta = await res.json();
     const content = decodeURIComponent(escape(atob(meta.content.replace(/\n/g,''))));
     return JSON.parse(content);
   } catch(e) {
-    if (!silent) toast('Pull failed: '+e.message, 'err');
-    console.error('cloudSyncPull error:', e);
+    if (!silent) toast(`Pull failed: ${e.message}`, 'err');
+    console.error(`_apiGetJson ${repo}/${filename} error:`, e);
     return null;
   }
 }
