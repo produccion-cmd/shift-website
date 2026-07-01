@@ -817,6 +817,10 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
     <div class="logo"><img src="SHIFT-ICON.svg" alt=""/><span>SHIFT</span></div>
     <div class="header-badge">Manager</div>
     <div style="display:flex;align-items:center;gap:12px">
+      <button onclick="cloudSyncPush(false)" title="Click to sync now" style="display:flex;align-items:center;gap:7px;background:transparent;border:1px solid rgba(255,255,255,0.08);border-radius:999px;padding:5px 11px;color:var(--gray);cursor:pointer;font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-family:'Inter',sans-serif">
+        <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:#666;transition:all .3s"></span>
+        <span id="sync-text">Cloud: Off</span>
+      </button>
       <button class="open-portal-btn" onclick="openPortal()">View Portal ↗</button>
       <button class="logout-btn" onclick="doLogout()">Log Out</button>
     </div>
@@ -1525,11 +1529,40 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         <div class="settings-block-label">GitHub Personal Access Token</div>
         <label class="f-label" style="margin-bottom:7px">PAT Token</label>
         <input class="f-input" type="password" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"/>
-        <div class="settings-hint">Needs <strong style="color:var(--gray)">Contents: Read & Write</strong> permission on the shift-website repo.<br>
-          <a href="https://github.com/settings/tokens/new?scopes=repo&description=SHIFT+Manager" target="_blank">Create a fine-grained token →</a>
+        <div class="settings-hint">
+          Needs <strong style="color:var(--gray)">Contents: Read &amp; Write</strong> permission on <code>produccion-cmd/shift-website</code>.<br>
+          <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">Create a fine-grained token →</a><br>
+          <span style="color:var(--dim);font-size:11px">Repository access: <em>Only select repositories</em> → <code>produccion-cmd/shift-website</code> · Repository permissions: <em>Contents → Read and write</em></span><br>
+          <span style="color:var(--red);font-size:11px">If you see <em>"Sync failed: Resource not accessible by personal access token"</em>, your PAT lacks Contents write — regenerate with the settings above.</span>
         </div>
         <button class="save-btn" onclick="saveGHToken()">Save Token</button>
         <div class="token-status" id="token-status"></div>
+      </div>
+
+      <div class="settings-block">
+        <div class="settings-block-label">Cloud Sync (Autosave)</div>
+        <p class="settings-hint" style="margin-top:0;margin-bottom:14px">
+          <strong style="color:var(--gray)">Everything you type in this manager (clients, invoices, contracts, tasks, pipeline, productions, calendar events) is autosaved to your GitHub repo</strong> every few seconds after each edit. Open the manager on any device, log in, paste your GitHub PAT above, and your data loads.<br>
+          File: <code>SHIFT_DATABASE_V2.json</code> in <code>produccion-cmd/shift-website</code>. Not synced: password, PAT itself.
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="save-btn" onclick="cloudSyncPush(false)">Sync Now ↑</button>
+          <button class="save-btn" onclick="cloudSyncRestore()" style="background:transparent;border:1px solid var(--border);color:var(--gray)">Restore from Cloud ↓</button>
+        </div>
+        <div class="token-status" id="cloud-sync-status">Status: <span id="cloud-sync-detail">Loading…</span></div>
+      </div>
+
+      <div class="settings-block">
+        <div class="settings-block-label">Vault Sync</div>
+        <p class="settings-hint" style="margin-top:0;margin-bottom:14px">
+          Import CRM + Rate Card from <strong style="color:var(--gray)">crm_seed.json</strong> — generated from Edwin's Obsidian vault (Contacts + Business &amp; LLC rate card).<br>
+          Merges by deterministic ID (<code>crm_vault_&lt;slug&gt;</code>). Existing entries with the same ID are updated in place; manual edits to other fields are preserved. Nothing is deleted.
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="save-btn" onclick="vaultSyncImport(false)">Preview</button>
+          <button class="save-btn" onclick="vaultSyncImport(true)">Import Now</button>
+        </div>
+        <div class="token-status" id="vault-sync-status"></div>
       </div>
 
       <div class="settings-block">
@@ -1690,6 +1723,8 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
     <div class="modal-url" id="modal-url"></div>
     <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
       <button class="copy-btn" id="modal-copy-url" onclick="copyModalUrl()">Copy URL</button>
+      <button class="copy-btn" id="modal-send-client" onclick="sendProposalToClient()" style="display:none">Send to Client ↗</button>
+      <button class="copy-btn" id="modal-download-pdf" onclick="downloadPublishedPDF()" style="display:none">↓ PDF</button>
       <a id="modal-open-link" href="#" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border:1px solid var(--border);color:var(--white);text-decoration:none;font-size:10.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;font-family:'Inter',sans-serif">Open ↗</a>
     </div>
     <div id="modal-deploy-note" style="font-size:11.5px;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:6px">
@@ -2265,7 +2300,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); });
+  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); startAutoSync(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -2275,6 +2310,8 @@ function saveGHToken() {
   sessionStorage.setItem('shift-gh-token', t);
   document.getElementById('gh-token-input').value = '●'.repeat(Math.min(t.length,20));
   setStatus('token-status','Token saved for this session ✓','ok');
+  // Kick a cloud sync check now that we have a token
+  if (typeof startAutoSync === 'function') startAutoSync();
 }
 function loadGHToken() {
   const t = sessionStorage.getItem('shift-gh-token');
@@ -2314,6 +2351,287 @@ function changePW() {
   document.getElementById('pw-current').value = '';
   document.getElementById('pw-new').value = '';
   setStatus('pw-status','Password updated ✓','ok');
+}
+
+// ── VAULT SYNC ──────────────────────────────────────────────
+// Imports CRM contacts + rate card + settings from crm_seed.json
+// (generated from Edwin's Obsidian vault). Merges by deterministic ID.
+// Preview mode reports the diff without writing. Import mode writes.
+async function vaultSyncImport(commit) {
+  const statusEl = document.getElementById('vault-sync-status');
+  setStatus('vault-sync-status', commit ? 'Importing…' : 'Loading preview…', 'ok');
+  let seed;
+  try {
+    const res = await fetch('crm_seed.json', {cache:'no-store'});
+    if (!res.ok) throw new Error('crm_seed.json returned ' + res.status);
+    seed = await res.json();
+  } catch(e) {
+    setStatus('vault-sync-status', 'Fetch failed: ' + e.message, 'err');
+    return;
+  }
+  const seedContacts = Array.isArray(seed.contacts) ? seed.contacts : [];
+  const seedRatecards = Array.isArray(seed.ratecards) ? seed.ratecards : [];
+  const seedSettings = seed.settings || {};
+
+  // ---- Contacts merge ----
+  const crm = JSON.parse(localStorage.getItem('shift-crm') || '[]');
+  const crmById = new Map(crm.map(c => [c.id, c]));
+  let added = 0, updated = 0, unchanged = 0;
+  const now = Date.now();
+  seedContacts.forEach(sc => {
+    const existing = crmById.get(sc.id);
+    if (!existing) {
+      if (commit) crm.unshift({...sc, updated: now});
+      added++;
+    } else {
+      // Preserve manual edits: only overwrite fields that are non-empty in seed.
+      // Tags and notes get merged (union / dedup by ts).
+      const merged = {...existing};
+      let changed = false;
+      const scalar = ['name','company','email','phone','addr','city','country','website','status','lastInvoice','invoiceCount','totalRevenue'];
+      scalar.forEach(f => {
+        if (sc[f] !== undefined && sc[f] !== '' && sc[f] !== null && merged[f] !== sc[f]) {
+          merged[f] = sc[f];
+          changed = true;
+        }
+      });
+      // Tags: union, dedup
+      const tagSet = new Set([...(merged.tags||[]), ...(sc.tags||[])]);
+      if (tagSet.size !== (merged.tags||[]).length) { merged.tags = [...tagSet]; changed = true; }
+      // Notes: keep existing, append seed notes not already present (by text match)
+      const existingNoteTexts = new Set((merged.notes||[]).map(n => (n.text||'').trim()));
+      (sc.notes||[]).forEach(n => {
+        if (!existingNoteTexts.has((n.text||'').trim())) {
+          merged.notes = merged.notes || [];
+          merged.notes.push(n);
+          changed = true;
+        }
+      });
+      if (changed) {
+        merged.updated = now;
+        if (commit) {
+          const idx = crm.findIndex(c => c.id === sc.id);
+          crm[idx] = merged;
+        }
+        updated++;
+      } else {
+        unchanged++;
+      }
+    }
+  });
+
+  // ---- Rate cards merge ----
+  const rc = JSON.parse(localStorage.getItem('shift-ratecards') || '[]');
+  const rcById = new Map(rc.map(r => [r.id, r]));
+  let rcAdded = 0, rcUpdated = 0, rcUnchanged = 0;
+  seedRatecards.forEach(sr => {
+    const existing = rcById.get(sr.id);
+    if (!existing) {
+      if (commit) rc.push(sr);
+      rcAdded++;
+    } else {
+      const merged = {...existing, ...sr};
+      const different = JSON.stringify(merged) !== JSON.stringify(existing);
+      if (different) {
+        if (commit) {
+          const idx = rc.findIndex(r => r.id === sr.id);
+          rc[idx] = merged;
+        }
+        rcUpdated++;
+      } else {
+        rcUnchanged++;
+      }
+    }
+  });
+
+  // ---- Settings ----
+  let settingsApplied = 0;
+  Object.entries(seedSettings).forEach(([k, v]) => {
+    const cur = localStorage.getItem(k);
+    if (cur !== String(v)) {
+      if (commit) localStorage.setItem(k, String(v));
+      settingsApplied++;
+    }
+  });
+
+  // ---- Commit ----
+  if (commit) {
+    localStorage.setItem('shift-crm', JSON.stringify(crm));
+    localStorage.setItem('shift-ratecards', JSON.stringify(rc));
+    // Refresh visible views if they exist
+    try { if (typeof renderCRMList === 'function') renderCRMList(); } catch(e) {}
+    try { if (typeof renderRateCards === 'function') renderRateCards(); } catch(e) {}
+  }
+
+  const verb = commit ? 'Imported' : 'Preview';
+  const msg = `${verb} — Contacts: +${added} new · ${updated} updated · ${unchanged} unchanged. Rate cards: +${rcAdded} new · ${rcUpdated} updated · ${rcUnchanged} unchanged. Settings: ${settingsApplied} changed.` +
+              (commit ? ' ✓' : ' — click "Import Now" to apply.');
+  setStatus('vault-sync-status', msg, 'ok');
+  if (commit) toast('Vault imported ✓', 'ok');
+}
+
+// ── CLOUD SYNC (autosave every localStorage change → GitHub) ──
+const CLOUD_DB_FILE = 'SHIFT_DATABASE_V2.json';
+const CLOUD_SYNC_KEYS = [
+  'shift-crm','shift-contracts','shift-tasks','shift-productions',
+  'shift-ratecards','shift-links','shift-events','shift-pipeline',
+  'shift-quotes','shift-invoices','shift-invoice-counter',
+  'shift-contract-counter','shift-quote-counter','shift-default-payment-terms',
+  'shift-clients'
+];
+let _cloudSyncTimer = null;
+let _cloudSyncBusy = false;
+let _cloudLastSyncHash = '';
+let _cloudSyncFailStreak = 0;
+
+function updateSyncStatus(status, type) {
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-text');
+  const detail = document.getElementById('cloud-sync-detail');
+  if (txt) txt.textContent = status;
+  if (detail) detail.textContent = status;
+  const map = {ok:'#4ade80', err:'#ef4444', sync:'#facc15', off:'#666'};
+  const color = map[type] || map.off;
+  if (dot) {
+    dot.style.background = color;
+    dot.style.boxShadow = (type === 'off' || !type) ? 'none' : `0 0 8px ${color}`;
+  }
+}
+
+function _cloudGatherData() {
+  const data = { version:'2.0', timestamp: Date.now(), keys: {} };
+  CLOUD_SYNC_KEYS.forEach(k => {
+    const v = localStorage.getItem(k);
+    if (v !== null) data.keys[k] = v;
+  });
+  return data;
+}
+
+function _cloudHash(data) {
+  const s = JSON.stringify(data.keys || {});
+  let h = 0;
+  for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+  return String(h);
+}
+
+async function cloudSyncPush(isAuto = false) {
+  const token = getGHToken();
+  if (!token) { updateSyncStatus('Cloud: Off (set PAT above)', 'off'); return; }
+  if (_cloudSyncBusy) return;
+  if (isAuto && _cloudSyncFailStreak >= 3) return; // stop retrying auto after 3 fails
+
+  const data = _cloudGatherData();
+  const h = _cloudHash(data);
+  if (isAuto && h === _cloudLastSyncHash) return; // nothing changed
+
+  _cloudSyncBusy = true;
+  try {
+    updateSyncStatus('Syncing…', 'sync');
+    const json = JSON.stringify(data, null, 2);
+    await publishToGitHub(CLOUD_DB_FILE, json, `Autosave ${new Date().toISOString()}`, token);
+    _cloudLastSyncHash = h;
+    _cloudSyncFailStreak = 0;
+    localStorage.setItem('shift-cloud-last-sync', String(Date.now()));
+    updateSyncStatus('Cloud Synced ✓', 'ok');
+    if (!isAuto) toast('Cloud sync complete ✓','ok');
+  } catch(e) {
+    _cloudSyncFailStreak++;
+    updateSyncStatus('Sync failed — click to retry', 'err');
+    if (!isAuto) toast('Sync failed: '+e.message, 'err');
+    console.error('cloudSyncPush error:', e);
+  } finally {
+    _cloudSyncBusy = false;
+  }
+}
+
+function cloudScheduleSync() {
+  if (_cloudSyncTimer) clearTimeout(_cloudSyncTimer);
+  _cloudSyncTimer = setTimeout(() => cloudSyncPush(true), 3000);
+}
+
+async function cloudSyncPull(silent = false) {
+  const token = getGHToken();
+  if (!token) { if (!silent) toast('Set GitHub PAT in Settings first','err'); return null; }
+  try {
+    const url = `https://api.github.com/repos/${REPO}/contents/${CLOUD_DB_FILE}`;
+    const res = await fetch(url, { headers: {'Authorization':'token '+token, 'Accept':'application/vnd.github+json'} });
+    if (res.status === 404) { if (!silent) toast('No cloud backup yet — creating one','ok'); return null; }
+    if (!res.ok) throw new Error(res.status);
+    const meta = await res.json();
+    const content = decodeURIComponent(escape(atob(meta.content.replace(/\n/g,''))));
+    return JSON.parse(content);
+  } catch(e) {
+    if (!silent) toast('Pull failed: '+e.message, 'err');
+    console.error('cloudSyncPull error:', e);
+    return null;
+  }
+}
+
+async function cloudSyncRestore() {
+  if (!confirm('This will OVERWRITE ALL local data with the cloud backup. Continue?')) return;
+  const remote = await cloudSyncPull(false);
+  if (!remote || !remote.keys) return;
+  Object.entries(remote.keys).forEach(([k,v]) => localStorage.setItem(k, v));
+  toast('Cloud restored — reloading','ok');
+  setTimeout(() => location.reload(), 1200);
+}
+
+async function cloudSyncCheckOnLoad() {
+  const token = getGHToken();
+  if (!token) { updateSyncStatus('Cloud: Off (set PAT)', 'off'); return; }
+  updateSyncStatus('Checking cloud…', 'sync');
+  const remote = await cloudSyncPull(true);
+  if (!remote) {
+    // No cloud backup yet — push whatever we have as the initial one
+    await cloudSyncPush(false);
+    return;
+  }
+  const local = _cloudGatherData();
+  const localHash = _cloudHash(local);
+  const remoteHash = _cloudHash(remote);
+  if (localHash === remoteHash) {
+    _cloudLastSyncHash = localHash;
+    updateSyncStatus('Cloud Synced ✓', 'ok');
+    return;
+  }
+  const remoteTs = remote.timestamp || 0;
+  const localTs = parseInt(localStorage.getItem('shift-cloud-last-sync')||'0');
+  const anyLocalData = CLOUD_SYNC_KEYS.some(k => localStorage.getItem(k));
+  if (!anyLocalData || remoteTs > localTs) {
+    // Cloud is newer OR local is empty — load cloud
+    const msg = !anyLocalData
+      ? 'Cloud backup found — loading your data.'
+      : 'Cloud backup is newer than local (' + new Date(remoteTs).toLocaleString() + '). Load cloud? (Cancel = keep local and push local to cloud.)';
+    if (!anyLocalData || confirm(msg)) {
+      Object.entries(remote.keys).forEach(([k,v]) => localStorage.setItem(k, v));
+      _cloudLastSyncHash = remoteHash;
+      updateSyncStatus('Loaded from Cloud ✓', 'ok');
+      setTimeout(() => location.reload(), 800);
+      return;
+    }
+  }
+  // Local is newer (or user chose local) — push local up
+  await cloudSyncPush(false);
+}
+
+// Wrap localStorage.setItem so every write to a shift-* key triggers debounced autosave.
+// Also fires a 'shift-storage-changed' custom event other tabs can listen to.
+(function installAutosaveHook() {
+  if (localStorage.__shiftHookInstalled) return;
+  localStorage.__shiftHookInstalled = true;
+  const orig = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function(k, v) {
+    orig(k, v);
+    if (CLOUD_SYNC_KEYS.includes(k)) cloudScheduleSync();
+  };
+})();
+
+function startAutoSync() {
+  cloudSyncCheckOnLoad();
+  // Every 5 min background sync catches anything the debounced hook missed
+  if (!window._cloudSyncInterval) {
+    window._cloudSyncInterval = setInterval(() => cloudSyncPush(true), 5 * 60 * 1000);
+  }
 }
 
 // ── PORTAL LINKS ────────────────────────────────────────────
@@ -2542,13 +2860,19 @@ function openProposalPreview() {
   const blob = new Blob([html],{type:'text/html'});
   window.open(URL.createObjectURL(blob),'_blank');
 }
+function _openPrintPDF(html) {
+  const blob = new Blob([html], {type:'text/html'});
+  const win = window.open(URL.createObjectURL(blob), '_blank');
+  if (!win) { toast('Allow popups to export PDF','err'); return false; }
+  const trigger = () => { try { win.print(); } catch(e) {} };
+  win.addEventListener('load', () => setTimeout(trigger, 500));
+  setTimeout(trigger, 1500);
+  return true;
+}
 async function downloadProposalPDF() {
   const d = getProposalData();
   if (!d.client) { toast('Fill in the form first','err'); return; }
-  const html = generateProposalHTML(d);
-  const blob = new Blob([html],{type:'text/html'});
-  const win = window.open(URL.createObjectURL(blob),'_blank');
-  if (win) setTimeout(() => win.print(), 1200);
+  _openPrintPDF(generateProposalHTML(d));
 }
 async function publishProposal() {
   const d = getProposalData();
@@ -2568,7 +2892,7 @@ async function publishProposal() {
     } catch(hubErr) {
       console.warn('Hub update skipped:', hubErr.message);
     }
-    showPublishModal('Proposal Published', url, card);
+    showPublishModal('Proposal Published', url, card, html);
   } catch(e) {
     toast('Publish failed: ' + e.message, 'err');
   }
@@ -4566,13 +4890,19 @@ async function publishToGitHub(filename, html, message, token) {
 
 // ── PUBLISH MODAL ────────────────────────────────────────────
 let _modalCardHTML = '';
+let _lastPublishHtml = '';
 let _deployTimer = null;
-function showPublishModal(title, url, cardHTML) {
+function showPublishModal(title, url, cardHTML, publishHtml) {
   document.getElementById('modal-title').textContent = title;
   document.getElementById('modal-url').textContent = url;
   document.getElementById('modal-open-link').href = url;
   _modalCardHTML = cardHTML;
+  _lastPublishHtml = publishHtml || '';
   document.getElementById('modal-card-html').textContent = cardHTML;
+  const sendBtn = document.getElementById('modal-send-client');
+  const pdfBtn = document.getElementById('modal-download-pdf');
+  if (sendBtn) sendBtn.style.display = publishHtml ? 'inline-flex' : 'none';
+  if (pdfBtn) pdfBtn.style.display = publishHtml ? 'inline-flex' : 'none';
   document.getElementById('publish-modal').classList.add('open');
   toast(title + ' ✓', 'ok');
   // Deployment countdown
@@ -4594,6 +4924,15 @@ function copyModalUrl() {
     btn.textContent = 'Copied ✓'; btn.classList.add('copied');
     setTimeout(()=>{ btn.textContent='Copy URL'; btn.classList.remove('copied'); },2000);
   });
+}
+function downloadPublishedPDF() {
+  if (_lastPublishHtml) _openPrintPDF(_lastPublishHtml);
+  else downloadProposalPDF();
+}
+function sendProposalToClient() {
+  copyModalUrl();
+  if (_lastPublishHtml) _openPrintPDF(_lastPublishHtml);
+  toast('Link copied — save PDF from print dialog to attach','ok');
 }
 function copyCardHTML() {
   navigator.clipboard.writeText(_modalCardHTML).then(() => {
@@ -4643,7 +4982,8 @@ function generateProposalHTML(d) {
     dateLocale: es ? 'es-MX' : 'en-US',
     expiresIn: es ? 'Vence en' : 'Expires in',
     days: es ? 'días' : 'days',
-    validUntil: es ? 'Válida hasta' : 'Valid until'
+    validUntil: es ? 'Válida hasta' : 'Valid until',
+    pdf: es ? 'Descargar PDF' : 'Download PDF'
   };
 
   const tableRows = d.services.map(s => `
@@ -4695,8 +5035,11 @@ a,button{cursor:none}@media(hover:none){body,a,button{cursor:auto}}::selection{b
 nav{position:fixed;top:0;left:0;width:100%;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:20px 48px;border-bottom:1px solid var(--line);background:rgba(10,10,11,.88);backdrop-filter:blur(20px)}
 .nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none}.nav-logo img{height:28px;filter:brightness(0)invert(1)}
 .nav-logo span{font-family:'SHIFTBrand',sans-serif;font-size:20px;line-height:1;color:var(--white);letter-spacing:.5em}
-nav a.back{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);text-decoration:none}
-nav a.back:hover{color:var(--white)}@media(max-width:600px){nav{padding:16px 24px}}
+nav a.back,nav button.back{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);text-decoration:none;background:none;border:none;font-family:inherit;cursor:pointer}
+nav a.back:hover,nav button.back:hover{color:var(--white)}
+.nav-actions{display:flex;align-items:center;gap:20px}
+@media print{.nav-actions .back{display:none!important}}
+@media(max-width:600px){nav{padding:16px 24px}}
 .hero{position:relative;height:100svh;min-height:640px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;z-index:1}
 .hero-bg{position:absolute;inset:0;z-index:0}.hero-bg img{width:100%;height:100%;object-fit:cover;filter:brightness(.4)saturate(.7)}
 .hero-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(to top,rgba(10,10,11,1) 0%,rgba(10,10,11,.6) 40%,rgba(10,10,11,.1) 100%)}
@@ -4756,7 +5099,10 @@ footer small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:
 </div>
 <nav>
   <a href="SHIFT_proposals_hub.html" class="nav-logo"><img src="SHIFT-ICON.svg" alt=""/><span>SHIFT</span></a>
-  <a href="SHIFT_proposals_hub.html" class="back">${L.back}</a>
+  <div class="nav-actions">
+    <button type="button" class="back" onclick="window.print()">${L.pdf}</button>
+    <a href="SHIFT_proposals_hub.html" class="back">${L.back}</a>
+  </div>
 </nav>
 <header class="hero">
   <div class="hero-bg"><img src="${esc(heroImg)}" alt=""/></div>
