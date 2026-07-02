@@ -850,6 +850,11 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .cal-ev-link{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.06em;color:var(--mute);border:1px solid var(--border);padding:4px 10px;text-decoration:none;transition:all .15s}
 .cal-ev-link:hover{color:var(--white);border-color:var(--white)}
 .cal-ev-time{color:var(--gold)}
+.cal-ev-venue{color:var(--mute);text-decoration:none;border-bottom:1px dotted var(--dim)}
+.cal-ev-venue:hover{color:var(--white);border-bottom-color:var(--white)}
+.cal-link-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.cal-link-preset{background:var(--panel);border:1px solid var(--border);color:var(--mute);font-family:'Inter',sans-serif;font-size:11px;padding:5px 10px;cursor:pointer;transition:all .15s}
+.cal-link-preset:hover{color:var(--white);border-color:var(--white)}
 .cal-modal-h{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.02em;margin-bottom:24px}
 .cal-modal-foot{display:flex;gap:10px;margin-top:24px;justify-content:flex-end}
 .cal-save-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:12px 24px;border:none;cursor:pointer}
@@ -5604,6 +5609,30 @@ function renderDraftBars() {
 function _eventsLoad() { return JSON.parse(localStorage.getItem('shift-events')||'[]'); }
 function _eventsSave(d) { localStorage.setItem('shift-events', JSON.stringify(d)); }
 
+// Icon for an event link chip based on where it points.
+function _calLinkIcon(url) {
+  const u = (url||'').toLowerCase();
+  if (u.includes('google.com/maps') || u.includes('maps.app.goo.gl') || u.includes('goo.gl/maps')) return '📍';
+  if (u.includes('docs.google.com/spreadsheets')) return '📊';
+  if (u.includes('docs.google.com/document')) return '📄';
+  if (u.includes('docs.google.com/presentation')) return '🎞';
+  if (u.includes('docs.google.com/forms')) return '📝';
+  if (u.includes('drive.google.com')) return '📁';
+  if (u.includes('spotify.com') || u.includes('music.apple') || u.includes('soundcloud')) return '🎵';
+  if (u.includes('youtube.com') || u.includes('youtu.be') || u.includes('vimeo')) return '🎬';
+  if (u.includes('wa.me') || u.includes('whatsapp')) return '💬';
+  return '🔗';
+}
+
+// Preset buttons in the event editor: prefill the label (and URL stem for
+// Maps) so adding common links is one paste away.
+function calLinkPreset(label, urlStem) {
+  document.getElementById('cal-ev-link-label').value = label;
+  const urlIn = document.getElementById('cal-ev-link-url');
+  if (urlStem && !urlIn.value) urlIn.value = urlStem;
+  urlIn.focus();
+}
+
 // Render an event's OWN assigned services (set in the event editor) —
 // shown instead of the whole-client package block.
 function _calOwnServicesHTML(ev) {
@@ -5881,11 +5910,11 @@ function renderCalendar() {
         <div class="cal-ev-meta">
           <span class="cal-ev-type ${typeClass}">${typeLabel}</span>
           ${ev.startTime?`<span class="cal-ev-time">⏱ ${ev.startTime}${ev.endTime?'–'+ev.endTime:''}</span>`:''}
-          ${ev.venue?`<span>📍 ${esc(ev.venue)}</span>`:''}
+          ${ev.venue?`<a class="cal-ev-venue" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.venue)}" target="_blank" rel="noopener" title="Open in Google Maps">📍 ${esc(ev.venue)}</a>`:''}
           ${ev.notes?`<span>${esc(ev.notes)}</span>`:''}
         </div>
         ${_calOwnServicesHTML(ev)}
-        ${(ev.links||[]).length?`<div class="cal-ev-links">${ev.links.map(l=>`<a class="cal-ev-link" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('')}</div>`:''}
+        ${(ev.links||[]).length?`<div class="cal-ev-links">${ev.links.map(l=>`<a class="cal-ev-link" href="${esc(l.url)}" target="_blank" rel="noopener">${_calLinkIcon(l.url)} ${esc(l.label)} ↗</a>`).join('')}</div>`:''}
         ${(!ev.services || !ev.services.length) && ev.type !== 'invoice' ? _servicesBlockHTML(ev.client, 'cal-' + ev.id, ev.clientId) : ''}
       </div>
       ${delBtn?`<div class="cal-ev-actions">${delBtn}</div>`:''}
@@ -5950,7 +5979,12 @@ function calSvcRemove(i) { _calModalSvcs.splice(i,1); _calRenderModalSvcs(); }
 function calLinkAdd() {
   const label = document.getElementById('cal-ev-link-label').value.trim();
   let url = document.getElementById('cal-ev-link-url').value.trim();
-  if (!url) { toast('Enter a URL','err'); return; }
+  if (!url) { toast('Enter a URL or an address','err'); return; }
+  // A plain address (no protocol, no dot-something) becomes a Maps search —
+  // so typing "Palacio Metropolitano CDMX" just works.
+  if (!/^https?:\/\//i.test(url) && !/^[\w-]+(\.[\w-]+)+/.test(url)) {
+    url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(url);
+  }
   if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
   _calModalLinks.push({ label: label || url.replace(/^https?:\/\//,'').slice(0,40), url });
   document.getElementById('cal-ev-link-label').value = '';
@@ -6698,11 +6732,18 @@ function crmNewProduction(id) {
       </div>
     </div>
 
-    <div class="f-row" style="margin-top:18px"><label class="f-label">Links (run of show, rider, playlist…)</label>
+    <div class="f-row" style="margin-top:18px"><label class="f-label">Links (maps, sheets, drive, run of show…)</label>
       <div id="cal-ev-links-list"></div>
+      <div class="cal-link-presets">
+        <button type="button" class="cal-link-preset" onclick="calLinkPreset('Google Maps','https://www.google.com/maps/search/?api=1&query=')">📍 Maps</button>
+        <button type="button" class="cal-link-preset" onclick="calLinkPreset('Google Sheet','')">📊 Sheet</button>
+        <button type="button" class="cal-link-preset" onclick="calLinkPreset('Drive Folder','')">📁 Drive</button>
+        <button type="button" class="cal-link-preset" onclick="calLinkPreset('Run of Show','')">📄 Run of Show</button>
+        <button type="button" class="cal-link-preset" onclick="calLinkPreset('Playlist','')">🎵 Playlist</button>
+      </div>
       <div style="display:flex;gap:8px;margin-top:8px">
         <input class="f-input" id="cal-ev-link-label" placeholder="Label (Run of Show)" style="flex:1;min-width:0"/>
-        <input class="f-input" id="cal-ev-link-url" placeholder="https://…" style="flex:2;min-width:0"/>
+        <input class="f-input" id="cal-ev-link-url" placeholder="https://…  (paste any Maps / Sheets / Drive / Docs link)" style="flex:2;min-width:0"/>
         <button class="prod-add-btn" type="button" onclick="calLinkAdd()">Add</button>
       </div>
     </div>
