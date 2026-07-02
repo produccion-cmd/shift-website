@@ -115,6 +115,9 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .money-sub{font-size:11.5px;color:var(--mute);margin-top:5px}
 .money-ledger-btn{background:none;border:1px solid var(--border);color:var(--mute);font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:5px 10px;cursor:pointer;transition:all .15s}
 .money-ledger-btn:hover{color:var(--white);border-color:var(--white)}
+/* Flash highlight when jumping to a calendar event */
+@keyframes calFlash{0%,60%{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}100%{border-color:var(--border);box-shadow:none}}
+.cal-event.cal-flash{animation:calFlash 2.4s ease-out}
 .action-filename{flex:1;min-width:180px;background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'Inter',sans-serif;font-size:12px;padding:9px 14px;outline:none;transition:border-color .2s}
 .action-filename:focus{border-color:#555;color:var(--white)}
 .action-btn{font-size:10.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:10px 20px;cursor:pointer;font-family:'Inter',sans-serif;border:none;transition:opacity .2s,background .2s,color .2s}
@@ -2679,7 +2682,7 @@ function _docsCollect() {
         amount: r.value || 0, currency: r.currency || 'USD',
         status: statusMap[r.stage] || r.stage,
         date: r.updated ? new Date(r.updated).toISOString().slice(0,10) : (r.created ? new Date(r.created).toISOString().slice(0,10) : ''),
-        url: '', sourceKey: 'shift-pipeline'
+        url: _extractDocUrl(r.notes), sourceKey: 'shift-pipeline'
       });
     });
   } catch(e) {}
@@ -4311,10 +4314,17 @@ function _renderClientActivity(clientId, clientName) {
   const acts = _getClientActivity(clientId, clientName);
   const BADGE = { invoice:'INV', contract:'CTR', quote:'QQ', event:'EVT', proposal:'PROP', production:'PROD' };
   const BADGE_CLASS = { invoice:'crm-act-badge-inv', contract:'crm-act-badge-ctr', quote:'crm-act-badge-quote', event:'crm-act-badge-ev', proposal:'crm-act-badge-prop', production:'crm-act-badge-quote' };
-  const NAV = { invoice:`switchTab('invoices')`, contract:`switchTab('contracts')`, quote:`switchTab('quickquote')`, event:`switchTab('calendar')`, proposal:`switchTab('proposals')`, production:`switchTab('productions')` };
+  const NAV = a => ({
+    invoice:`switchTab('invoices');setTimeout(()=>switchInvView('track'),50)`,
+    contract:`switchTab('contracts')`,
+    quote:`switchTab('quickquote')`,
+    event:`calGoToEvent('${a.id}')`,
+    proposal:`switchTab('proposals')`,
+    production:`prodGoTo('${a.id}')`
+  }[a.type] || '');
   const fmtAmt = n => n>0 ? '$'+parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
   const items = acts.map(a => `
-    <div class="crm-act-item" onclick="${NAV[a.type]||''}">
+    <div class="crm-act-item" onclick="${NAV(a)}">
       <div class="crm-act-badge ${BADGE_CLASS[a.type]||'crm-act-badge-ev'}">${BADGE[a.type]||'EV'}</div>
       <div class="crm-act-body">
         <div class="crm-act-title">${esc(a.label)}</div>
@@ -6059,68 +6069,127 @@ function _eventsLoad() { return JSON.parse(localStorage.getItem('shift-events')|
 function _eventsSave(d) { localStorage.setItem('shift-events', JSON.stringify(d)); }
 
 // ── SERVICES PER EVENT ───────────────────────────────────────
-// Gather everything sold (invoices, contracts) or proposed (proposals, quotes)
-// for a client, with line items. Docs published before line-item tracking only
-// have a total — those show as a single "(details not stored)" line.
-function _servicesForClient(client) {
-  const key = (client||'').trim().toLowerCase();
-  if (!key) return [];
-  const match = c => (c||'').trim().toLowerCase() === key;
+// Gather everything sold (invoices, contracts, won deals) or proposed
+// (proposals, quotes, pipeline deals) for a client, with line items.
+// Matching is smart: the event's client name is expanded via the CRM
+// (clientId → contact name + company) and compared with word-bounded
+// phrase containment, so "DJD" matches "Desi Junction DJs (DJD)".
+
+// Pull a shiftevnts.com/*.html link out of free text (pipeline notes often
+// carry the live proposal URL).
+function _extractDocUrl(text) {
+  const m = (text||'').match(/(?:https?:\/\/)?((?:www\.)?shiftevnts\.com\/[A-Za-z0-9_\-.%]+\.html)/i);
+  return m ? 'https://' + m[1].replace(/^www\./i,'') : '';
+}
+
+function _svcMatchKeys(client, clientId) {
+  const keys = [];
+  const add = s => { s = (s||'').trim().toLowerCase(); if (s && !keys.includes(s)) keys.push(s); };
+  add(client);
+  try {
+    const crm = _crmLoad();
+    const contact = (clientId && crm.find(c => c.id === clientId))
+      || crm.find(c => (c.name||'').trim().toLowerCase() === (client||'').trim().toLowerCase())
+      || null;
+    if (contact) { add(contact.name); add(contact.company); }
+  } catch(e) {}
+  return keys;
+}
+
+// True when any key phrase appears word-bounded inside hay, or hay inside a key.
+function _svcNameMatch(hay, keys) {
+  const norm = s => ' ' + (s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim() + ' ';
+  const h = norm(hay);
+  if (h.trim().length < 2) return false;
+  return keys.some(k => {
+    const kn = norm(k);
+    if (kn.trim().length < 2) return false;
+    return h.includes(kn) || kn.includes(h);
+  });
+}
+
+function _servicesForClient(client, clientId) {
+  const keys = _svcMatchKeys(client, clientId);
+  if (!keys.length) return [];
+  const match = r => _svcNameMatch(r.client, keys) || _svcNameMatch(r.company, keys);
   const groups = [];
   try {
-    _invoicesLoad().filter(r => match(r.client)).forEach(r => groups.push({
+    _invoicesLoad().filter(match).forEach(r => groups.push({
       kind: 'sold',
       badge: 'INV', num: r.invoiceNum || 'Invoice', status: r.status || 'sent',
-      total: r.amount || 0, url: r.url || '',
+      total: r.amount || 0, currency: r.currency || 'USD', url: r.url || '',
       items: (r.items||[]).map(x => ({ name: x.desc, qty: x.qty, price: x.amount }))
     }));
   } catch(e) {}
   try {
-    (JSON.parse(localStorage.getItem('shift-contracts')||'[]')).filter(r => match(r.client)).forEach(r => groups.push({
+    (JSON.parse(localStorage.getItem('shift-contracts')||'[]')).filter(match).forEach(r => groups.push({
       kind: 'sold',
       badge: 'CTR', num: r.contractNum || 'Contract', status: r.status || 'sent',
-      total: r.total || 0, url: r.url || '',
+      total: r.total || 0, currency: r.currency || 'USD', url: r.url || '',
       items: (r.items||[]).map(x => ({ name: x.desc, price: x.amount }))
     }));
   } catch(e) {}
   try {
-    _proposalsLoad().filter(r => match(r.client)).forEach(r => groups.push({
+    _proposalsLoad().filter(match).forEach(r => groups.push({
       kind: r.status === 'approved' ? 'sold' : 'proposed',
       badge: 'PROP', num: r.title || r.filename || 'Proposal', status: r.status || 'sent',
-      total: r.amount || 0, url: r.url || '',
+      total: r.amount || 0, currency: r.currency || 'USD', url: r.url || '',
       items: (r.services||[]).map(s => ({ name: s.name, price: s.price }))
     }));
   } catch(e) {}
   try {
-    _quotesLoad().filter(r => match(r.client)).forEach(r => groups.push({
+    _quotesLoad().filter(r => _svcNameMatch(r.client, keys)).forEach(r => groups.push({
       kind: 'proposed',
       badge: 'QQ', num: r.num || 'Quote', status: (r.exp && Date.now()/1000 > r.exp) ? 'expired' : 'valid',
-      total: parseFloat(r.amount||0), url: '',
+      total: parseFloat(r.amount||0), currency: 'USD', url: '',
       items: r.desc ? [{ name: r.desc, price: parseFloat(r.amount||0) }] : []
     }));
+  } catch(e) {}
+  // Pipeline deals — these are often the only trace of a sent proposal.
+  try {
+    const PIPE_BADGE = { lead:'LEAD', proposal:'PROP', negotiation:'NEG', won:'WON' };
+    _pipeLoad().forEach(r => {
+      if (r.stage === 'lost') return;
+      if (!(_svcNameMatch(r.name, keys) || _svcNameMatch(r.company, keys))) return;
+      groups.push({
+        kind: r.stage === 'won' ? 'sold' : 'proposed',
+        badge: PIPE_BADGE[r.stage] || 'DEAL',
+        num: r.name || 'Pipeline deal',
+        status: (PIPE_STAGES.find(s=>s.id===r.stage)?.label || r.stage || '').toLowerCase(),
+        total: r.value || 0, currency: r.currency || 'USD',
+        url: _extractDocUrl(r.notes),
+        items: r.notes ? [{ name: r.notes.length > 130 ? r.notes.slice(0,130) + '…' : r.notes }] : []
+      });
+    });
   } catch(e) {}
   return groups;
 }
 
-function _servicesBlockHTML(client, uid) {
-  const groups = _servicesForClient(client);
+function _servicesBlockHTML(client, uid, clientId) {
+  const groups = _servicesForClient(client, clientId);
   if (!groups.length) return '';
-  const soldTotal = groups.filter(g=>g.kind==='sold').reduce((s,g)=>s+g.total,0);
-  const propTotal = groups.filter(g=>g.kind==='proposed').reduce((s,g)=>s+g.total,0);
+  const fmtCur = (v, c) => '$' + fmtPrice(v) + (c && c !== 'USD' ? ' ' + c : '');
+  const sumByCur = kind => {
+    const t = {};
+    groups.filter(g => g.kind === kind).forEach(g => { const c = g.currency || 'USD'; t[c] = (t[c]||0) + (g.total||0); });
+    return Object.entries(t).filter(([,v]) => v > 0).map(([c,v]) => fmtCur(v, c)).join(' + ');
+  };
+  const soldStr = sumByCur('sold');
+  const propStr = sumByCur('proposed');
   const parts = [];
-  if (soldTotal > 0) parts.push(`<span class="svcs-sum-sold">SOLD $${fmtPrice(soldTotal)}</span>`);
-  if (propTotal > 0) parts.push(`<span class="svcs-sum-prop">PROPOSED $${fmtPrice(propTotal)}</span>`);
+  if (soldStr) parts.push(`<span class="svcs-sum-sold">SOLD ${soldStr}</span>`);
+  if (propStr) parts.push(`<span class="svcs-sum-prop">PROPOSED ${propStr}</span>`);
   const body = groups.map(g => {
     const itemsHTML = g.items.length
-      ? g.items.map(it => `<div class="svcs-item"><span class="svcs-item-name">${it.qty && it.qty > 1 ? it.qty + '× ' : ''}${esc(it.name || '—')}</span><span class="svcs-item-price">${it.price ? '$' + fmtPrice(it.price) : ''}</span></div>`).join('')
+      ? g.items.map(it => `<div class="svcs-item"><span class="svcs-item-name">${it.qty && it.qty > 1 ? it.qty + '× ' : ''}${esc(it.name || '—')}</span><span class="svcs-item-price">${it.price ? fmtCur(it.price, g.currency) : ''}</span></div>`).join('')
       : '<div class="svcs-item"><span class="svcs-item-name" style="color:var(--dim)">(details not stored — published before line-item tracking)</span></div>';
     return `<div class="svcs-group">
       <div class="svcs-group-hd">
         <span class="svcs-badge svcs-${g.kind}">${g.badge}</span>
         <span class="svcs-group-num">${esc(g.num)}</span>
         <span class="svcs-group-status">${esc(g.status)}</span>
-        <span class="svcs-group-total">$${fmtPrice(g.total)}</span>
-        ${g.url ? `<a href="${esc(g.url)}" target="_blank" class="svcs-group-open">↗</a>` : ''}
+        <span class="svcs-group-total">${fmtCur(g.total, g.currency)}</span>
+        ${g.url ? `<a href="${esc(g.url)}" target="_blank" class="svcs-group-open" title="Open the sent document">↗ open</a>` : ''}
       </div>
       ${itemsHTML}
     </div>`;
@@ -6156,7 +6225,7 @@ function renderCalendar() {
   _eventsLoad().forEach(e => {
     const dt = new Date(e.date + 'T12:00:00');
     if (cutoff && dt > cutoff) return;
-    events.push({ date: dt, title: e.title, client: e.client||'', type: e.type||'other', id: e.id, manual: true, notes: e.notes||'' });
+    events.push({ date: dt, title: e.title, client: e.client||'', clientId: e.clientId||'', type: e.type||'other', id: e.id, manual: true, notes: e.notes||'' });
   });
 
   // From contracts (eventDate)
@@ -6209,7 +6278,7 @@ function renderCalendar() {
     const delBtn   = ev.manual
       ? `<button class="cal-ev-del" onclick="calDelete('${ev.id}')">✕</button><button class="cal-ev-edit" onclick="calOpenEdit('${ev.id}')">Edit</button>`
       : '';
-    html += `<div class="cal-event${isPast?' past':''} type-${ev.type}">
+    html += `<div class="cal-event${isPast?' past':''} type-${ev.type}" id="cal-ev-${ev.id}">
       <div class="cal-event-date-col">
         <div class="cal-ev-day${isToday?' cal-ev-today':''}">${day}</div>
         <div class="cal-ev-dow${isToday?' cal-ev-today':''}">${dow}</div>
@@ -6221,7 +6290,7 @@ function renderCalendar() {
           <span class="cal-ev-type ${typeClass}">${typeLabel}</span>
           ${ev.notes?`<span>${esc(ev.notes)}</span>`:''}
         </div>
-        ${ev.type !== 'invoice' ? _servicesBlockHTML(ev.client, 'cal-' + ev.id) : ''}
+        ${ev.type !== 'invoice' ? _servicesBlockHTML(ev.client, 'cal-' + ev.id, ev.clientId) : ''}
       </div>
       ${delBtn?`<div class="cal-ev-actions">${delBtn}</div>`:''}
     </div>`;
@@ -6284,6 +6353,26 @@ function calDelete(id) {
   if (!confirm('Remove this event?')) return;
   _eventsSave(_eventsLoad().filter(e => e.id !== id));
   renderCalendar();
+}
+
+// Jump from anywhere (CRM activity, docs hub) to a specific calendar event:
+// switch tab, widen the filter to All so far-out dates aren't hidden, then
+// scroll to the row and flash it.
+function calGoToEvent(id) {
+  switchTab('calendar');
+  setCalFilter(0);
+  setTimeout(() => {
+    const el = document.getElementById('cal-ev-' + id);
+    if (!el) { toast('Event not found in calendar','err'); return; }
+    el.scrollIntoView({ behavior:'smooth', block:'center' });
+    el.classList.add('cal-flash');
+    setTimeout(() => el.classList.remove('cal-flash'), 2400);
+  }, 80);
+}
+
+function prodGoTo(id) {
+  switchTab('productions');
+  setTimeout(() => prodSelectEvent(id), 50);
 }
 
 document.addEventListener('keydown', e => { if (e.key==='Escape') { calCloseModal(); prodModalClose(); } });
@@ -6542,7 +6631,7 @@ function renderProdDetail(id) {
 
     <div class="prod-section">
       <div class="prod-section-hd"><div class="prod-section-lbl">Services Sold / Proposed</div></div>
-      ${_servicesBlockHTML(p.client, 'prod-' + id) || '<div style="font-size:12px;color:var(--dim);padding:4px 0">No invoices, contracts, proposals or quotes found for this client yet.</div>'}
+      ${_servicesBlockHTML(p.client, 'prod-' + id, p.clientId) || '<div style="font-size:12px;color:var(--dim);padding:4px 0">No invoices, contracts, proposals or quotes found for this client yet.</div>'}
     </div>
 
     <div class="prod-section">
