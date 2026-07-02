@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /manager_v2.html
+Disallow: /SHIFT_proposals_hub.html
+Disallow: /SHIFT_quick_quote.html
+Allow: /
