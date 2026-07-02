@@ -1,0 +1,9 @@
+# Private CRM data — lives in produccion-cmd/shift-data (PRIVATE repo).
+# This is a PUBLIC repo; never commit contact/rate-card data here.
+crm_seed.json
+SHIFT_DATABASE_V2.json
+
+# Editor / tooling
+.cursor/
+.claude/
+.DS_Store

@@ -69,6 +69,17 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 footer small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1)}.reveal.in{opacity:1;transform:none}
 @media print{nav,#bg-canvas,#cur-dot,#cur-ring,#expired-overlay,.scroll-cue{display:none!important}body{background:#fff;color:#111;cursor:auto}:root{--bg:#fff;--white:#111;--mute:#555;--dim:#888;--line:#ddd;--line-soft:#eee;--panel:#f5f5f5}section{border-color:#e0e0e0}}
+
+/* Print / PDF export — added so saved PDFs are readable (light theme, all content revealed) */
+@media print{
+  nav,#bg-canvas,#cur-dot,#cur-ring,#scroll-bar,#expired-overlay,.scroll-cue{display:none!important}
+  :root{--bg:#fff;--white:#111;--mute:#555;--dim:#777;--dim-solid:#777;--line:#ddd;--line-soft:#eee;--panel:#f5f5f5;--tile:#f5f5f5}
+  body{background:#fff!important;color:#111!important;cursor:auto}
+  .reveal{opacity:1!important;transform:none!important;transition:none!important}
+  .hero{height:auto!important;min-height:0!important}
+  .hero-bg,.hero-overlay{display:none!important}
+  section{break-inside:avoid-page;border-color:#e0e0e0!important}
+}
 </style>
 </head>
 <body>
@@ -169,4 +180,5 @@ document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseent
 (function lag(){requestAnimationFrame(lag);rx+=(mx-rx)*.11;ry+=(my-ry)*.11;ring.style.left=rx+'px';ring.style.top=ry+'px';})();})();
 (function(){const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}}),{threshold:.1,rootMargin:'0px 0px -6% 0px'});document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=i%5*65+'ms';io.observe(el);});})();
 </script>
+<script>window.addEventListener("beforeprint",function(){document.querySelectorAll(".reveal").forEach(function(el){el.classList.add("in")})});</script>
 </body></html>

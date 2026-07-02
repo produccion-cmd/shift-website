@@ -74,6 +74,15 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 
 /* ACTION BAR */
 .action-bar{border-top:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0;background:var(--bg)}
+.drafts-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 28px;border-top:1px dashed var(--border);background:var(--bg)}
+.drafts-bar-lbl{font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.draft-chip{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;color:var(--mute);background:var(--panel);border:1px solid var(--border);padding:5px 8px 5px 12px;cursor:pointer;transition:all .15s;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.draft-chip:hover{color:var(--white);border-color:var(--white)}
+.draft-chip.active{color:var(--gold);border-color:var(--gold)}
+.draft-chip-x{background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;padding:2px 4px;line-height:1}
+.draft-chip-x:hover{color:#f87171}
+.doc-type-badge.draft{color:#facc15;border-color:rgba(250,204,21,.35)}
+.doc-status.draft{color:#facc15}
 .action-filename{flex:1;min-width:180px;background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'Inter',sans-serif;font-size:12px;padding:9px 14px;outline:none;transition:border-color .2s}
 .action-filename:focus{border-color:#555;color:var(--white)}
 .action-btn{font-size:10.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:10px 20px;cursor:pointer;font-family:'Inter',sans-serif;border:none;transition:opacity .2s,background .2s,color .2s}
@@ -981,6 +990,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         <button class="docs-chip"    data-typef="contract"  onclick="docSetType('contract')">Contracts</button>
         <button class="docs-chip"    data-typef="quote"     onclick="docSetType('quote')">Quotes</button>
         <button class="docs-chip"    data-typef="link"      onclick="docSetType('link')">Portal Links</button>
+        <button class="docs-chip"    data-typef="draft"     onclick="docSetType('draft')">Drafts</button>
       </div>
 
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:22px">
@@ -1114,7 +1124,9 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         <textarea class="f-textarea" id="qq-notes" placeholder="Payment terms, inclusions, exclusions…" rows="2"></textarea>
       </div>
 
+      <div class="drafts-bar" id="drafts-bar-quote" style="display:none;padding:10px 0;border-top:none"></div>
       <button class="qq-gen-btn" onclick="generateQuote()">Generate Quote Link</button>
+      <button class="btn-secondary action-btn" style="width:100%;justify-content:center;display:flex;margin-top:10px" onclick="saveDraft('quote')">💾 Save Draft</button>
 
       <div class="qq-result" id="qq-result">
         <div class="result-label">Shareable Quote Link</div>
@@ -1211,8 +1223,10 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       </div>
     </div>
 
+    <div class="drafts-bar" id="drafts-bar-proposal" style="display:none"></div>
     <div class="action-bar">
       <input class="action-filename" id="p-filename" placeholder="SHIFT_PROPUESTA_CLIENT.html"/>
+      <button class="action-btn btn-secondary" onclick="saveDraft('proposal')">💾 Save Draft</button>
       <button class="action-btn btn-pdf" onclick="downloadProposalPDF()">↓ PDF / Print</button>
       <button class="action-btn btn-secondary" onclick="openProposalPreview()">↗ Open Preview</button>
       <button class="action-btn btn-primary" onclick="publishProposal()">↑ Publish to Portal</button>
@@ -1320,8 +1334,10 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       </div>
     </div>
 
+    <div class="drafts-bar" id="drafts-bar-invoice" style="display:none"></div>
     <div class="action-bar">
       <input class="action-filename" id="i-filename" placeholder="SHIFT_INVOICE_001.html"/>
+      <button class="action-btn btn-secondary" onclick="saveDraft('invoice')">💾 Save Draft</button>
       <button class="action-btn btn-pdf" onclick="downloadInvoicePDF()">↓ PDF / Print</button>
       <button class="action-btn btn-secondary" onclick="openInvoicePreview()">↗ Open Preview</button>
       <button class="action-btn btn-primary" onclick="publishInvoice()">↑ Publish to Portal</button>
@@ -1451,8 +1467,10 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       </div>
     </div>
 
+    <div class="drafts-bar" id="drafts-bar-contract" style="display:none"></div>
     <div class="action-bar">
       <input class="action-filename" id="c-filename" placeholder="SHIFT_CONTRACT_SC-2026-001.html"/>
+      <button class="action-btn btn-secondary" onclick="saveDraft('contract')">💾 Save Draft</button>
       <button class="action-btn btn-pdf" onclick="downloadContractPDF()">↓ PDF / Print</button>
       <button class="action-btn btn-secondary" onclick="openContractPreview()">↗ Open Preview</button>
       <button class="action-btn btn-primary" onclick="publishContract()">↑ Publish to Portal</button>
@@ -2366,12 +2384,16 @@ function doLogin() {
     initForms();
     renderHistory();
     loadGHToken();
+    loadSettings();
     crmInit();
     rcInit();
     renderDashboard();
     _refreshOverdueBadge();
+    _refreshTaskBadge();
     initContractForm();
     initQuoteForm();
+    renderDraftBars();
+    startAutoSync();
   } else {
     document.getElementById('login-err').textContent = 'Incorrect password.';
     document.getElementById('pw').value = '';
@@ -2388,7 +2410,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); startAutoSync(); });
+  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); renderDraftBars(); startAutoSync(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -2573,6 +2595,23 @@ function _docsCollect() {
     });
   } catch(e) {}
 
+  // Drafts — unfinished docs of any type, resumable from the hub
+  try {
+    (JSON.parse(localStorage.getItem('shift-drafts') || '[]')).forEach(r => {
+      out.push({
+        type: 'draft',
+        id: r.id, number: (DRAFT_LABELS[r.type] || r.type),
+        title: r.name || 'Draft',
+        subtitle: (DRAFT_LABELS[r.type] || r.type) + ' draft · saved ' + _timeAgo(r.savedAt || r.created),
+        client: r.name || '',
+        amount: 0, currency: '',
+        status: 'draft',
+        date: r.savedAt ? new Date(r.savedAt).toISOString().slice(0,10) : '',
+        url: '', sourceKey: 'shift-drafts'
+      });
+    });
+  } catch(e) {}
+
   return out;
 }
 
@@ -2642,6 +2681,7 @@ function renderDocumentsHub() {
 
 // When a doc doesn't have a published URL, clicking View jumps to the origin tab
 function docJumpToSource(type, id) {
+  if (type === 'draft') { resumeDraft(id); return; }
   const map = { invoice:'invoices', contract:'contracts', quote:'quickquote', link:'links', proposal:'pipeline' };
   const tab = map[type] || 'documents';
   switchTab(tab);
@@ -2772,7 +2812,7 @@ const CLOUD_SYNC_KEYS = [
   'shift-ratecards','shift-links','shift-events','shift-pipeline',
   'shift-quotes','shift-invoices','shift-proposals','shift-invoice-counter',
   'shift-contract-counter','shift-quote-counter','shift-default-payment-terms',
-  'shift-clients'
+  'shift-clients','shift-drafts'
 ];
 let _cloudSyncTimer = null;
 let _cloudSyncBusy = false;
@@ -3256,6 +3296,7 @@ async function publishProposal() {
     // Persist real proposal record so Documents Hub can show it (no more
     // relying on pipeline stage as the only proxy).
     saveProposalRecord(d, url, filename);
+    _draftConsume('proposal');
     showPublishModal('Proposal Published', url, card, html);
   } catch(e) {
     toast('Publish failed: ' + e.message, 'err');
@@ -3419,8 +3460,7 @@ function openInvoicePreview() {
 async function downloadInvoicePDF() {
   const d = getInvoiceData();
   if (!d.client) { toast('Fill in the form first','err'); return; }
-  const win = window.open(URL.createObjectURL(new Blob([generateInvoiceHTML(d)],{type:'text/html'})),'_blank');
-  if (win) setTimeout(()=>win.print(),1200);
+  _openPrintPDF(generateInvoiceHTML(d));
 }
 // ── CRM ──────────────────────────────────────────────────────
 let _crmSelected = null; // id of selected contact
@@ -4260,6 +4300,7 @@ async function generateQuote() {
   history.unshift({ num, client, clientId, amount: amount.toFixed(2), validUntil, exp, url, created: Date.now() });
   _quotesSave(history.slice(0,100));
   renderQuoteHistory();
+  _draftConsume('quote');
   toast(`Quote ${num} generated ✓`, 'ok');
 }
 
@@ -4700,8 +4741,7 @@ function openContractPreview() {
 function downloadContractPDF() {
   const d = getContractData();
   if (!d.client) { toast('Fill in the form first','err'); return; }
-  const win = window.open(URL.createObjectURL(new Blob([generateContractHTML(d)],{type:'text/html'})),'_blank');
-  if (win) setTimeout(()=>win.print(),1200);
+  _openPrintPDF(generateContractHTML(d));
 }
 
 async function publishContract() {
@@ -4726,6 +4766,7 @@ async function publishContract() {
       total:d.total, status:'sent', url, created:Date.now() });
     localStorage.setItem('shift-contracts', JSON.stringify(records.slice(0,100)));
     renderContractHistory();
+    _draftConsume('contract');
     showPublishModal('Contract Published', url, `<!-- Contract: ${d.contractNum} — ${d.client} -->`);
   } catch(e) {
     toast('Publish failed: '+e.message,'err');
@@ -5269,6 +5310,7 @@ async function publishInvoice() {
     _saveClientOnPublish(d, d.invoiceNum);
     _crmOnInvoicePublish(d, d.invoiceNum, d.total);
     saveInvoiceRecord(d, url);
+    _draftConsume('invoice');
     // Advance to next number now that this one is saved
     _setNextInvoiceNum();
     document.getElementById('i-date').value = todayISO();
@@ -5398,6 +5440,134 @@ function copyCardHTML() {
     const btn = document.getElementById('modal-copy-card-btn');
     btn.textContent = 'Copied ✓'; btn.classList.add('copied');
     setTimeout(()=>{ btn.textContent='Copy Card HTML'; btn.classList.remove('copied'); },2000);
+  });
+}
+
+// ── DRAFTS ──────────────────────────────────────────────────
+// Save any half-finished proposal / invoice / contract / quick quote and
+// resume it later. Drafts live in localStorage under 'shift-drafts' (cloud-
+// synced via CLOUD_SYNC_KEYS) as { id, type, name, fields, rows, savedAt }.
+const DRAFT_FIELDS = {
+  proposal: ['p-client-id','p-client','p-company','p-city','p-lang','p-title','p-subtitle','p-date','p-expiry','p-intro','p-hero','p-deposit','p-notes','p-forms','p-filename'],
+  invoice:  ['i-num','i-lang','i-date','i-due','i-payment-terms','i-client-id','i-client','i-company','i-addr','i-city','i-country','i-email','i-tax','i-payment','i-notes','i-filename'],
+  contract: ['c-num','c-lang','c-date','c-event-date','c-client','c-company','c-addr','c-city','c-country','c-event','c-venue','c-deposit-pct','c-deposit-due','c-balance-due','c-payment-inst','c-cancel','c-liability','c-terms','c-filename'],
+  quote:    ['qq-client-id','qq-client','qq-num','qq-amount','qq-valid','qq-desc','qq-notes']
+};
+const DRAFT_TABS   = { proposal:'proposals', invoice:'invoices', contract:'contracts', quote:'quickquote' };
+const DRAFT_LABELS = { proposal:'Proposal', invoice:'Invoice', contract:'Contract', quote:'Quick Quote' };
+let _activeDraftId = { proposal:null, invoice:null, contract:null, quote:null };
+
+function _draftsLoad() { return JSON.parse(localStorage.getItem('shift-drafts') || '[]'); }
+function _draftsSave(d) { localStorage.setItem('shift-drafts', JSON.stringify(d.slice(0,100))); }
+
+// Line-item rows are stored as arrays of input values, in DOM order.
+function _draftRows(type) {
+  if (type === 'proposal') return [...document.querySelectorAll('.svc-row')].map(r =>
+    [r.querySelector('[name="svc-name"]').value, r.querySelector('[name="svc-desc"]').value, r.querySelector('[name="svc-price"]').value]);
+  if (type === 'invoice')  return [...document.querySelectorAll('#invoice-items tr')].map(tr => [...tr.querySelectorAll('input')].map(i => i.value));
+  if (type === 'contract') return [...document.querySelectorAll('#contract-items tr')].map(tr => [...tr.querySelectorAll('input')].map(i => i.value));
+  return [];
+}
+
+function _draftName(type, fields) {
+  const client = (fields[{proposal:'p-client',invoice:'i-client',contract:'c-client',quote:'qq-client'}[type]] || '').trim();
+  const hint = (fields[{proposal:'p-title',invoice:'i-num',contract:'c-num',quote:'qq-num'}[type]] || '').trim();
+  return (client || 'Untitled') + (hint ? ' · ' + hint : '');
+}
+
+function saveDraft(type) {
+  const fields = {};
+  DRAFT_FIELDS[type].forEach(id => { const el = document.getElementById(id); if (el) fields[id] = el.value; });
+  const rows = _draftRows(type);
+  const hasContent = Object.values(fields).some(v => (v||'').trim()) || rows.some(r => r.some(v => (v||'').trim()));
+  if (!hasContent) { toast('Nothing to save yet — fill in something first','err'); return; }
+  const drafts = _draftsLoad();
+  const existing = _activeDraftId[type] ? drafts.find(x => x.id === _activeDraftId[type]) : null;
+  if (existing) {
+    Object.assign(existing, { name: _draftName(type, fields), fields, rows, savedAt: Date.now() });
+    toast(DRAFT_LABELS[type] + ' draft updated ✓','ok');
+  } else {
+    const id = 'draft_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    drafts.unshift({ id, type, name: _draftName(type, fields), fields, rows, created: Date.now(), savedAt: Date.now() });
+    _activeDraftId[type] = id;
+    toast(DRAFT_LABELS[type] + ' draft saved ✓','ok');
+  }
+  _draftsSave(drafts);
+  renderDraftBars();
+  if (_currentTab === 'documents') renderDocumentsHub();
+}
+
+function resumeDraft(id) {
+  const d = _draftsLoad().find(x => x.id === id);
+  if (!d) { toast('Draft not found','err'); return; }
+  switchTab(DRAFT_TABS[d.type]);
+  // Rebuild dynamic line-item rows to match the draft, then fill them.
+  if (d.type === 'proposal') {
+    document.getElementById('services-list').innerHTML = '';
+    (d.rows.length ? d.rows : [['','','']]).forEach(() => addService());
+    [...document.querySelectorAll('.svc-row')].forEach((r,i) => {
+      const row = d.rows[i] || ['','',''];
+      r.querySelector('[name="svc-name"]').value = row[0]||'';
+      r.querySelector('[name="svc-desc"]').value = row[1]||'';
+      r.querySelector('[name="svc-price"]').value = row[2]||'';
+    });
+  }
+  if (d.type === 'invoice') {
+    document.getElementById('invoice-items').innerHTML = '';
+    (d.rows.length ? d.rows : [['','1','']]).forEach(() => addInvoiceItem());
+    [...document.querySelectorAll('#invoice-items tr')].forEach((tr,i) => {
+      const row = d.rows[i] || [];
+      [...tr.querySelectorAll('input')].forEach((inp,j) => { if (row[j] !== undefined) inp.value = row[j]; });
+    });
+  }
+  if (d.type === 'contract') {
+    document.getElementById('contract-items').innerHTML = '';
+    (d.rows.length ? d.rows : [['','']]).forEach(() => addContractItem());
+    [...document.querySelectorAll('#contract-items tr')].forEach((tr,i) => {
+      const row = d.rows[i] || [];
+      [...tr.querySelectorAll('input')].forEach((inp,j) => { if (row[j] !== undefined) inp.value = row[j]; });
+    });
+  }
+  Object.entries(d.fields || {}).forEach(([fid,v]) => { const el = document.getElementById(fid); if (el) el.value = v; });
+  _activeDraftId[d.type] = d.id;
+  if (d.type === 'proposal') { updateProposalTotal(); forceProposalPreview(); }
+  if (d.type === 'invoice')  { calcInvoiceTotal(); forceInvoicePreview(); }
+  if (d.type === 'contract') { calcContractDeposit(); renderContractPreview(); }
+  renderDraftBars();
+  toast('Draft loaded — editing "' + d.name + '"','ok');
+}
+
+function deleteDraft(id, ev) {
+  if (ev) ev.stopPropagation();
+  if (!confirm('Delete this draft?')) return;
+  _draftsSave(_draftsLoad().filter(x => x.id !== id));
+  Object.keys(_activeDraftId).forEach(k => { if (_activeDraftId[k] === id) _activeDraftId[k] = null; });
+  renderDraftBars();
+  if (_currentTab === 'documents') renderDocumentsHub();
+  toast('Draft deleted','ok');
+}
+
+// Once a doc is actually published/generated, its draft has served its purpose.
+function _draftConsume(type) {
+  const id = _activeDraftId[type];
+  if (!id) return;
+  _draftsSave(_draftsLoad().filter(x => x.id !== id));
+  _activeDraftId[type] = null;
+  renderDraftBars();
+}
+
+function renderDraftBars() {
+  const drafts = _draftsLoad();
+  Object.keys(DRAFT_TABS).forEach(type => {
+    const bar = document.getElementById('drafts-bar-' + type);
+    if (!bar) return;
+    const mine = drafts.filter(d => d.type === type);
+    if (!mine.length) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+    bar.style.display = 'flex';
+    bar.innerHTML = '<span class="drafts-bar-lbl">Drafts</span>' + mine.map(d => {
+      const active = _activeDraftId[type] === d.id;
+      return `<span class="draft-chip${active?' active':''}" onclick="resumeDraft('${d.id}')" title="Saved ${_timeAgo(d.savedAt)}">${esc(d.name)}<button class="draft-chip-x" title="Delete draft" onclick="deleteDraft('${d.id}',event)">✕</button></span>`;
+    }).join('');
   });
 }
 
@@ -5544,7 +5714,13 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .fmark img{height:20px;filter:brightness(0)invert(1);opacity:.5}.fmark span{font-family:'SHIFTBrand',sans-serif;font-size:16px;color:var(--mute);letter-spacing:.5em}
 footer small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1)}.reveal.in{opacity:1;transform:none}
-@media print{nav,#bg-canvas,#cur-dot,#cur-ring,#expired-overlay,.scroll-cue{display:none!important}body{background:#fff;color:#111;cursor:auto}:root{--bg:#fff;--white:#111;--mute:#555;--dim:#888;--line:#ddd;--line-soft:#eee;--panel:#f5f5f5}section{border-color:#e0e0e0}}
+@media print{nav,#bg-canvas,#cur-dot,#cur-ring,#expired-overlay,.scroll-cue{display:none!important}body{background:#fff;color:#111;cursor:auto}:root{--bg:#fff;--white:#111;--mute:#555;--dim:#888;--line:#ddd;--line-soft:#eee;--panel:#f5f5f5}section{border-color:#e0e0e0}
+.reveal{opacity:1!important;transform:none!important;transition:none!important}
+.hero{height:auto!important;min-height:0!important}
+.hero-bg,.hero-overlay{display:none!important}
+.hero-content{padding-top:40px}
+.price-table,.terms-grid{break-inside:avoid}
+section{break-inside:avoid-page}}
 </style>
 </head>
 <body>
@@ -5643,6 +5819,8 @@ document.addEventListener('mouseleave',()=>{vis=false;dot.style.opacity='0';ring
 document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.width='56px';ring.style.height='56px';ring.style.borderColor='rgba(255,255,255,.6)';});el.addEventListener('mouseleave',()=>{ring.style.width='36px';ring.style.height='36px';ring.style.borderColor='rgba(255,255,255,.35)';});});
 (function lag(){requestAnimationFrame(lag);rx+=(mx-rx)*.11;ry+=(my-ry)*.11;ring.style.left=rx+'px';ring.style.top=ry+'px';})();})();
 (function(){const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}}),{threshold:.1,rootMargin:'0px 0px -6% 0px'});document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=i%5*65+'ms';io.observe(el);});})();
+// Reveal everything before printing so no section is blank in the PDF.
+window.addEventListener('beforeprint',()=>document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in')));
 <\/script>
 </body></html>`;
 }

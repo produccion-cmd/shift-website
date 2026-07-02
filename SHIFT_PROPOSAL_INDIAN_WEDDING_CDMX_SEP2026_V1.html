@@ -76,6 +76,17 @@ footer .brand{font-family:'Sora',sans-serif;font-weight:800;font-size:13px;lette
 footer .tag{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin-top:10px}
 footer .contact{font-size:12px;color:var(--mute);margin-top:16px}
 footer .contact a{color:var(--gold)}
+
+/* Print / PDF export — added so saved PDFs are readable (light theme, all content revealed) */
+@media print{
+  nav,#bg-canvas,#cur-dot,#cur-ring,#scroll-bar,#expired-overlay,.scroll-cue{display:none!important}
+  :root{--bg:#fff;--white:#111;--mute:#555;--dim:#777;--dim-solid:#777;--line:#ddd;--line-soft:#eee;--panel:#f5f5f5;--tile:#f5f5f5}
+  body{background:#fff!important;color:#111!important;cursor:auto}
+  .reveal{opacity:1!important;transform:none!important;transition:none!important}
+  .hero{height:auto!important;min-height:0!important}
+  .hero-bg,.hero-overlay{display:none!important}
+  section{break-inside:avoid-page;border-color:#e0e0e0!important}
+}
 </style>
 </head>
 <body>
@@ -295,5 +306,6 @@ footer .contact a{color:var(--gold)}
   <div class="contact">Produccion@5hift.com.mx · <a href="https://shiftevnts.com">shiftevnts.com</a></div>
 </footer>
 
+<script>window.addEventListener("beforeprint",function(){document.querySelectorAll(".reveal").forEach(function(el){el.classList.add("in")})});</script>
 </body>
 </html>
