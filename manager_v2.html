@@ -2485,6 +2485,7 @@ function doLogin() {
     initContractForm();
     initQuoteForm();
     renderDraftBars();
+    _migrateBackfillProposals();
     startAutoSync();
   } else {
     document.getElementById('login-err').textContent = 'Incorrect password.';
@@ -2502,7 +2503,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); renderDraftBars(); startAutoSync(); });
+  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); renderDraftBars(); _migrateBackfillProposals(); startAutoSync(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -2668,10 +2669,13 @@ function _docsCollect() {
     });
   } catch(e) {}
   try {
+    const recordedFiles = (JSON.parse(localStorage.getItem('shift-proposals') || '[]')).map(p => (p.filename||'').toLowerCase()).filter(Boolean);
     (JSON.parse(localStorage.getItem('shift-pipeline') || '[]')).forEach(r => {
       if (r.stage !== 'proposal' && r.stage !== 'won' && r.stage !== 'lost') return;
       const key = ((r.name || '') + '|' + (r.name || '')).toLowerCase();
       if (seenClientTitle.has(key)) return; // real record already covers this
+      const noteUrl = _extractDocUrl(r.notes).toLowerCase();
+      if (noteUrl && recordedFiles.some(f => noteUrl.endsWith('/' + f))) return; // record covers this deal
       const statusMap = { proposal:'sent', won:'won', lost:'lost' };
       out.push({
         type: 'proposal',
@@ -3399,6 +3403,51 @@ async function publishProposal() {
 // alongside pipeline stage proposals so nothing sent to a client ever disappears.
 function _proposalsLoad() { return JSON.parse(localStorage.getItem('shift-proposals') || '[]'); }
 function _proposalsSave(r) { localStorage.setItem('shift-proposals', JSON.stringify(r.slice(0,200))); }
+
+// One-time backfill (2026-07-02): the two CDMX Indian Wedding proposals were
+// published before proposal records existed, so events/documents could only
+// show their pipeline summary. Line items below mirror the live published
+// pages (already public on shiftevnts.com). Guarded by filename, runs once.
+function _migrateBackfillProposals() {
+  const records = _proposalsLoad();
+  const have = fn => records.some(r => r.filename === fn);
+  const mk = (fn, title, date, amount, services) => ({
+    id: 'prop_bf_' + fn.replace(/[^a-zA-Z0-9]/g,'').slice(-24),
+    client: 'Palwinder Chamdal', company: 'Desi Junction DJs (DJD)',
+    title, filename: fn, url: 'https://shiftevnts.com/' + fn,
+    date, expiry: '', amount, currency: 'MXN', lang: 'en',
+    services, status: 'sent', signedDate: null, created: Date.now()
+  });
+  let changed = false;
+  if (!have('SHIFT_PROPOSAL_INDIAN_WEDDING_CDMX_SEP2026.html')) {
+    records.push(mk('SHIFT_PROPOSAL_INDIAN_WEDDING_CDMX_SEP2026.html',
+      'Indian Wedding CDMX — Sep 10-12 2026 (V9 Final)', '2026-06-30', 317840, [
+      { name:'Event 1 · Mehendi — Citizens Restaurant, Sofitel', price:19000 },
+      { name:'Event 2 · Ganesh Puja & Haldi — Sofitel Hotel', price:19000 },
+      { name:'Event 3 · Sangeet — Palacio Metropolitano', price:74000 },
+      { name:'Event 4 · Mobile Baraat — Paseo Reforma', price:30000 },
+      { name:'Event 5 · Hindu & Sikh Ceremony — Sofitel Versailles', price:20000 },
+      { name:'Event 6 · Grand Reception — Ex Convento San Hipólito', price:112000 },
+      { name:'VAT (16%)', price:43840 }
+    ]));
+    changed = true;
+  }
+  if (!have('SHIFT_PROPOSAL_INDIAN_WEDDING_CDMX_FEB2027.html')) {
+    records.push(mk('SHIFT_PROPOSAL_INDIAN_WEDDING_CDMX_FEB2027.html',
+      'Indian Wedding CDMX — Feb 26-27 2027 (V1 Preliminary)', '2026-07-01', 301600, [
+      { name:'Event 1 · Haldi — TBD', price:18000 },
+      { name:'Event 2 · Sangeet — Palacio Metropolitano', price:78000 },
+      { name:'Event 3 · Baraat — General Prim', price:20000 },
+      { name:'Event 4 · Hindu Ceremony — General Prim', price:22000 },
+      { name:'Event 5 · Lunch — General Prim', price:8000 },
+      { name:'Event 6 · Cocktail Hour — Ex Convento San Hipólito', price:14000 },
+      { name:'Event 7 · Grand Reception — Ex Convento San Hipólito', price:100000 },
+      { name:'VAT (16%)', price:41600 }
+    ]));
+    changed = true;
+  }
+  if (changed) { _proposalsSave(records); console.log('Backfilled CDMX proposal records'); }
+}
 
 function saveProposalRecord(d, url, filename) {
   const records = _proposalsLoad();
@@ -6146,11 +6195,16 @@ function _servicesForClient(client, clientId) {
     }));
   } catch(e) {}
   // Pipeline deals — these are often the only trace of a sent proposal.
+  // Skip deals whose notes link to a proposal that already has a real record
+  // (the record carries the itemized services; showing both is noise).
   try {
     const PIPE_BADGE = { lead:'LEAD', proposal:'PROP', negotiation:'NEG', won:'WON' };
+    const recordedFiles = _proposalsLoad().map(p => (p.filename||'').toLowerCase()).filter(Boolean);
     _pipeLoad().forEach(r => {
       if (r.stage === 'lost') return;
       if (!(_svcNameMatch(r.name, keys) || _svcNameMatch(r.company, keys))) return;
+      const noteUrl = _extractDocUrl(r.notes).toLowerCase();
+      if (noteUrl && recordedFiles.some(f => noteUrl.endsWith('/' + f))) return;
       groups.push({
         kind: r.stage === 'won' ? 'sold' : 'proposed',
         badge: PIPE_BADGE[r.stage] || 'DEAL',
