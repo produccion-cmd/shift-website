@@ -1271,8 +1271,14 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
           </div>
         </div>
         <div class="f-row">
-          <label class="f-label">Gallery Images (optional — one URL per line, shown as "Visual References" before the CTA)</label>
-          <textarea class="f-textarea" id="p-gallery" rows="3" placeholder="https://images.unsplash.com/photo-...&#10;https://images.unsplash.com/photo-..." oninput="scheduleProposalPreview()"></textarea>
+          <label class="f-label">Images (optional — one URL per line; use a prefix to choose WHERE it appears)</label>
+          <div class="cal-link-presets" style="margin-top:0;margin-bottom:8px">
+            <button type="button" class="cal-link-preset" onclick="pGalleryInsert('intro')">＋ After Intro</button>
+            <button type="button" class="cal-link-preset" onclick="pGalleryInsert('pricing')">＋ After Pricing</button>
+            <button type="button" class="cal-link-preset" onclick="pGalleryInsert('terms')">＋ After Terms</button>
+            <button type="button" class="cal-link-preset" onclick="pGalleryInsert('')">＋ End Gallery</button>
+          </div>
+          <textarea class="f-textarea" id="p-gallery" rows="4" placeholder="intro: https://…      (after the opening section)&#10;pricing: https://…    (after the investment table)&#10;terms: https://…      (after the terms)&#10;https://…             (no prefix = Visual References gallery at the end)" oninput="scheduleProposalPreview()"></textarea>
         </div>
 
         <div class="f-section">
@@ -1318,7 +1324,8 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
     <div class="action-bar">
       <input class="action-filename" id="p-filename" placeholder="SHIFT_PROPUESTA_CLIENT.html"/>
       <button class="action-btn btn-secondary" onclick="saveDraft('proposal')">💾 Save Draft</button>
-      <button class="action-btn btn-pdf" onclick="downloadProposalPDF()">↓ PDF / Print</button>
+      <button class="action-btn btn-pdf" onclick="downloadProposalPDF()">↓ PDF</button>
+      <button class="action-btn btn-pdf" onclick="downloadProposalPDF(true)" title="Prints with hero + all images and the dark look — enable Background graphics in the print dialog">↓ Full PDF</button>
       <button class="action-btn btn-secondary" onclick="openProposalPreview()">↗ Open Preview</button>
       <button class="action-btn btn-primary" onclick="publishProposal()">↑ Publish to Portal</button>
     </div>
@@ -1934,7 +1941,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
   </div>
 </div>
 
-<script src="js/doc-templates.js?v=20260702c"></script>
+<script src="js/doc-templates.js?v=20260702d"></script>
 <script>
 // ── CONSTANTS ────────────────────────────────────────────────
 const _SK = 'SHIFTportal#2026$key!xK9mPq3';
@@ -3353,7 +3360,14 @@ function getProposalData() {
     expiryDate: document.getElementById('p-expiry').value,
     intro: document.getElementById('p-intro').value.trim(),
     heroImg: document.getElementById('p-hero').value.trim(),
-    gallery: (document.getElementById('p-gallery')?.value || '').split('\n').map(s => s.trim()).filter(s => /^https?:\/\//i.test(s)),
+    // One image per line; optional position prefix "intro: / pricing: / terms:"
+    // places the image after that section (no prefix = end gallery).
+    gallery: (document.getElementById('p-gallery')?.value || '').split('\n').map(s => s.trim()).filter(Boolean).map(line => {
+      const m = line.match(/^(intro|pricing|terms|gallery|end)\s*:\s*(.+)$/i);
+      const url = (m ? m[2] : line).trim();
+      if (!/^https?:\/\//i.test(url)) return null;
+      return { url, pos: m ? m[1].toLowerCase().replace('end','gallery') : 'gallery' };
+    }).filter(Boolean),
     services,
     depositPct: parseInt(document.getElementById('p-deposit').value),
     notes: document.getElementById('p-notes').value.trim(),
@@ -3398,10 +3412,20 @@ function _openPrintPDF(html) {
   setTimeout(trigger, 1500);
   return true;
 }
-async function downloadProposalPDF() {
+async function downloadProposalPDF(full) {
   const d = getProposalData();
   if (!d.client) { toast('Fill in the form first','err'); return; }
-  _openPrintPDF(generateProposalHTML(d));
+  if (full) toast('Enable "Background graphics" in the print dialog for the full look','ok');
+  _openPrintPDF(generateProposalHTML(d, !!full));
+}
+
+// Insert a position prefix on a new line of the images box, ready to paste.
+function pGalleryInsert(pos) {
+  const ta = document.getElementById('p-gallery');
+  const prefix = pos ? pos + ': ' : '';
+  ta.value = (ta.value.trimEnd() ? ta.value.trimEnd() + '\n' : '') + prefix;
+  ta.focus();
+  ta.setSelectionRange(ta.value.length, ta.value.length);
 }
 // Image-URL smells — quick input normalization for common paste mistakes.
 // Strips whitespace, warns if user pasted a page URL instead of an image URL.

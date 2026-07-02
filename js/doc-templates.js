@@ -205,11 +205,25 @@ thead th:last-child{text-align:right}
 }
 
 // ── PROPOSAL HTML TEMPLATE ───────────────────────────────────
-function generateProposalHTML(d) {
+// printFull=true pre-arms the page so auto-print keeps the dark look, hero
+// and every image ("full" mode). Default print is the stripped light
+// reference copy. The page also carries its own PDF / Full PDF buttons.
+function generateProposalHTML(d, printFull) {
   const total = d.services.reduce((s,x)=>s+(parseFloat(x.price)||0),0);
   const deposit = total * d.depositPct / 100;
   const balance = total - deposit;
   const heroImg = d.heroImg || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1920&q=85&fit=crop';
+  // Gallery entries: plain URLs (→ end gallery) or {url, pos} with
+  // pos ∈ intro | pricing | terms | gallery.
+  const galleryItems = (d.gallery || []).map(g => typeof g === 'string' ? { url: g, pos: 'gallery' } : g);
+  const imgBand = pos => {
+    const list = galleryItems.filter(g => (g.pos || 'gallery') === pos);
+    if (!list.length) return '';
+    return `
+  <section class="img-band"><div class="wrap"><div class="gallery">
+    ${list.map(g => `<figure class="reveal"><img src="${esc(g.url)}" alt="" loading="lazy" onerror="this.closest('figure').style.display='none'"/></figure>`).join('')}
+  </div></div></section>`;
+  };
   const es = d.lang === 'es';
   const L = {
     scope: es ? 'Alcance de Servicios' : 'Scope of Services',
@@ -254,13 +268,14 @@ function generateProposalHTML(d) {
       <td>$${fmtPrice(s.price)}</td>
     </tr>`).join('');
 
-  // Optional editorial gallery — image URLs from the builder, one per line.
-  const gallerySection = (d.gallery && d.gallery.length) ? `
+  // End gallery (default position) — gets the "Visual References" headline.
+  const endGalleryItems = galleryItems.filter(g => (g.pos || 'gallery') === 'gallery');
+  const gallerySection = endGalleryItems.length ? `
   <section><div class="wrap">
     <div class="sec-eyebrow reveal">${es ? 'Referencias Visuales' : 'Visual References'}</div>
     <h2 class="sec-lead reveal">${es ? 'Así se ve nuestro trabajo.' : 'What this looks like live.'}</h2>
     <div class="gallery">
-      ${d.gallery.map(u => `<figure class="reveal"><img src="${esc(u)}" alt="" loading="lazy" onerror="this.closest('figure').style.display='none'"/></figure>`).join('')}
+      ${endGalleryItems.map(g => `<figure class="reveal"><img src="${esc(g.url)}" alt="" loading="lazy" onerror="this.closest('figure').style.display='none'"/></figure>`).join('')}
     </div>
   </div></section>` : '';
 
@@ -285,7 +300,7 @@ function generateProposalHTML(d) {
   })();
 
   return `<!DOCTYPE html>
-<html lang="${d.lang}">
+<html lang="${d.lang}"${printFull ? ' class="print-full"' : ''}>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>SHIFT ${es?'Propuesta':'Proposal'} × ${esc(d.company||d.client)} — ${esc(d.title)}</title>
@@ -364,15 +379,29 @@ footer small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:
 .btn.btn-ghost{border-color:var(--line);color:var(--mute)}
 .btn.btn-ghost:hover{border-color:var(--white);color:var(--white)}
 .cta-note{margin-top:1.6em;font-size:12.5px;color:var(--dim);max-width:44ch;line-height:1.7}
-@media print{nav,#bg-canvas,#cur-dot,#cur-ring,#expired-overlay,.scroll-cue{display:none!important}body{background:#fff;color:#111;cursor:auto}:root{--bg:#fff;--white:#111;--mute:#555;--dim:#888;--line:#ddd;--line-soft:#eee;--panel:#f5f5f5}section{border-color:#e0e0e0}
+@media print{
+/* shared: both print modes */
+nav,#bg-canvas,#cur-dot,#cur-ring,#expired-overlay,.scroll-cue{display:none!important}
 .reveal{opacity:1!important;transform:none!important;transition:none!important}
-.hero{height:auto!important;min-height:0!important}
-.hero-bg,.hero-overlay{display:none!important}
-.hero-content{padding-top:40px}
 .price-table,.terms-grid{break-inside:avoid}
 section{break-inside:avoid-page}
-/* Online-only interactive elements — the printed PDF is a reference copy */
-.btn,.cta-actions,.cta-note,.gallery{display:none!important}}
+/* STRIPPED (default): light reference copy, no images or buttons */
+html:not(.print-full){--bg:#fff;--white:#111;--mute:#555;--dim:#888;--line:#ddd;--line-soft:#eee;--panel:#f5f5f5}
+html:not(.print-full) body{background:#fff;color:#111;cursor:auto}
+html:not(.print-full) section{border-color:#e0e0e0}
+html:not(.print-full) .hero{height:auto!important;min-height:0!important}
+html:not(.print-full) .hero-bg,html:not(.print-full) .hero-overlay{display:none!important}
+html:not(.print-full) .hero-content{padding-top:40px}
+html:not(.print-full) .btn,html:not(.print-full) .cta-actions,html:not(.print-full) .cta-note,html:not(.print-full) .gallery{display:none!important}
+/* FULL: keep the dark look, hero and every image (enable "Background
+   graphics" in the print dialog for best results) */
+html.print-full{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+html.print-full body{background:var(--bg)!important}
+html.print-full .hero{height:auto!important;min-height:480px!important}
+html.print-full .hero-bg,html.print-full .hero-overlay{display:block!important}
+html.print-full .gallery figure{border-color:#333}
+html.print-full .img-band,html.print-full .gallery{break-inside:avoid}
+}
 </style>
 </head>
 <body>
@@ -387,7 +416,8 @@ section{break-inside:avoid-page}
 <nav>
   <a href="SHIFT_proposals_hub.html" class="nav-logo"><img src="SHIFT-ICON.svg" alt=""/><span>SHIFT</span></a>
   <div class="nav-actions">
-    <button type="button" class="back" onclick="window.print()">${L.pdf}</button>
+    <button type="button" class="back" onclick="setPrintMode(false)">${L.pdf}</button>
+    <button type="button" class="back" onclick="setPrintMode(true)" title="${es ? 'Imprime con imágenes y el diseño completo — activa Gráficos de fondo en el diálogo' : 'Prints with images and the full look — enable Background graphics in the dialog'}">${es ? 'PDF Completo' : 'Full PDF'}</button>
     <a href="SHIFT_proposals_hub.html" class="back">${L.back}</a>
   </div>
 </nav>
@@ -413,6 +443,7 @@ section{break-inside:avoid-page}
     <h2 class="sec-lead reveal">${L.together}</h2>
     ${introSection}
   </div></section>
+  ${imgBand('intro')}
   <section><div class="wrap">
     <div class="sec-eyebrow reveal">02 — ${L.inv}</div>
     <h2 class="sec-lead reveal">${L.transparent}</h2>
@@ -422,6 +453,7 @@ section{break-inside:avoid-page}
       <tfoot><tr><td>${L.total}</td><td>$${fmtPrice(total)}</td></tr></tfoot>
     </table>
   </div></section>
+  ${imgBand('pricing')}
   <section><div class="wrap">
     <div class="sec-eyebrow reveal">03 — ${L.terms}</div>
     <h2 class="sec-lead reveal">${L.simple}</h2>
@@ -431,6 +463,7 @@ section{break-inside:avoid-page}
       ${notesItem}
     </div>
   </div></section>
+  ${imgBand('terms')}
   ${gallerySection}
   ${formsSection}
   <section style="padding-bottom:clamp(72px,12vh,140px)"><div class="wrap">
@@ -468,6 +501,9 @@ let df=tg-rec.ang;df=Math.atan2(Math.sin(df),Math.cos(df));rec.vel+=df*SP*(fall>
 const op=BO+fall*(PO-BO);ctx.save();ctx.translate(rec.x,rec.y);ctx.rotate(rec.ang);ctx.fillStyle='rgba(255,255,255,'+op.toFixed(4)+')';ctx.fillRect(-rec.w*.5,-RH*.5,rec.w,RH);ctx.restore();}}
 document.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY;});document.addEventListener('mouseleave',()=>{tx=-9999;ty=-9999;});
 window.addEventListener('resize',build,{passive:true});build();loop();})();
+// Two print modes: stripped light reference (default) vs full visual with
+// hero + all images. The class survives auto-print from the manager too.
+function setPrintMode(full){document.documentElement.classList.toggle('print-full',!!full);window.print();}
 // Custom cursor removed 2026-07-02 — kept motion subtle so clients aren't
 // distracted; the canvas field above fades in late and reacts gently instead.
 (function(){const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}}),{threshold:.1,rootMargin:'0px 0px -6% 0px'});document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=i%5*90+'ms';io.observe(el);});})();
