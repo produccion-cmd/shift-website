@@ -613,3 +613,144 @@ table thead th{border-bottom-color:#ccc!important}tr td{border-bottom-color:#eee
 </div>
 </body></html>`;
 }
+
+// ── EVENT SHEET / BEO TEMPLATE ───────────────────────────────
+// One or many events → a presentation-style sheet: cover block per event,
+// schedule, venue, POC, services, staff & shifts, links, notes.
+// Screen = dark brand; print = clean light reference, one event per page.
+function generateEventSheetHTML(events) {
+  const one = events.length === 1;
+  const client = events[0]?.client || '';
+  const docTitle = one
+    ? `SHIFT Event Sheet — ${events[0].title}`
+    : `SHIFT Event Pack — ${client || 'Events'} — ${events.length} Events`;
+  const fmtCur = (v,c) => '$' + fmtPrice(v) + (c && c !== 'USD' ? ' ' + c : '');
+  const DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  const evSection = ev => {
+    const dt = ev.date ? new Date(ev.date + 'T12:00:00') : null;
+    const dateLong = dt ? `${DOW[dt.getDay()]}, ${MONTHS[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}` : '—';
+    const dayNum = dt ? dt.getDate() : '—';
+    const monShort = dt ? MONTHS[dt.getMonth()].slice(0,3).toUpperCase() : '';
+    const svcs = ev.services || [];
+    const byCur = {};
+    svcs.forEach(s => { const c = s.currency||'USD'; byCur[c] = (byCur[c]||0) + (s.price||0); });
+    const totalStr = Object.entries(byCur).filter(([,v])=>v>0).map(([c,v])=>fmtCur(v,c)).join(' + ');
+    const svcRows = svcs.map(s => `<tr><td>${esc(s.name)}</td><td class="num">${s.price?fmtCur(s.price,s.currency):'—'}</td></tr>`).join('');
+    const staff = ev.staff || [];
+    const staffRows = staff.map(s => `<tr><td>${esc(s.name)}</td><td>${esc(s.role||'—')}</td><td>${esc(s.phone||'—')}</td><td class="num">${s.callTime||'—'}</td><td class="num">${s.outTime||'—'}</td></tr>`).join('');
+    const links = ev.links || [];
+    const linkRows = links.map(l => `<div class="es-link"><span class="es-link-lbl">${esc(l.label)}</span><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.url)}</a></div>`).join('');
+    const mapsUrl = ev.venue ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(ev.venue) : '';
+    return `
+<section class="ev-page">
+  <header class="es-cover">
+    <div class="es-date-block"><div class="es-day">${dayNum}</div><div class="es-mon">${monShort}</div></div>
+    <div class="es-cover-main">
+      <div class="es-eyebrow">${esc(ev.client || '')}${ev.type ? ' · ' + esc(ev.type.toUpperCase()) : ''}</div>
+      <h1 class="es-title">${esc(ev.title)}</h1>
+      <div class="es-cover-meta">
+        <span>${dateLong}</span>
+        ${ev.startTime ? `<span>⏱ ${ev.startTime}${ev.endTime ? ' – ' + ev.endTime : ''}</span>` : ''}
+      </div>
+    </div>
+  </header>
+  <div class="es-grid">
+    <div class="es-cell"><div class="es-lbl">Venue</div><div class="es-val">${ev.venue ? `${esc(ev.venue)}${mapsUrl ? `<br><a class="es-maps" href="${mapsUrl}" target="_blank" rel="noopener">Open in Google Maps ↗</a>` : ''}` : '—'}</div></div>
+    <div class="es-cell"><div class="es-lbl">Schedule</div><div class="es-val">${ev.startTime ? `Start <b>${ev.startTime}</b>` : 'Start —'}<br>${ev.endTime ? `End <b>${ev.endTime}</b>` : 'End —'}</div></div>
+    <div class="es-cell"><div class="es-lbl">POC — On-site Contact</div><div class="es-val">${ev.pocName ? `<b>${esc(ev.pocName)}</b>${ev.pocPhone ? '<br>' + esc(ev.pocPhone) : ''}` : '—'}</div></div>
+  </div>
+  ${svcs.length ? `
+  <div class="es-sec">
+    <div class="es-sec-lbl">Services</div>
+    <table class="es-table"><thead><tr><th>Service</th><th class="num">Amount</th></tr></thead>
+    <tbody>${svcRows}</tbody>
+    ${totalStr ? `<tfoot><tr><td>Total</td><td class="num">${totalStr}</td></tr></tfoot>` : ''}</table>
+  </div>` : ''}
+  ${staff.length ? `
+  <div class="es-sec">
+    <div class="es-sec-lbl">Staff &amp; Shifts</div>
+    <table class="es-table"><thead><tr><th>Name</th><th>Role</th><th>Contact</th><th class="num">Call</th><th class="num">Out</th></tr></thead>
+    <tbody>${staffRows}</tbody></table>
+  </div>` : ''}
+  ${links.length ? `
+  <div class="es-sec">
+    <div class="es-sec-lbl">Documents &amp; Links (BEO, run of show…)</div>
+    ${linkRows}
+  </div>` : ''}
+  ${ev.notes ? `
+  <div class="es-sec">
+    <div class="es-sec-lbl">Notes &amp; Logistics</div>
+    <div class="es-notes">${esc(ev.notes)}</div>
+  </div>` : ''}
+</section>`;
+  };
+
+  return `<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>${esc(docTitle)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0b;--panel:#111114;--line:#1e1e22;--line-soft:#161619;--white:#f2f2f4;--mute:#8a8a96;--dim:#545460;--gold:#c8a84b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--white);font-family:'Inter',system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+.doc-hd{max-width:900px;margin:0 auto;padding:34px 32px 0;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.doc-hd .brand{display:flex;align-items:center;gap:11px}
+.doc-hd img{height:22px;filter:brightness(0)invert(1)}
+.doc-hd .brand span{font-family:'Sora',sans-serif;font-weight:800;font-size:17px;letter-spacing:.45em}
+.doc-hd small{font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+.ev-page{max-width:900px;margin:0 auto;padding:38px 32px 52px;border-bottom:1px solid var(--line)}
+.ev-page:last-of-type{border-bottom:none}
+.es-cover{display:flex;gap:26px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:26px}
+.es-date-block{flex:none;width:92px;text-align:center;border:1px solid var(--line);padding:14px 8px;background:var(--panel)}
+.es-day{font-family:'Sora',sans-serif;font-weight:800;font-size:38px;line-height:1}
+.es-mon{font-size:11px;font-weight:600;letter-spacing:.3em;color:var(--gold);margin-top:5px}
+.es-eyebrow{font-size:10.5px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.es-title{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(22px,4vw,34px);letter-spacing:-.02em;line-height:1.08}
+.es-cover-meta{display:flex;gap:20px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--mute)}
+.es-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:26px}
+.es-cell{background:var(--panel);padding:16px 18px}
+.es-lbl{font-size:9.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.es-val{font-size:13.5px;color:var(--mute);line-height:1.7}
+.es-val b{color:var(--white);font-weight:600}
+.es-maps{color:var(--gold);text-decoration:none;font-size:12px}
+.es-sec{margin-bottom:26px}
+.es-sec-lbl{font-size:9.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-bottom:12px;border-bottom:1px solid var(--line-soft);padding-bottom:8px}
+.es-table{width:100%;border-collapse:collapse;font-size:13px}
+.es-table th{text-align:left;font-size:9.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);padding:8px 10px 8px 0;border-bottom:1px solid var(--line)}
+.es-table td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line-soft);color:var(--mute)}
+.es-table td:first-child{color:var(--white)}
+.es-table .num{text-align:right}
+.es-table tfoot td{border-top:1px solid var(--white);border-bottom:none;font-weight:700;color:var(--white);font-family:'Sora',sans-serif}
+.es-link{display:flex;gap:14px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:12.5px;flex-wrap:wrap}
+.es-link-lbl{flex:0 0 160px;color:var(--white);font-weight:600}
+.es-link a{color:var(--mute);text-decoration:none;word-break:break-all}
+.es-link a:hover{color:var(--gold)}
+.es-notes{font-size:13px;color:var(--mute);line-height:1.75;white-space:pre-wrap}
+.doc-ft{max-width:900px;margin:0 auto;padding:26px 32px 44px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.print-btn{position:fixed;top:18px;right:18px;background:var(--white);color:#111;border:none;font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:11px 18px;cursor:pointer}
+@media print{
+  .print-btn{display:none!important}
+  :root{--bg:#fff;--panel:#f7f7f7;--line:#ddd;--line-soft:#eee;--white:#111;--mute:#444;--dim:#777;--gold:#8a6d1d}
+  body{background:#fff;color:#111}
+  .doc-hd img{filter:brightness(0)}
+  .ev-page{page-break-after:always;border-bottom:none;padding-top:28px}
+  .ev-page:last-of-type{page-break-after:auto}
+  .es-table tfoot td{border-top-color:#111}
+  .es-cell{border:1px solid #e5e5e5}
+  a{color:#444!important}
+}
+</style></head>
+<body>
+<div class="doc-hd">
+  <div class="brand"><img src="https://shiftevnts.com/SHIFT-ICON.svg" alt=""/><span>SHIFT</span></div>
+  <small>${one ? 'Event Sheet' : 'Event Pack · ' + events.length + ' events'}${client ? ' · ' + esc(client) : ''}</small>
+</div>
+<button class="print-btn" onclick="window.print()">↓ Save PDF</button>
+${events.map(evSection).join('')}
+<div class="doc-ft"><span>SHIFT · Event Production</span><span>Produccion@5hift.com.mx · Houston, TX</span></div>
+</body></html>`;
+}

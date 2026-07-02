@@ -855,6 +855,8 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .cal-link-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .cal-link-preset{background:var(--panel);border:1px solid var(--border);color:var(--mute);font-family:'Inter',sans-serif;font-size:11px;padding:5px 10px;cursor:pointer;transition:all .15s}
 .cal-link-preset:hover{color:var(--white);border-color:var(--white)}
+.cal-ev-selwrap{display:inline-flex;align-items:center;padding:6px;cursor:pointer}
+.cal-ev-sel{width:15px;height:15px;accent-color:var(--gold);cursor:pointer}
 .cal-modal-h{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.02em;margin-bottom:24px}
 .cal-modal-foot{display:flex;gap:10px;margin-top:24px;justify-content:flex-end}
 .cal-save-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:12px 24px;border:none;cursor:pointer}
@@ -1698,6 +1700,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
             <button class="cal-flt"    id="calf-90"  onclick="setCalFilter(90)">90 days</button>
             <button class="cal-flt"    id="calf-all" onclick="setCalFilter(0)">All</button>
           </div>
+          <button class="crm-new-btn" id="cal-export-btn" style="display:none;background:transparent;color:var(--gold);border:1px solid var(--gold)" onclick="calExportSelected()">↓ Export 0 Sheets</button>
           <button class="crm-new-btn" onclick="calOpenAdd()">+ Add Event</button>
         </div>
       </div>
@@ -1931,7 +1934,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
   </div>
 </div>
 
-<script src="js/doc-templates.js?v=20260702b"></script>
+<script src="js/doc-templates.js?v=20260702c"></script>
 <script>
 // ── CONSTANTS ────────────────────────────────────────────────
 const _SK = 'SHIFTportal#2026$key!xK9mPq3';
@@ -2967,7 +2970,7 @@ const CLOUD_SYNC_KEYS = [
   'shift-ratecards','shift-links','shift-events','shift-pipeline',
   'shift-quotes','shift-invoices','shift-proposals','shift-invoice-counter',
   'shift-contract-counter','shift-quote-counter','shift-default-payment-terms',
-  'shift-clients','shift-drafts','shift-mgr-pw-hash'
+  'shift-clients','shift-drafts','shift-mgr-pw-hash','shift-staff'
 ];
 let _cloudSyncTimer = null;
 let _cloudSyncBusy = false;
@@ -5846,7 +5849,8 @@ function renderCalendar() {
     const dt = new Date(e.date + 'T12:00:00');
     if (cutoff && dt > cutoff) return;
     events.push({ date: dt, title: e.title, client: e.client||'', clientId: e.clientId||'', type: e.type||'other', id: e.id, manual: true, notes: e.notes||'',
-      venue: e.venue||'', startTime: e.startTime||'', endTime: e.endTime||'', services: e.services||[], links: e.links||[] });
+      venue: e.venue||'', startTime: e.startTime||'', endTime: e.endTime||'', services: e.services||[], links: e.links||[],
+      staff: e.staff||[], pocName: e.pocName||'', pocPhone: e.pocPhone||'' });
   });
 
   // From contracts (eventDate)
@@ -5897,7 +5901,11 @@ function renderCalendar() {
     const typeClass= `cal-type-${ev.type}`;
     const typeLabel= TYPE_LABELS[ev.type] || ev.type;
     const delBtn   = ev.manual
-      ? `<button class="cal-ev-del" onclick="calDelete('${ev.id}')">✕</button><button class="cal-ev-edit" onclick="calOpenEdit('${ev.id}')">Edit</button>`
+      ? `<label class="cal-ev-selwrap" title="Select for pack export"><input type="checkbox" class="cal-ev-sel" ${_calSelected.has(ev.id)?'checked':''} onchange="calToggleSelect('${ev.id}',this.checked)"/></label>
+         <button class="cal-ev-edit" onclick="calOpenSheet('${ev.id}')">Sheet ↗</button>
+         <button class="cal-ev-edit" onclick="calSheetPDF('${ev.id}')">↓ PDF</button>
+         <button class="cal-ev-edit" onclick="calOpenEdit('${ev.id}')">Edit</button>
+         <button class="cal-ev-del" onclick="calDelete('${ev.id}')">✕</button>`
       : '';
     html += `<div class="cal-event${isPast?' past':''} type-${ev.type}" id="cal-ev-${ev.id}">
       <div class="cal-event-date-col">
@@ -5911,6 +5919,8 @@ function renderCalendar() {
           <span class="cal-ev-type ${typeClass}">${typeLabel}</span>
           ${ev.startTime?`<span class="cal-ev-time">⏱ ${ev.startTime}${ev.endTime?'–'+ev.endTime:''}</span>`:''}
           ${ev.venue?`<a class="cal-ev-venue" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.venue)}" target="_blank" rel="noopener" title="Open in Google Maps">📍 ${esc(ev.venue)}</a>`:''}
+          ${(ev.staff||[]).length?`<span>👥 ${ev.staff.length} staff</span>`:''}
+          ${ev.pocName?`<span>☎ POC: ${esc(ev.pocName)}</span>`:''}
           ${ev.notes?`<span>${esc(ev.notes)}</span>`:''}
         </div>
         ${_calOwnServicesHTML(ev)}
@@ -5921,6 +5931,7 @@ function renderCalendar() {
     </div>`;
   });
   body.innerHTML = html;
+  _calUpdateExportBtn();
 }
 
 let _calEditId = null;
@@ -5993,9 +6004,59 @@ function calLinkAdd() {
 }
 function calLinkRemove(i) { _calModalLinks.splice(i,1); _calRenderModalLinks(); }
 
+// ── STAFF ROSTER ─────────────────────────────────────────────
+// Reusable people directory (cloud-synced). Event assignments copy the
+// person plus that event's call/out times, so the roster stays clean.
+function _staffLoad() { return JSON.parse(localStorage.getItem('shift-staff') || '[]'); }
+function _staffSave(s) { localStorage.setItem('shift-staff', JSON.stringify(s.slice(0,200))); }
+let _calModalStaff = []; // [{name, role, phone, callTime, outTime}]
+
+function _calRenderModalStaff() {
+  const el = document.getElementById('cal-ev-staff-list');
+  if (!el) return;
+  el.innerHTML = _calModalStaff.map((s,i) =>
+    `<div class="cal-svc-row"><span class="n">${esc(s.name)}${s.role?' · '+esc(s.role):''}</span><span class="p">${esc(s.phone||'')}${s.callTime?' · '+s.callTime:''}${s.outTime?'–'+s.outTime:''}</span><button class="x" type="button" onclick="calStaffRemove(${i})">✕</button></div>`
+  ).join('') || '<div style="font-size:11.5px;color:var(--dim);padding:4px 0">No staff assigned yet.</div>';
+}
+function _calPopulateStaffPicker() {
+  const sel = document.getElementById('cal-ev-staff-picker');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Add from saved staff —</option>' +
+    _staffLoad().map((p,i) => `<option value="${i}">${esc(p.name)}${p.role?' — '+esc(p.role):''}</option>`).join('');
+}
+function calStaffAddFromPicker() {
+  const sel = document.getElementById('cal-ev-staff-picker');
+  const p = _staffLoad()[parseInt(sel.value)];
+  if (!p) { toast('Pick a person from the list first','err'); return; }
+  _calModalStaff.push({ name: p.name, role: p.role||'', phone: p.phone||'',
+    callTime: document.getElementById('cal-ev-staff-call').value,
+    outTime: document.getElementById('cal-ev-staff-out').value });
+  sel.value = '';
+  _calRenderModalStaff();
+}
+function calStaffAddManual() {
+  const name = document.getElementById('cal-ev-staff-name').value.trim();
+  const role = document.getElementById('cal-ev-staff-role').value.trim();
+  const phone = document.getElementById('cal-ev-staff-phone').value.trim();
+  if (!name) { toast('Enter the person\'s name','err'); return; }
+  _calModalStaff.push({ name, role, phone,
+    callTime: document.getElementById('cal-ev-staff-call').value,
+    outTime: document.getElementById('cal-ev-staff-out').value });
+  // Save to roster (dedupe by name, case-insensitive; update role/phone if refined)
+  const roster = _staffLoad();
+  const existing = roster.find(p => p.name.trim().toLowerCase() === name.toLowerCase());
+  if (existing) { if (role) existing.role = role; if (phone) existing.phone = phone; }
+  else roster.push({ id:'stf_'+Date.now()+'_'+Math.random().toString(36).slice(2,5), name, role, phone });
+  _staffSave(roster);
+  _calPopulateStaffPicker();
+  ['cal-ev-staff-name','cal-ev-staff-role','cal-ev-staff-phone'].forEach(id => document.getElementById(id).value='');
+  _calRenderModalStaff();
+}
+function calStaffRemove(i) { _calModalStaff.splice(i,1); _calRenderModalStaff(); }
+
 function calOpenAdd() {
   _calEditId = null;
-  _calModalSvcs = []; _calModalLinks = [];
+  _calModalSvcs = []; _calModalLinks = []; _calModalStaff = [];
   document.getElementById('cal-modal-title').textContent = 'Add Event';
   document.getElementById('cal-ev-title-in').value = '';
   document.getElementById('cal-ev-client-in').value = '';
@@ -6005,10 +6066,13 @@ function calOpenAdd() {
   document.getElementById('cal-ev-venue-in').value = '';
   document.getElementById('cal-ev-start-in').value = '';
   document.getElementById('cal-ev-end-in').value = '';
+  document.getElementById('cal-ev-poc-name-in').value = '';
+  document.getElementById('cal-ev-poc-phone-in').value = '';
   document.getElementById('cal-ev-notes-in').value = '';
   _populateCRMPickers();
   _calPopulateSvcPicker();
-  _calRenderModalSvcs(); _calRenderModalLinks();
+  _calPopulateStaffPicker();
+  _calRenderModalSvcs(); _calRenderModalLinks(); _calRenderModalStaff();
   document.getElementById('cal-modal').classList.add('open');
   setTimeout(() => document.getElementById('cal-ev-title-in').focus(), 50);
 }
@@ -6018,6 +6082,7 @@ function calOpenEdit(id) {
   _calEditId = id;
   _calModalSvcs = (ev.services||[]).map(s => ({...s}));
   _calModalLinks = (ev.links||[]).map(l => ({...l}));
+  _calModalStaff = (ev.staff||[]).map(s => ({...s}));
   document.getElementById('cal-modal-title').textContent = 'Edit Event';
   document.getElementById('cal-ev-title-in').value  = ev.title;
   document.getElementById('cal-ev-client-in').value = ev.client||'';
@@ -6027,10 +6092,13 @@ function calOpenEdit(id) {
   document.getElementById('cal-ev-venue-in').value  = ev.venue||'';
   document.getElementById('cal-ev-start-in').value  = ev.startTime||'';
   document.getElementById('cal-ev-end-in').value    = ev.endTime||'';
+  document.getElementById('cal-ev-poc-name-in').value  = ev.pocName||'';
+  document.getElementById('cal-ev-poc-phone-in').value = ev.pocPhone||'';
   document.getElementById('cal-ev-notes-in').value  = ev.notes||'';
   _populateCRMPickers();
   _calPopulateSvcPicker();
-  _calRenderModalSvcs(); _calRenderModalLinks();
+  _calPopulateStaffPicker();
+  _calRenderModalSvcs(); _calRenderModalLinks(); _calRenderModalStaff();
   document.getElementById('cal-modal').classList.add('open');
 }
 function calCloseModal() { document.getElementById('cal-modal').classList.remove('open'); }
@@ -6048,7 +6116,9 @@ function calSave() {
   if (!date)  { toast('Select a date','err'); return; }
 
   const detail = { title, client, date, type, notes, venue, startTime, endTime,
-    services: _calModalSvcs.slice(), links: _calModalLinks.slice() };
+    pocName: document.getElementById('cal-ev-poc-name-in').value.trim(),
+    pocPhone: document.getElementById('cal-ev-poc-phone-in').value.trim(),
+    services: _calModalSvcs.slice(), links: _calModalLinks.slice(), staff: _calModalStaff.slice() };
   const events = _eventsLoad();
   if (_calEditId) {
     const idx = events.findIndex(e => e.id === _calEditId);
@@ -6067,6 +6137,38 @@ function calDelete(id) {
   if (!confirm('Remove this event?')) return;
   _eventsSave(_eventsLoad().filter(e => e.id !== id));
   renderCalendar();
+}
+
+// ── EVENT SHEETS (view + PDF export) ─────────────────────────
+const _calSelected = new Set();
+
+function calToggleSelect(id, on) {
+  if (on) _calSelected.add(id); else _calSelected.delete(id);
+  _calUpdateExportBtn();
+}
+function _calUpdateExportBtn() {
+  const btn = document.getElementById('cal-export-btn');
+  if (!btn) return;
+  const n = _calSelected.size;
+  btn.style.display = n ? '' : 'none';
+  btn.textContent = `↓ Export ${n} Sheet${n!==1?'s':''} as PDF`;
+}
+function calOpenSheet(id) {
+  const ev = _eventsLoad().find(e => e.id === id);
+  if (!ev) return;
+  window.open(URL.createObjectURL(new Blob([generateEventSheetHTML([ev])],{type:'text/html'})),'_blank');
+}
+function calSheetPDF(id) {
+  const ev = _eventsLoad().find(e => e.id === id);
+  if (!ev) return;
+  _openPrintPDF(generateEventSheetHTML([ev]));
+}
+function calExportSelected() {
+  const all = _eventsLoad();
+  const evs = [..._calSelected].map(id => all.find(e => e.id === id)).filter(Boolean)
+    .sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  if (!evs.length) { toast('Select events first (checkbox on each card)','err'); return; }
+  _openPrintPDF(generateEventSheetHTML(evs));
 }
 
 // Jump from anywhere (CRM activity, docs hub) to a specific calendar event:
@@ -6715,6 +6817,14 @@ function crmNewProduction(id) {
         <input class="f-input" type="time" id="cal-ev-end-in"/>
       </div>
     </div>
+    <div class="f-grid" style="margin-top:14px">
+      <div class="f-row"><label class="f-label">POC — On-site Contact</label>
+        <input class="f-input" id="cal-ev-poc-name-in" placeholder="Name (venue manager, planner…)"/>
+      </div>
+      <div class="f-row"><label class="f-label">POC Phone / Email</label>
+        <input class="f-input" id="cal-ev-poc-phone-in" placeholder="+1 …  /  email"/>
+      </div>
+    </div>
 
     <div class="f-row" style="margin-top:18px"><label class="f-label">Services for this event</label>
       <div id="cal-ev-svcs-list"></div>
@@ -6739,6 +6849,7 @@ function crmNewProduction(id) {
         <button type="button" class="cal-link-preset" onclick="calLinkPreset('Google Sheet','')">📊 Sheet</button>
         <button type="button" class="cal-link-preset" onclick="calLinkPreset('Drive Folder','')">📁 Drive</button>
         <button type="button" class="cal-link-preset" onclick="calLinkPreset('Run of Show','')">📄 Run of Show</button>
+        <button type="button" class="cal-link-preset" onclick="calLinkPreset('BEO','')">📋 BEO</button>
         <button type="button" class="cal-link-preset" onclick="calLinkPreset('Playlist','')">🎵 Playlist</button>
       </div>
       <div style="display:flex;gap:8px;margin-top:8px">
@@ -6746,6 +6857,25 @@ function crmNewProduction(id) {
         <input class="f-input" id="cal-ev-link-url" placeholder="https://…  (paste any Maps / Sheets / Drive / Docs link)" style="flex:2;min-width:0"/>
         <button class="prod-add-btn" type="button" onclick="calLinkAdd()">Add</button>
       </div>
+    </div>
+
+    <div class="f-row" style="margin-top:18px"><label class="f-label">Staff & Shifts</label>
+      <div id="cal-ev-staff-list"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <select class="f-select" id="cal-ev-staff-picker" style="flex:1;min-width:0">
+          <option value="">— Add from saved staff —</option>
+        </select>
+        <input class="f-input" type="time" id="cal-ev-staff-call" title="Call time" style="flex:0 0 100px"/>
+        <input class="f-input" type="time" id="cal-ev-staff-out" title="Out time" style="flex:0 0 100px"/>
+        <button class="prod-add-btn" type="button" onclick="calStaffAddFromPicker()">Add</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <input class="f-input" id="cal-ev-staff-name" placeholder="New person — Name *" style="flex:1;min-width:120px"/>
+        <input class="f-input" id="cal-ev-staff-role" placeholder="Role (Tech, DJ, Driver…)" style="flex:1;min-width:110px"/>
+        <input class="f-input" id="cal-ev-staff-phone" placeholder="Phone" style="flex:0 0 130px"/>
+        <button class="prod-add-btn" type="button" onclick="calStaffAddManual()">Add & Save</button>
+      </div>
+      <div style="font-size:10.5px;color:var(--dim);margin-top:6px">New people are saved to your staff roster automatically, so next time they're one click away.</div>
     </div>
 
     <div class="f-row" style="margin-top:14px"><label class="f-label">Notes (optional)</label>
