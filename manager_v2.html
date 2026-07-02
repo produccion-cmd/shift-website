@@ -83,6 +83,27 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .draft-chip-x:hover{color:#f87171}
 .doc-type-badge.draft{color:#facc15;border-color:rgba(250,204,21,.35)}
 .doc-status.draft{color:#facc15}
+/* Services-per-event block (calendar + productions) */
+.svcs-block{margin-top:8px}
+.svcs-toggle{display:inline-flex;align-items:center;gap:7px;background:none;border:none;padding:0;cursor:pointer;font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.svcs-toggle:hover{color:var(--white)}
+.svcs-arr{display:inline-block;transition:transform .15s;font-size:10px}
+.svcs-toggle.open .svcs-arr{transform:rotate(90deg)}
+.svcs-sum-sold{color:#4ade80}
+.svcs-sum-prop{color:#c8a84b}
+.svcs-body{margin-top:8px;border-left:2px solid var(--border);padding-left:12px;display:flex;flex-direction:column;gap:10px}
+.svcs-group-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.svcs-badge{font-size:9px;font-weight:700;letter-spacing:.12em;padding:2px 6px;border:1px solid}
+.svcs-badge.svcs-sold{color:#4ade80;border-color:rgba(74,222,128,.35)}
+.svcs-badge.svcs-proposed{color:#c8a84b;border-color:rgba(200,168,75,.35)}
+.svcs-group-num{font-size:12px;font-weight:600;color:var(--white)}
+.svcs-group-status{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.svcs-group-total{font-size:12px;font-weight:600;color:var(--mute);margin-left:auto}
+.svcs-group-open{font-size:12px;color:var(--mute);text-decoration:none}
+.svcs-group-open:hover{color:var(--white)}
+.svcs-item{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--mute);padding:2px 0}
+.svcs-item-name{min-width:0}
+.svcs-item-price{color:var(--dim);flex:none}
 .action-filename{flex:1;min-width:180px;background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'Inter',sans-serif;font-size:12px;padding:9px 14px;outline:none;transition:border-color .2s}
 .action-filename:focus{border-color:#555;color:var(--white)}
 .action-btn{font-size:10.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:10px 20px;cursor:pointer;font-family:'Inter',sans-serif;border:none;transition:opacity .2s,background .2s,color .2s}
@@ -3321,6 +3342,7 @@ function saveProposalRecord(d, url, filename) {
     date: d.proposalDate || todayISO(),
     expiry: d.expiry || '',
     amount: total,
+    services: (d.services||[]).filter(s => s.name || s.price),
     currency: d.currency || 'USD',
     lang: d.lang || 'en',
     status: 'sent',      // sent | approved | declined | expired
@@ -4763,7 +4785,8 @@ async function publishContract() {
     const records = JSON.parse(localStorage.getItem('shift-contracts')||'[]');
     records.unshift({ id:'ctr_'+Date.now(), contractNum:d.contractNum, client:d.client,
       company:d.company, eventName:d.eventName, eventDate:d.eventDate,
-      total:d.total, status:'sent', url, created:Date.now() });
+      total:d.total, items:(d.items||[]).filter(x => x.desc || x.amount),
+      status:'sent', url, created:Date.now() });
     localStorage.setItem('shift-contracts', JSON.stringify(records.slice(0,100)));
     renderContractHistory();
     _draftConsume('contract');
@@ -5039,6 +5062,7 @@ function saveInvoiceRecord(d, url) {
     client: d.client,
     company: d.company||'',
     amount: d.total,
+    items: (d.items||[]).filter(x => x.desc || x.amount),
     date: d.date,
     dueDate: d.dueDate,
     status: 'sent',
@@ -5966,6 +5990,81 @@ table thead th{border-bottom-color:#ccc!important}tr td{border-bottom-color:#eee
 function _eventsLoad() { return JSON.parse(localStorage.getItem('shift-events')||'[]'); }
 function _eventsSave(d) { localStorage.setItem('shift-events', JSON.stringify(d)); }
 
+// ── SERVICES PER EVENT ───────────────────────────────────────
+// Gather everything sold (invoices, contracts) or proposed (proposals, quotes)
+// for a client, with line items. Docs published before line-item tracking only
+// have a total — those show as a single "(details not stored)" line.
+function _servicesForClient(client) {
+  const key = (client||'').trim().toLowerCase();
+  if (!key) return [];
+  const match = c => (c||'').trim().toLowerCase() === key;
+  const groups = [];
+  try {
+    _invoicesLoad().filter(r => match(r.client)).forEach(r => groups.push({
+      kind: 'sold',
+      badge: 'INV', num: r.invoiceNum || 'Invoice', status: r.status || 'sent',
+      total: r.amount || 0, url: r.url || '',
+      items: (r.items||[]).map(x => ({ name: x.desc, qty: x.qty, price: x.amount }))
+    }));
+  } catch(e) {}
+  try {
+    (JSON.parse(localStorage.getItem('shift-contracts')||'[]')).filter(r => match(r.client)).forEach(r => groups.push({
+      kind: 'sold',
+      badge: 'CTR', num: r.contractNum || 'Contract', status: r.status || 'sent',
+      total: r.total || 0, url: r.url || '',
+      items: (r.items||[]).map(x => ({ name: x.desc, price: x.amount }))
+    }));
+  } catch(e) {}
+  try {
+    _proposalsLoad().filter(r => match(r.client)).forEach(r => groups.push({
+      kind: r.status === 'approved' ? 'sold' : 'proposed',
+      badge: 'PROP', num: r.title || r.filename || 'Proposal', status: r.status || 'sent',
+      total: r.amount || 0, url: r.url || '',
+      items: (r.services||[]).map(s => ({ name: s.name, price: s.price }))
+    }));
+  } catch(e) {}
+  try {
+    _quotesLoad().filter(r => match(r.client)).forEach(r => groups.push({
+      kind: 'proposed',
+      badge: 'QQ', num: r.num || 'Quote', status: (r.exp && Date.now()/1000 > r.exp) ? 'expired' : 'valid',
+      total: parseFloat(r.amount||0), url: '',
+      items: r.desc ? [{ name: r.desc, price: parseFloat(r.amount||0) }] : []
+    }));
+  } catch(e) {}
+  return groups;
+}
+
+function _servicesBlockHTML(client, uid) {
+  const groups = _servicesForClient(client);
+  if (!groups.length) return '';
+  const soldTotal = groups.filter(g=>g.kind==='sold').reduce((s,g)=>s+g.total,0);
+  const propTotal = groups.filter(g=>g.kind==='proposed').reduce((s,g)=>s+g.total,0);
+  const parts = [];
+  if (soldTotal > 0) parts.push(`<span class="svcs-sum-sold">SOLD $${fmtPrice(soldTotal)}</span>`);
+  if (propTotal > 0) parts.push(`<span class="svcs-sum-prop">PROPOSED $${fmtPrice(propTotal)}</span>`);
+  const body = groups.map(g => {
+    const itemsHTML = g.items.length
+      ? g.items.map(it => `<div class="svcs-item"><span class="svcs-item-name">${it.qty && it.qty > 1 ? it.qty + '× ' : ''}${esc(it.name || '—')}</span><span class="svcs-item-price">${it.price ? '$' + fmtPrice(it.price) : ''}</span></div>`).join('')
+      : '<div class="svcs-item"><span class="svcs-item-name" style="color:var(--dim)">(details not stored — published before line-item tracking)</span></div>';
+    return `<div class="svcs-group">
+      <div class="svcs-group-hd">
+        <span class="svcs-badge svcs-${g.kind}">${g.badge}</span>
+        <span class="svcs-group-num">${esc(g.num)}</span>
+        <span class="svcs-group-status">${esc(g.status)}</span>
+        <span class="svcs-group-total">$${fmtPrice(g.total)}</span>
+        ${g.url ? `<a href="${esc(g.url)}" target="_blank" class="svcs-group-open">↗</a>` : ''}
+      </div>
+      ${itemsHTML}
+    </div>`;
+  }).join('');
+  return `<div class="svcs-block">
+    <button class="svcs-toggle" onclick="const b=document.getElementById('svcs-${uid}');const on=b.style.display!=='none';b.style.display=on?'none':'block';this.classList.toggle('open',!on)">
+      <span class="svcs-arr">▸</span> Services ${parts.join(' · ') || '(' + groups.length + ')'}
+    </button>
+    <div class="svcs-body" id="svcs-${uid}" style="display:none">${body}</div>
+  </div>`;
+}
+
 let _calDays = 30;
 function setCalFilter(days) {
   _calDays = days;
@@ -6054,6 +6153,7 @@ function renderCalendar() {
           <span class="cal-ev-type ${typeClass}">${typeLabel}</span>
           ${ev.notes?`<span>${esc(ev.notes)}</span>`:''}
         </div>
+        ${ev.type !== 'invoice' ? _servicesBlockHTML(ev.client, 'cal-' + ev.id) : ''}
       </div>
       ${delBtn?`<div class="cal-ev-actions">${delBtn}</div>`:''}
     </div>`;
@@ -6370,6 +6470,11 @@ function renderProdDetail(id) {
         </select>
         <button class="prod-link-btn" onclick="prodLinkDoc('${id}','quoteId','prod-qq-sel-${id}')">Link</button>
       </div>
+    </div>
+
+    <div class="prod-section">
+      <div class="prod-section-hd"><div class="prod-section-lbl">Services Sold / Proposed</div></div>
+      ${_servicesBlockHTML(p.client, 'prod-' + id) || '<div style="font-size:12px;color:var(--dim);padding:4px 0">No invoices, contracts, proposals or quotes found for this client yet.</div>'}
     </div>
 
     <div class="prod-section">
