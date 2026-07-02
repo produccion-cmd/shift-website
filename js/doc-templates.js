@@ -254,6 +254,16 @@ function generateProposalHTML(d) {
       <td>$${fmtPrice(s.price)}</td>
     </tr>`).join('');
 
+  // Optional editorial gallery — image URLs from the builder, one per line.
+  const gallerySection = (d.gallery && d.gallery.length) ? `
+  <section><div class="wrap">
+    <div class="sec-eyebrow reveal">${es ? 'Referencias Visuales' : 'Visual References'}</div>
+    <h2 class="sec-lead reveal">${es ? 'Así se ve nuestro trabajo.' : 'What this looks like live.'}</h2>
+    <div class="gallery">
+      ${d.gallery.map(u => `<figure class="reveal"><img src="${esc(u)}" alt="" loading="lazy" onerror="this.closest('figure').style.display='none'"/></figure>`).join('')}
+    </div>
+  </div></section>` : '';
+
   const formsSection = d.formsUrl ? `
   <section>
     <div class="wrap">
@@ -286,13 +296,10 @@ function generateProposalHTML(d) {
 :root{--bg:#0a0a0b;--panel:#111114;--line:#1e1e22;--line-soft:#161619;--white:#f2f2f4;--mute:#8a8a96;--dim:#545460;--gold:#c8a84b;--maxw:1100px}
 @font-face{font-family:'SHIFTBrand';src:url('fonts/shift-brand.woff2') format('woff2'),url('fonts/shift-brand.woff') format('woff');font-display:swap}
 *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--white);font-family:'Inter',system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;cursor:none}
-a,button{cursor:none}@media(hover:none){body,a,button{cursor:auto}}::selection{background:#fff;color:#000}
-#bg-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
-#cur-dot,#cur-ring{position:fixed;pointer-events:none;z-index:9998;border-radius:50%;transition:opacity .3s;opacity:0}
-#cur-dot{width:5px;height:5px;background:#fff;transform:translate(-50%,-50%)}
-#cur-ring{width:36px;height:36px;border:1px solid rgba(255,255,255,.35);transform:translate(-50%,-50%);transition:width .2s,height .2s,border-color .2s}
-@media(hover:none){#cur-dot,#cur-ring{display:none}}
+body{background:var(--bg);color:var(--white);font-family:'Inter',system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:#fff;color:#000}
+@keyframes bgIn{from{opacity:0}to{opacity:1}}
+#bg-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;animation:bgIn 2.4s ease 1.8s both}
 #expired-overlay{display:none;position:fixed;inset:0;z-index:9997;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px}
 nav{position:fixed;top:0;left:0;width:100%;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:20px 48px;border-bottom:1px solid var(--line);background:rgba(10,10,11,.88);backdrop-filter:blur(20px)}
 .nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none}.nav-logo img{height:28px;filter:brightness(0)invert(1)}
@@ -346,18 +353,30 @@ footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:1
 .fmark{display:inline-flex;align-items:center;gap:10px;text-decoration:none}
 .fmark img{height:20px;filter:brightness(0)invert(1);opacity:.5}.fmark span{font-family:'SHIFTBrand',sans-serif;font-size:16px;color:var(--mute);letter-spacing:.5em}
 footer small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
-.reveal{opacity:0;transform:translateY(24px);transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1)}.reveal.in{opacity:1;transform:none}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity 1.05s cubic-bezier(.22,1,.36,1),transform 1.05s cubic-bezier(.22,1,.36,1)}.reveal.in{opacity:1;transform:none}
+.gallery{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:3em}
+.gallery figure{margin:0;overflow:hidden;border:1px solid var(--line-soft);aspect-ratio:16/10;background:#111}
+.gallery img{width:100%;height:100%;object-fit:cover;filter:saturate(.85);transition:transform 1.4s cubic-bezier(.22,1,.36,1),filter .8s}
+.gallery figure:hover img{transform:scale(1.035);filter:saturate(1)}
+.gallery figure:nth-child(3n+1){grid-column:1/-1;aspect-ratio:21/9}
+@media(max-width:640px){.gallery{grid-template-columns:1fr}.gallery figure{aspect-ratio:16/10!important;grid-column:auto!important}}
+.cta-actions{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.btn.btn-ghost{border-color:var(--line);color:var(--mute)}
+.btn.btn-ghost:hover{border-color:var(--white);color:var(--white)}
+.cta-note{margin-top:1.6em;font-size:12.5px;color:var(--dim);max-width:44ch;line-height:1.7}
 @media print{nav,#bg-canvas,#cur-dot,#cur-ring,#expired-overlay,.scroll-cue{display:none!important}body{background:#fff;color:#111;cursor:auto}:root{--bg:#fff;--white:#111;--mute:#555;--dim:#888;--line:#ddd;--line-soft:#eee;--panel:#f5f5f5}section{border-color:#e0e0e0}
 .reveal{opacity:1!important;transform:none!important;transition:none!important}
 .hero{height:auto!important;min-height:0!important}
 .hero-bg,.hero-overlay{display:none!important}
 .hero-content{padding-top:40px}
 .price-table,.terms-grid{break-inside:avoid}
-section{break-inside:avoid-page}}
+section{break-inside:avoid-page}
+/* Online-only interactive elements — the printed PDF is a reference copy */
+.btn,.cta-actions,.cta-note,.gallery{display:none!important}}
 </style>
 </head>
 <body>
-<canvas id="bg-canvas"></canvas><div id="cur-dot"></div><div id="cur-ring"></div>
+<canvas id="bg-canvas"></canvas>
 <div id="expired-overlay">
   <img src="SHIFT-ICON.svg" alt="" style="height:40px;filter:brightness(0)invert(1);opacity:.3;margin-bottom:22px"/>
   <div style="font-size:11px;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--dim);margin-bottom:16px">${L.expired}</div>
@@ -412,11 +431,16 @@ section{break-inside:avoid-page}}
       ${notesItem}
     </div>
   </div></section>
+  ${gallerySection}
   ${formsSection}
   <section style="padding-bottom:clamp(72px,12vh,140px)"><div class="wrap">
     <div class="sec-eyebrow reveal">${L.next}</div>
     <h2 class="cta-lead reveal">${L.cta}</h2>
-    <a class="btn reveal" href="mailto:Produccion@5hift.com.mx?subject=${encodeURIComponent((d.company||d.client)+' — '+d.title)}">${L.approve} <span class="arr">→</span></a>
+    <div class="cta-actions reveal">
+      <a class="btn" href="mailto:Produccion@5hift.com.mx?subject=${encodeURIComponent('APPROVED: ' + (d.company||d.client) + ' — ' + d.title)}&body=${encodeURIComponent(es ? 'Aprobamos la propuesta. Siguiente paso por favor.' : 'We approve this proposal. Please send the next steps.')}">${L.approve} <span class="arr">→</span></a>
+      <a class="btn btn-ghost" href="https://wa.me/13463327077?text=${encodeURIComponent((es ? 'Hola SHIFT, tengo preguntas sobre la propuesta: ' : 'Hi SHIFT, I have questions about the proposal: ') + d.title)}" target="_blank" rel="noopener">${es ? 'Preguntas · WhatsApp' : 'Questions · WhatsApp'}</a>
+    </div>
+    <p class="cta-note reveal">${es ? 'Al aprobar, te enviamos el contrato y la factura del anticipo el mismo día. Tu fecha queda bloqueada al recibir el depósito.' : 'Once you approve, we send the contract and deposit invoice the same day. Your date is locked in when the deposit lands.'}</p>
     <div class="contact-block reveal"><b>SHIFT</b><br>Edwin · Produccion@5hift.com.mx<br>Houston, TX</div>
   </div></section>
 </main>
@@ -433,7 +457,7 @@ else{const b=document.getElementById('expiry-badge'),t=document.getElementById('
 if(dl<=7){b.classList.add('expiring');t.textContent='${L.expiresIn} '+dl+' ${L.days}';}
 else t.textContent='${L.active} · ${L.validUntil} '+fmt;}})();
 (function(){const c=document.getElementById('bg-canvas');if(!c)return;const ctx=c.getContext('2d');
-const C=52,R=30,RW=.52,RH=1.5,BO=.028,PO=.22,RAD=260,SP=.22,DM=.68,IA=.035,IS=.28;
+const C=52,R=30,RW=.52,RH=1.5,BO=.022,PO=.09,RAD=170,SP=.10,DM=.72,IA=.025,IS=.22;
 let W,H,rects=[],mx=-9999,my=-9999,tx=-9999,ty=-9999,t0=performance.now();
 function build(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;const cw=W/C,ch=H/R;rects=[];
 for(let r=0;r<R;r++)for(let col=0;col<C;col++)rects.push({x:(col+.5)*cw,y:(r+.5)*ch,w:cw*RW,ang:0,vel:0,phase:col*.31+r*.47});}
@@ -444,14 +468,9 @@ let df=tg-rec.ang;df=Math.atan2(Math.sin(df),Math.cos(df));rec.vel+=df*SP*(fall>
 const op=BO+fall*(PO-BO);ctx.save();ctx.translate(rec.x,rec.y);ctx.rotate(rec.ang);ctx.fillStyle='rgba(255,255,255,'+op.toFixed(4)+')';ctx.fillRect(-rec.w*.5,-RH*.5,rec.w,RH);ctx.restore();}}
 document.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY;});document.addEventListener('mouseleave',()=>{tx=-9999;ty=-9999;});
 window.addEventListener('resize',build,{passive:true});build();loop();})();
-(function(){const inIF=(()=>{try{return window.self!==window.top}catch(e){return true}})();
-const dot=document.getElementById('cur-dot'),ring=document.getElementById('cur-ring');if(inIF||!dot||!ring)return;
-let rx=0,ry=0,mx=0,my=0,vis=false;
-document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;if(!vis){dot.style.opacity='1';ring.style.opacity='1';vis=true;}dot.style.left=mx+'px';dot.style.top=my+'px';});
-document.addEventListener('mouseleave',()=>{vis=false;dot.style.opacity='0';ring.style.opacity='0';});
-document.querySelectorAll('a,button').forEach(el=>{el.addEventListener('mouseenter',()=>{ring.style.width='56px';ring.style.height='56px';ring.style.borderColor='rgba(255,255,255,.6)';});el.addEventListener('mouseleave',()=>{ring.style.width='36px';ring.style.height='36px';ring.style.borderColor='rgba(255,255,255,.35)';});});
-(function lag(){requestAnimationFrame(lag);rx+=(mx-rx)*.11;ry+=(my-ry)*.11;ring.style.left=rx+'px';ring.style.top=ry+'px';})();})();
-(function(){const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}}),{threshold:.1,rootMargin:'0px 0px -6% 0px'});document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=i%5*65+'ms';io.observe(el);});})();
+// Custom cursor removed 2026-07-02 — kept motion subtle so clients aren't
+// distracted; the canvas field above fades in late and reacts gently instead.
+(function(){const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}}),{threshold:.1,rootMargin:'0px 0px -6% 0px'});document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=i%5*90+'ms';io.observe(el);});})();
 // Reveal everything before printing so no section is blank in the PDF.
 window.addEventListener('beforeprint',()=>document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in')));
 <\/script>

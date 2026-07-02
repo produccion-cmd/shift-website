@@ -24,7 +24,9 @@ async function _gateCheck() {
     if (isNaN(exp) || Date.now() / 1000 > exp) { _deny('expired'); return; }
     const expected = await _hmac(payload);
     if (sig !== expected.slice(0, 32)) { _deny('invalid'); return; }
-    const clientName = payload.split('|')[0];
+    const parts = payload.split('|');
+    const clientName = parts[0];
+    const driveId = parts[2] || '';   // optional Google Drive folder id (newer links)
     document.getElementById('_gate').style.display = 'none';
     document.getElementById('_portal').style.display = 'block';
     const greet = document.getElementById('_client-greeting');
@@ -32,6 +34,7 @@ async function _gateCheck() {
     const exp_el = document.getElementById('_link-expires');
     if (exp_el) exp_el.textContent = new Date(exp*1000).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
     _filterCardsForClient(clientName);
+    _renderFilesTab(driveId);
   } catch(e) { _deny('error'); }
 }
 
@@ -54,14 +57,17 @@ function _filterCardsForClient(clientName) {
     const cardCompany = norm(card.dataset.company || '');
     const cardHay = cardClient + ' ' + cardCompany;
     const noTags = !cardClient && !cardCompany;
-    if (card.hasAttribute('data-admin-only')) return; // already handled
-    if (noTags) { card.style.display = 'none'; return; }
+    if (card.hasAttribute('data-admin-only')) { card.dataset.clientOk = '0'; return; } // already handled
+    if (noTags) { card.dataset.clientOk = '0'; card.style.display = 'none'; return; }
     // Match if any 3+-letter token word appears in the card's client/company,
     // or if the card's client/company appears in the token name.
     const match =
       tokenWords.some(w => cardHay.includes(w)) ||
       (cardClient && tokenNorm.includes(cardClient)) ||
       (cardCompany && tokenNorm.includes(cardCompany));
+    // Remember the verdict so the status filter buttons can never un-hide
+    // another client's cards.
+    card.dataset.clientOk = match ? '1' : '0';
     card.style.display = match ? '' : 'none';
   });
   // If a whole tab now has zero visible cards, show an empty state
@@ -92,6 +98,18 @@ function _deny(reason) {
   };
   const el = document.getElementById('_gate-msg');
   if (el) el.textContent = msg[reason] || msg['error'];
+}
+function _renderFilesTab(driveId) {
+  const has = !!driveId;
+  const drive = document.getElementById('files-drive');
+  const none  = document.getElementById('files-none');
+  if (drive) drive.style.display = has ? 'block' : 'none';
+  if (none)  none.style.display  = has ? 'none'  : 'block';
+  if (!has) return;
+  const open = document.getElementById('files-open-link');
+  if (open) open.href = 'https://drive.google.com/drive/folders/' + encodeURIComponent(driveId);
+  const emb = document.getElementById('files-drive-embed');
+  if (emb) emb.src = 'https://drive.google.com/embeddedfolderview?id=' + encodeURIComponent(driveId) + '#list';
 }
 window.addEventListener('DOMContentLoaded', _gateCheck);
 </script>
@@ -230,7 +248,9 @@ tailwind.config = {
     <button class="tab-btn active font-body text-label-sm uppercase tracking-widest text-primary py-4 px-5 border-b border-primary whitespace-nowrap transition-colors" onclick="switchTab('proposals',this)">Proposals</button>
     <button class="tab-btn font-body text-label-sm uppercase tracking-widest text-on-surface-variant py-4 px-5 border-b border-transparent whitespace-nowrap hover:text-primary transition-colors" onclick="switchTab('invoices',this)">Invoices</button>
     <button class="tab-btn font-body text-label-sm uppercase tracking-widest text-on-surface-variant py-4 px-5 border-b border-transparent whitespace-nowrap hover:text-primary transition-colors" onclick="switchTab('contracts',this)">Contracts</button>
-    <button class="tab-btn font-body text-label-sm uppercase tracking-widest text-on-surface-variant py-4 px-5 border-b border-transparent whitespace-nowrap hover:text-primary transition-colors" onclick="switchTab('timeline',this)">Timeline</button>
+<!-- Timeline tab removed 2026-07-02: it showed hardcoded demo content (Beyond
+     Restaurant milestones with placeholder dates) to every client. Bring it back
+     only when it can be generated per-client from real event data. -->
     <button class="tab-btn font-body text-label-sm uppercase tracking-widest text-on-surface-variant py-4 px-5 border-b border-transparent whitespace-nowrap hover:text-primary transition-colors" onclick="switchTab('files',this)">Files</button>
   </div>
 </div>
@@ -455,104 +475,30 @@ tailwind.config = {
     </div>
   </div>
 
-  <!-- ── TIMELINE ── -->
-  <div id="tab-timeline" class="tab-panel">
-    <div class="mb-8">
-      <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Timeline</p>
-      <p class="font-display font-semibold text-primary text-2xl tracking-tight">Event Schedule</p>
-    </div>
-    <div class="border border-outline-variant/20 relative">
-      <!-- Timeline items -->
-      <div class="flex gap-6 p-8 border-b border-outline-variant/20 items-start">
-        <div class="flex-none w-2 h-2 rounded-full bg-primary mt-1.5"></div>
-        <div class="flex-none w-32">
-          <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">Jun 2026</p>
-        </div>
-        <div>
-          <p class="font-display font-semibold text-primary">Proposal Approved</p>
-          <p class="font-body text-sm text-on-surface-variant mt-1">Beyond Restaurant immersive projection scope confirmed.</p>
-        </div>
-        <span class="ml-auto flex-none font-body text-label-sm uppercase px-3 py-1 border status-approved">Done</span>
-      </div>
-      <div class="flex gap-6 p-8 border-b border-outline-variant/20 items-start opacity-60">
-        <div class="flex-none w-2 h-2 rounded-full border border-outline mt-1.5"></div>
-        <div class="flex-none w-32">
-          <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">[ Date ]</p>
-        </div>
-        <div>
-          <p class="font-display font-semibold text-primary">Deposit Due</p>
-          <p class="font-body text-sm text-on-surface-variant mt-1">50% deposit to confirm production slot.</p>
-        </div>
-        <span class="ml-auto flex-none font-body text-label-sm uppercase px-3 py-1 border status-pending">Pending</span>
-      </div>
-      <div class="flex gap-6 p-8 border-b border-outline-variant/20 items-start opacity-60">
-        <div class="flex-none w-2 h-2 rounded-full border border-outline mt-1.5"></div>
-        <div class="flex-none w-32">
-          <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">[ Date ]</p>
-        </div>
-        <div>
-          <p class="font-display font-semibold text-primary">Site Survey</p>
-          <p class="font-body text-sm text-on-surface-variant mt-1">On-site measurement and tech walkthrough.</p>
-        </div>
-        <span class="ml-auto flex-none font-body text-label-sm uppercase px-3 py-1 border status-draft">Scheduled</span>
-      </div>
-      <div class="flex gap-6 p-8 border-b border-outline-variant/20 items-start opacity-60">
-        <div class="flex-none w-2 h-2 rounded-full border border-outline mt-1.5"></div>
-        <div class="flex-none w-32">
-          <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">[ Date ]</p>
-        </div>
-        <div>
-          <p class="font-display font-semibold text-primary">Design Delivery</p>
-          <p class="font-body text-sm text-on-surface-variant mt-1">Vectorworks drawings + Capture previs sent for review.</p>
-        </div>
-        <span class="ml-auto flex-none font-body text-label-sm uppercase px-3 py-1 border status-draft">Upcoming</span>
-      </div>
-      <div class="flex gap-6 p-8 items-start opacity-60">
-        <div class="flex-none w-2 h-2 rounded-full border border-outline mt-1.5"></div>
-        <div class="flex-none w-32">
-          <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">[ Event Date ]</p>
-        </div>
-        <div>
-          <p class="font-display font-semibold text-primary">Event Day</p>
-          <p class="font-body text-sm text-on-surface-variant mt-1">Load-in, technical setup, and show operation.</p>
-        </div>
-        <span class="ml-auto flex-none font-body text-label-sm uppercase px-3 py-1 border status-draft">TBD</span>
-      </div>
-    </div>
-  </div>
-
   <!-- ── FILES ── -->
   <div id="tab-files" class="tab-panel">
     <div class="mb-8">
       <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-1">Files</p>
-      <p class="font-display font-semibold text-primary text-2xl tracking-tight">Documents & Assets</p>
+      <p class="font-display font-semibold text-primary text-2xl tracking-tight">Shared Project Folder</p>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-outline-variant/20 border border-outline-variant/20 mb-6">
-      <div class="portal-card bg-background flex flex-col gap-3 p-7 group cursor-pointer">
-        <span class="material-symbols-outlined text-on-surface-variant text-3xl">description</span>
-        <p class="font-display font-semibold text-primary tracking-tight">Event Proposal</p>
-        <p class="font-body text-sm text-on-surface-variant">PDF · Jun 2026</p>
-        <div class="flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors mt-auto">
-          Download <span class="material-symbols-outlined text-base">download</span>
-        </div>
+    <div id="files-drive" style="display:none">
+      <div class="flex gap-3 flex-wrap mb-6">
+        <a id="files-open-link" href="#" target="_blank" rel="noopener" class="font-body text-label-sm uppercase tracking-widest border border-primary text-primary px-5 py-3 hover:bg-primary hover:text-background transition-all inline-flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">upload</span> Open Folder / Upload Files
+        </a>
       </div>
-      <div class="portal-card bg-background flex flex-col gap-3 p-7 group cursor-pointer">
-        <span class="material-symbols-outlined text-on-surface-variant text-3xl">floor_plan</span>
-        <p class="font-display font-semibold text-primary tracking-tight">Venue Layout</p>
-        <p class="font-body text-sm text-on-surface-variant">PDF · Vectorworks</p>
-        <div class="flex items-center gap-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors mt-auto">
-          Download <span class="material-symbols-outlined text-base">download</span>
-        </div>
-      </div>
-      <div class="portal-card bg-background flex flex-col items-center justify-center gap-4 p-10 cursor-pointer group border border-dashed border-outline-variant hover:border-primary transition-all min-h-[180px]"
-        onclick="alert('File upload coming soon.')">
-        <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors text-2xl">upload</span>
-        <span class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors">Upload File</span>
-      </div>
+      <p class="font-body text-sm text-on-surface-variant mb-4 leading-relaxed">
+        This is your shared Google Drive folder for this project — contracts, layouts, music,
+        photos, videos, run-of-show docs. Click the button above, then drag &amp; drop your files.
+        Everything you upload appears below (refresh this page after uploading), so you never
+        have to send the same file twice.
+      </p>
+      <iframe id="files-drive-embed" src="" style="width:100%;height:480px;border:1px solid rgba(255,255,255,.12);background:#0d0e0f" title="Shared files"></iframe>
     </div>
-    <div class="border border-outline-variant/20 p-6">
-      <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-3">Notes from SHIFT</p>
-      <p class="font-body text-on-surface-variant leading-relaxed">All files above are read-only. To request edits or share new assets, contact us at <a href="mailto:Produccion@5hift.com.mx" class="text-primary hover:underline">Produccion@5hift.com.mx</a>.</p>
+    <div id="files-none" class="border border-outline-variant/20 p-10 text-center" style="display:none">
+      <span class="material-symbols-outlined text-on-surface-variant text-3xl mb-3 inline-block">folder_off</span>
+      <p class="font-body text-on-surface-variant leading-relaxed">No shared folder is linked to this portal link yet.<br/>
+      Ask SHIFT for an updated link at <a href="mailto:Produccion@5hift.com.mx" class="text-primary hover:underline">Produccion@5hift.com.mx</a> and we will set one up for you.</p>
     </div>
   </div>
 
@@ -597,7 +543,10 @@ tailwind.config = {
       btn.classList.remove('border-outline-variant','text-on-surface-variant');
       const f=btn.dataset.filter;
       document.querySelectorAll('.proposal-card').forEach(function(c){
-        c.style.display=(f==='all'||c.dataset.status===f)?'':'none';
+        // Client gate first — a status filter must never reveal another
+        // client's proposals.
+        const mine = c.dataset.clientOk !== '0';
+        c.style.display=(mine && (f==='all'||c.dataset.status===f))?'':'none';
       });
     });
   });

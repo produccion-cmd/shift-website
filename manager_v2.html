@@ -836,7 +836,20 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 /* Add event modal */
 .cal-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:24px}
 .cal-modal.open{display:flex}
-.cal-modal-box{background:#0d0d0d;border:1px solid var(--border);padding:32px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.cal-modal-box{background:#0d0d0d;border:1px solid var(--border);padding:32px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto}
+.cal-svc-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid var(--border);background:var(--panel);margin-top:6px;font-size:12.5px}
+.cal-svc-row .n{flex:1;min-width:0;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-svc-row .p{flex:none;color:var(--mute)}
+.cal-svc-row .x{background:none;border:none;color:var(--dim);cursor:pointer;font-size:12px;padding:2px 4px}
+.cal-svc-row .x:hover{color:#f87171}
+.cal-ev-own-svcs{margin-top:8px;border-left:2px solid var(--border);padding-left:12px}
+.cal-ev-own-svc{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--mute);padding:2px 0}
+.cal-ev-own-svc .price{color:var(--dim);flex:none}
+.cal-ev-own-total{display:flex;justify-content:space-between;gap:12px;font-size:12px;font-weight:600;color:var(--white);padding:4px 0;border-top:1px solid var(--border);margin-top:4px}
+.cal-ev-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.cal-ev-link{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.06em;color:var(--mute);border:1px solid var(--border);padding:4px 10px;text-decoration:none;transition:all .15s}
+.cal-ev-link:hover{color:var(--white);border-color:var(--white)}
+.cal-ev-time{color:var(--gold)}
 .cal-modal-h{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;letter-spacing:-.02em;margin-bottom:24px}
 .cal-modal-foot{display:flex;gap:10px;margin-top:24px;justify-content:flex-end}
 .cal-save-btn{background:var(--white);color:#000;font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:12px 24px;border:none;cursor:pointer}
@@ -1250,6 +1263,10 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
             <div id="p-hero-status" style="font-size:11px;letter-spacing:.06em;margin-top:6px"></div>
           </div>
         </div>
+        <div class="f-row">
+          <label class="f-label">Gallery Images (optional — one URL per line, shown as "Visual References" before the CTA)</label>
+          <textarea class="f-textarea" id="p-gallery" rows="3" placeholder="https://images.unsplash.com/photo-...&#10;https://images.unsplash.com/photo-..." oninput="scheduleProposalPreview()"></textarea>
+        </div>
 
         <div class="f-section">
           <div class="f-section-label">Services</div>
@@ -1593,6 +1610,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
             <div class="f-row"><label class="f-label">Country</label><input class="f-input" id="ce-country" placeholder="United States"/></div>
           </div>
           <div class="f-row"><label class="f-label">Website</label><input class="f-input" id="ce-website" placeholder="https://..."/></div>
+          <div class="f-row"><label class="f-label">Google Drive Folder (shared project files)</label><input class="f-input" id="ce-drive" placeholder="https://drive.google.com/drive/folders/…"/></div>
           <div class="f-row">
             <label class="f-label">Status</label>
             <div class="crm-status-row" id="ce-status-row">
@@ -1908,7 +1926,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
   </div>
 </div>
 
-<script src="js/doc-templates.js?v=20260702a"></script>
+<script src="js/doc-templates.js?v=20260702b"></script>
 <script>
 // ── CONSTANTS ────────────────────────────────────────────────
 const _SK = 'SHIFTportal#2026$key!xK9mPq3';
@@ -2520,6 +2538,7 @@ async function doLogin() {
     initQuoteForm();
     renderDraftBars();
     _migrateBackfillProposals();
+    _migrateAssignEventServices();
     startAutoSync();
   } else {
     const fresh = Date.now() - th.t < LOGIN_COOLDOWN_MS ? th.n : 0;
@@ -2539,7 +2558,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); renderDraftBars(); _migrateBackfillProposals(); startAutoSync(); });
+  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); renderDraftBars(); _migrateBackfillProposals(); _migrateAssignEventServices(); startAutoSync(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -3127,12 +3146,26 @@ async function _hmac(msg) {
   const sig = await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(msg));
   return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
+// Pull the folder id out of any Google Drive folder URL (or accept a bare id).
+function _driveFolderId(url) {
+  const u = (url||'').trim();
+  if (!u) return '';
+  const m = u.match(/\/folders\/([A-Za-z0-9_-]{10,})/) || u.match(/[?&]id=([A-Za-z0-9_-]{10,})/);
+  if (m) return m[1];
+  return /^[A-Za-z0-9_-]{10,}$/.test(u) ? u : '';
+}
+
 async function generateLink() {
   const name = document.getElementById('client-name').value.trim();
   const days = parseInt(document.getElementById('expiry-days').value);
   if (!name) { toast('Enter a client name','err'); return; }
   const exp = Math.floor(Date.now()/1000) + days*86400;
-  const payload = `${name}|${exp}`;
+  // Include the client's shared Drive folder (CRM contact → Files tab in the portal).
+  const contact = _crmLoad().find(c =>
+    (c.name||'').trim().toLowerCase() === name.toLowerCase() ||
+    (c.company||'').trim().toLowerCase() === name.toLowerCase());
+  const driveId = _driveFolderId(contact?.drive);
+  const payload = driveId ? `${name}|${exp}|${driveId}` : `${name}|${exp}`;
   const sig = (await _hmac(payload)).slice(0,32);
   const token = btoa(payload)+'.'+sig;
   const url = `${PORTAL_URL}?t=${encodeURIComponent(token)}`;
@@ -3312,6 +3345,7 @@ function getProposalData() {
     expiryDate: document.getElementById('p-expiry').value,
     intro: document.getElementById('p-intro').value.trim(),
     heroImg: document.getElementById('p-hero').value.trim(),
+    gallery: (document.getElementById('p-gallery')?.value || '').split('\n').map(s => s.trim()).filter(s => /^https?:\/\//i.test(s)),
     services,
     depositPct: parseInt(document.getElementById('p-deposit').value),
     notes: document.getElementById('p-notes').value.trim(),
@@ -3878,7 +3912,7 @@ function crmOpenNew() {
   const ev = document.getElementById('crm-edit-view');
   ev.style.display = '';
   document.getElementById('crm-edit-title').textContent = 'New Client';
-  ['name','company','email','phone','addr','city','country','website'].forEach(f => {
+  ['name','company','email','phone','addr','city','country','website','drive'].forEach(f => {
     document.getElementById('ce-'+f).value = '';
   });
   crmSetEditStatus('active');
@@ -3903,6 +3937,7 @@ function crmOpenEdit(id) {
   document.getElementById('ce-city').value = c.city || '';
   document.getElementById('ce-country').value = c.country || '';
   document.getElementById('ce-website').value = c.website || '';
+  document.getElementById('ce-drive').value = c.drive || '';
   crmSetEditStatus(c.status || 'active');
   document.querySelectorAll('.crm-tag-opt').forEach(b => {
     b.classList.toggle('on', (c.tags||[]).includes(b.dataset.tag));
@@ -3933,6 +3968,7 @@ function crmSaveEdit() {
       c.city=document.getElementById('ce-city').value.trim();
       c.country=document.getElementById('ce-country').value.trim();
       c.website=document.getElementById('ce-website').value.trim();
+      c.drive=document.getElementById('ce-drive').value.trim();
       c.status=_crmEditStatus; c.tags=tags; c.updated=Date.now();
     }
     _crmSave(contacts);
@@ -3950,6 +3986,7 @@ function crmSaveEdit() {
       city:document.getElementById('ce-city').value.trim(),
       country:document.getElementById('ce-country').value.trim(),
       website:document.getElementById('ce-website').value.trim(),
+      drive:document.getElementById('ce-drive').value.trim(),
       status:_crmEditStatus, tags, notes:[],
       invoiceCount:0, totalRevenue:0, lastInvoice:'',
       created:Date.now(), updated:Date.now()
@@ -5436,7 +5473,7 @@ function copyCardHTML() {
 // resume it later. Drafts live in localStorage under 'shift-drafts' (cloud-
 // synced via CLOUD_SYNC_KEYS) as { id, type, name, fields, rows, savedAt }.
 const DRAFT_FIELDS = {
-  proposal: ['p-client-id','p-client','p-company','p-city','p-lang','p-title','p-subtitle','p-date','p-expiry','p-intro','p-hero','p-deposit','p-notes','p-forms','p-filename'],
+  proposal: ['p-client-id','p-client','p-company','p-city','p-lang','p-title','p-subtitle','p-date','p-expiry','p-intro','p-hero','p-gallery','p-deposit','p-notes','p-forms','p-filename'],
   invoice:  ['i-num','i-lang','i-date','i-due','i-payment-terms','i-client-id','i-client','i-company','i-addr','i-city','i-country','i-email','i-tax','i-payment','i-notes','i-filename'],
   contract: ['c-num','c-lang','c-date','c-event-date','c-client','c-company','c-addr','c-city','c-country','c-event','c-venue','c-deposit-pct','c-deposit-due','c-balance-due','c-payment-inst','c-cancel','c-liability','c-terms','c-filename'],
   quote:    ['qq-client-id','qq-client','qq-num','qq-amount','qq-valid','qq-desc','qq-notes']
@@ -5566,6 +5603,56 @@ function renderDraftBars() {
 // ── EVENTS CALENDAR ───────────────────────────────────────────
 function _eventsLoad() { return JSON.parse(localStorage.getItem('shift-events')||'[]'); }
 function _eventsSave(d) { localStorage.setItem('shift-events', JSON.stringify(d)); }
+
+// Render an event's OWN assigned services (set in the event editor) —
+// shown instead of the whole-client package block.
+function _calOwnServicesHTML(ev) {
+  const svcs = ev.services || [];
+  if (!svcs.length) return '';
+  const fmtCur = (v,c) => '$' + fmtPrice(v) + (c && c !== 'USD' ? ' ' + c : '');
+  const byCur = {};
+  svcs.forEach(s => { const c = s.currency||'USD'; byCur[c] = (byCur[c]||0) + (s.price||0); });
+  const totalStr = Object.entries(byCur).filter(([,v])=>v>0).map(([c,v])=>fmtCur(v,c)).join(' + ');
+  return `<div class="cal-ev-own-svcs">
+    ${svcs.map(s=>`<div class="cal-ev-own-svc"><span>${esc(s.name)}</span><span class="price">${s.price?fmtCur(s.price,s.currency):''}</span></div>`).join('')}
+    ${totalStr?`<div class="cal-ev-own-total"><span>Event total</span><span>${totalStr}</span></div>`:''}
+  </div>`;
+}
+
+// One-time assignment (2026-07-02): events that predate per-event services get
+// their services auto-picked from the client's proposals by keyword + year
+// matching ("Mehendi (Event 1)" ← "Event 1 · Mehendi — Citizens Restaurant").
+// Only runs for events that have never had a services key; manual edits stick.
+function _migrateAssignEventServices() {
+  const STOP = ['event','events','wedding','weddings','show','shows','with','from'];
+  const events = _eventsLoad();
+  let changed = false;
+  const props = _proposalsLoad();
+  events.forEach(ev => {
+    if (ev.services !== undefined) return;
+    const keys = _svcMatchKeys(ev.client, ev.clientId);
+    if (!keys.length) return;
+    const evYear = (ev.date||'').slice(0,4);
+    const evWords = ((ev.title||'').toLowerCase().match(/[a-z]{4,}/g) || []).filter(w => !STOP.includes(w));
+    if (!evWords.length) return;
+    const picked = [];
+    props.forEach(p => {
+      if (!(_svcNameMatch(p.client, keys) || _svcNameMatch(p.company, keys))) return;
+      const pHay = ((p.title||'') + ' ' + (p.filename||'')).toLowerCase();
+      const pYears = pHay.match(/\b20\d\d\b/g);
+      if (evYear && pYears && !pYears.includes(evYear)) return; // wrong year's proposal
+      (p.services||[]).forEach(s => {
+        const sName = (s.name||'').toLowerCase();
+        if (/\bvat\b|\biva\b/.test(sName)) return;
+        if (evWords.some(w => sName.includes(w)) && !picked.some(x => x.name === s.name)) {
+          picked.push({ name: s.name, price: s.price||0, currency: p.currency||'USD' });
+        }
+      });
+    });
+    if (picked.length) { ev.services = picked; changed = true; }
+  });
+  if (changed) { _eventsSave(events); console.log('Auto-assigned services to events'); }
+}
 
 // ── SERVICES PER EVENT ───────────────────────────────────────
 // Gather everything sold (invoices, contracts, won deals) or proposed
@@ -5729,7 +5816,8 @@ function renderCalendar() {
   _eventsLoad().forEach(e => {
     const dt = new Date(e.date + 'T12:00:00');
     if (cutoff && dt > cutoff) return;
-    events.push({ date: dt, title: e.title, client: e.client||'', clientId: e.clientId||'', type: e.type||'other', id: e.id, manual: true, notes: e.notes||'' });
+    events.push({ date: dt, title: e.title, client: e.client||'', clientId: e.clientId||'', type: e.type||'other', id: e.id, manual: true, notes: e.notes||'',
+      venue: e.venue||'', startTime: e.startTime||'', endTime: e.endTime||'', services: e.services||[], links: e.links||[] });
   });
 
   // From contracts (eventDate)
@@ -5792,9 +5880,13 @@ function renderCalendar() {
         ${ev.client?`<div class="cal-ev-client">${esc(ev.client)}</div>`:''}
         <div class="cal-ev-meta">
           <span class="cal-ev-type ${typeClass}">${typeLabel}</span>
+          ${ev.startTime?`<span class="cal-ev-time">⏱ ${ev.startTime}${ev.endTime?'–'+ev.endTime:''}</span>`:''}
+          ${ev.venue?`<span>📍 ${esc(ev.venue)}</span>`:''}
           ${ev.notes?`<span>${esc(ev.notes)}</span>`:''}
         </div>
-        ${ev.type !== 'invoice' ? _servicesBlockHTML(ev.client, 'cal-' + ev.id, ev.clientId) : ''}
+        ${_calOwnServicesHTML(ev)}
+        ${(ev.links||[]).length?`<div class="cal-ev-links">${ev.links.map(l=>`<a class="cal-ev-link" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('')}</div>`:''}
+        ${(!ev.services || !ev.services.length) && ev.type !== 'invoice' ? _servicesBlockHTML(ev.client, 'cal-' + ev.id, ev.clientId) : ''}
       </div>
       ${delBtn?`<div class="cal-ev-actions">${delBtn}</div>`:''}
     </div>`;
@@ -5803,16 +5895,86 @@ function renderCalendar() {
 }
 
 let _calEditId = null;
+let _calModalSvcs = [];   // [{name, price, currency}]
+let _calModalLinks = [];  // [{label, url}]
+let _calPickerItems = []; // flattened client doc line items for the picker
+
+function _calRenderModalSvcs() {
+  const el = document.getElementById('cal-ev-svcs-list');
+  if (!el) return;
+  el.innerHTML = _calModalSvcs.map((s,i) =>
+    `<div class="cal-svc-row"><span class="n">${esc(s.name)}</span><span class="p">${s.price?'$'+fmtPrice(s.price)+(s.currency&&s.currency!=='USD'?' '+s.currency:''):''}</span><button class="x" type="button" onclick="calSvcRemove(${i})">✕</button></div>`
+  ).join('') || '<div style="font-size:11.5px;color:var(--dim);padding:4px 0">No services yet — pick from the client\'s docs below or add your own.</div>';
+}
+function _calRenderModalLinks() {
+  const el = document.getElementById('cal-ev-links-list');
+  if (!el) return;
+  el.innerHTML = _calModalLinks.map((l,i) =>
+    `<div class="cal-svc-row"><span class="n">${esc(l.label||l.url)}</span><span class="p" style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${esc(l.url)}</span><button class="x" type="button" onclick="calLinkRemove(${i})">✕</button></div>`
+  ).join('');
+}
+function _calPopulateSvcPicker() {
+  const sel = document.getElementById('cal-ev-svc-picker');
+  if (!sel) return;
+  const client = document.getElementById('cal-ev-client-in').value.trim();
+  const clientId = document.getElementById('cal-ev-client-id')?.value || '';
+  _calPickerItems = [];
+  _servicesForClient(client, clientId).forEach(g => {
+    (g.items||[]).forEach(it => {
+      if (!it.name || !it.price) return;
+      _calPickerItems.push({ name: it.name, price: it.price, currency: g.currency||'USD', from: g.num });
+    });
+  });
+  sel.innerHTML = '<option value="">— Add from this client\'s proposals / invoices —</option>' +
+    _calPickerItems.map((it,i) => `<option value="${i}">${esc(it.name.slice(0,60))} — $${fmtPrice(it.price)}${it.currency!=='USD'?' '+it.currency:''}</option>`).join('');
+}
+function calSvcAddFromPicker() {
+  const sel = document.getElementById('cal-ev-svc-picker');
+  const it = _calPickerItems[parseInt(sel.value)];
+  if (!it) { toast('Pick a service from the list first','err'); return; }
+  _calModalSvcs.push({ name: it.name, price: it.price, currency: it.currency });
+  sel.value = '';
+  _calRenderModalSvcs();
+}
+function calSvcAddManual() {
+  const name = document.getElementById('cal-ev-svc-name').value.trim();
+  const price = parseFloat(document.getElementById('cal-ev-svc-price').value) || 0;
+  const currency = document.getElementById('cal-ev-svc-cur').value;
+  if (!name) { toast('Enter a service name','err'); return; }
+  _calModalSvcs.push({ name, price, currency });
+  document.getElementById('cal-ev-svc-name').value = '';
+  document.getElementById('cal-ev-svc-price').value = '';
+  _calRenderModalSvcs();
+}
+function calSvcRemove(i) { _calModalSvcs.splice(i,1); _calRenderModalSvcs(); }
+function calLinkAdd() {
+  const label = document.getElementById('cal-ev-link-label').value.trim();
+  let url = document.getElementById('cal-ev-link-url').value.trim();
+  if (!url) { toast('Enter a URL','err'); return; }
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  _calModalLinks.push({ label: label || url.replace(/^https?:\/\//,'').slice(0,40), url });
+  document.getElementById('cal-ev-link-label').value = '';
+  document.getElementById('cal-ev-link-url').value = '';
+  _calRenderModalLinks();
+}
+function calLinkRemove(i) { _calModalLinks.splice(i,1); _calRenderModalLinks(); }
+
 function calOpenAdd() {
   _calEditId = null;
+  _calModalSvcs = []; _calModalLinks = [];
   document.getElementById('cal-modal-title').textContent = 'Add Event';
   document.getElementById('cal-ev-title-in').value = '';
   document.getElementById('cal-ev-client-in').value = '';
   document.getElementById('cal-ev-client-id').value = '';
   document.getElementById('cal-ev-date-in').value = todayISO();
   document.getElementById('cal-ev-type-in').value = 'show';
+  document.getElementById('cal-ev-venue-in').value = '';
+  document.getElementById('cal-ev-start-in').value = '';
+  document.getElementById('cal-ev-end-in').value = '';
   document.getElementById('cal-ev-notes-in').value = '';
   _populateCRMPickers();
+  _calPopulateSvcPicker();
+  _calRenderModalSvcs(); _calRenderModalLinks();
   document.getElementById('cal-modal').classList.add('open');
   setTimeout(() => document.getElementById('cal-ev-title-in').focus(), 50);
 }
@@ -5820,12 +5982,21 @@ function calOpenEdit(id) {
   const ev = _eventsLoad().find(e => e.id === id);
   if (!ev) return;
   _calEditId = id;
+  _calModalSvcs = (ev.services||[]).map(s => ({...s}));
+  _calModalLinks = (ev.links||[]).map(l => ({...l}));
   document.getElementById('cal-modal-title').textContent = 'Edit Event';
   document.getElementById('cal-ev-title-in').value  = ev.title;
   document.getElementById('cal-ev-client-in').value = ev.client||'';
+  document.getElementById('cal-ev-client-id').value = ev.clientId||'';
   document.getElementById('cal-ev-date-in').value   = ev.date;
   document.getElementById('cal-ev-type-in').value   = ev.type||'show';
+  document.getElementById('cal-ev-venue-in').value  = ev.venue||'';
+  document.getElementById('cal-ev-start-in').value  = ev.startTime||'';
+  document.getElementById('cal-ev-end-in').value    = ev.endTime||'';
   document.getElementById('cal-ev-notes-in').value  = ev.notes||'';
+  _populateCRMPickers();
+  _calPopulateSvcPicker();
+  _calRenderModalSvcs(); _calRenderModalLinks();
   document.getElementById('cal-modal').classList.add('open');
 }
 function calCloseModal() { document.getElementById('cal-modal').classList.remove('open'); }
@@ -5836,16 +6007,21 @@ function calSave() {
   const date   = document.getElementById('cal-ev-date-in').value;
   const type   = document.getElementById('cal-ev-type-in').value;
   const notes  = document.getElementById('cal-ev-notes-in').value.trim();
+  const venue  = document.getElementById('cal-ev-venue-in').value.trim();
+  const startTime = document.getElementById('cal-ev-start-in').value;
+  const endTime   = document.getElementById('cal-ev-end-in').value;
   if (!title) { toast('Enter an event title','err'); document.getElementById('cal-ev-title-in').focus(); return; }
   if (!date)  { toast('Select a date','err'); return; }
 
+  const detail = { title, client, date, type, notes, venue, startTime, endTime,
+    services: _calModalSvcs.slice(), links: _calModalLinks.slice() };
   const events = _eventsLoad();
   if (_calEditId) {
     const idx = events.findIndex(e => e.id === _calEditId);
-    if (idx > -1) events[idx] = { ...events[idx], title, client, date, type, notes };
+    if (idx > -1) events[idx] = { ...events[idx], ...detail };
   } else {
     const clientId = (document.getElementById('cal-ev-client-id')?.value)||'';
-  events.push({ id:'ev_'+Date.now()+'_'+Math.random().toString(36).slice(2,5), title, client, clientId, date, type, notes, created: Date.now() });
+    events.push({ id:'ev_'+Date.now()+'_'+Math.random().toString(36).slice(2,5), clientId, ...detail, created: Date.now() });
   }
   _eventsSave(events);
   calCloseModal();
@@ -6471,29 +6647,68 @@ function crmNewProduction(id) {
     </div>
     <div class="crm-pick-row" style="margin-top:14px;margin-bottom:6px">
       <span class="crm-pick-lbl">Load from CRM</span>
-      <select class="crm-pick-sel" id="cal-ev-client-picker" onchange="pickFromCRM('cal-ev-client-picker','cal-ev-client-in','cal-ev-client-id')">
+      <select class="crm-pick-sel" id="cal-ev-client-picker" onchange="pickFromCRM('cal-ev-client-picker','cal-ev-client-in','cal-ev-client-id');_calPopulateSvcPicker()">
         <option value="">— Pick a client —</option>
       </select>
     </div>
     <input type="hidden" id="cal-ev-client-id"/>
     <div class="f-grid" style="margin-top:0">
       <div class="f-row"><label class="f-label">Client</label>
-        <input class="f-input" id="cal-ev-client-in" placeholder="Client name"/>
+        <input class="f-input" id="cal-ev-client-in" placeholder="Client name" onchange="_calPopulateSvcPicker()"/>
       </div>
       <div class="f-row"><label class="f-label">Date *</label>
         <input class="f-input" type="date" id="cal-ev-date-in"/>
       </div>
     </div>
-    <div class="f-row" style="margin-top:14px"><label class="f-label">Event Type</label>
-      <select class="f-select" id="cal-ev-type-in">
-        <option value="show">Show Day</option>
-        <option value="loadin">Load In</option>
-        <option value="pickup">Pickup</option>
-        <option value="other">Other</option>
-      </select>
+    <div class="f-grid" style="margin-top:14px">
+      <div class="f-row"><label class="f-label">Event Type</label>
+        <select class="f-select" id="cal-ev-type-in">
+          <option value="show">Show Day</option>
+          <option value="loadin">Load In</option>
+          <option value="pickup">Pickup</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="f-row"><label class="f-label">Venue</label>
+        <input class="f-input" id="cal-ev-venue-in" placeholder="Venue name / address"/>
+      </div>
     </div>
+    <div class="f-grid" style="margin-top:14px">
+      <div class="f-row"><label class="f-label">Start Time</label>
+        <input class="f-input" type="time" id="cal-ev-start-in"/>
+      </div>
+      <div class="f-row"><label class="f-label">End Time</label>
+        <input class="f-input" type="time" id="cal-ev-end-in"/>
+      </div>
+    </div>
+
+    <div class="f-row" style="margin-top:18px"><label class="f-label">Services for this event</label>
+      <div id="cal-ev-svcs-list"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <select class="f-select" id="cal-ev-svc-picker" style="flex:1;min-width:0">
+          <option value="">— Add from this client's proposals / invoices —</option>
+        </select>
+        <button class="prod-add-btn" type="button" onclick="calSvcAddFromPicker()">Add</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input class="f-input" id="cal-ev-svc-name" placeholder="Custom service (e.g. DJ Premium 5hrs)" style="flex:2;min-width:0"/>
+        <input class="f-input" id="cal-ev-svc-price" type="number" min="0" step="0.01" placeholder="Price" style="flex:1;min-width:0"/>
+        <select class="f-select" id="cal-ev-svc-cur" style="flex:0 0 80px"><option>USD</option><option>MXN</option></select>
+        <button class="prod-add-btn" type="button" onclick="calSvcAddManual()">Add</button>
+      </div>
+    </div>
+
+    <div class="f-row" style="margin-top:18px"><label class="f-label">Links (run of show, rider, playlist…)</label>
+      <div id="cal-ev-links-list"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input class="f-input" id="cal-ev-link-label" placeholder="Label (Run of Show)" style="flex:1;min-width:0"/>
+        <input class="f-input" id="cal-ev-link-url" placeholder="https://…" style="flex:2;min-width:0"/>
+        <button class="prod-add-btn" type="button" onclick="calLinkAdd()">Add</button>
+      </div>
+    </div>
+
     <div class="f-row" style="margin-top:14px"><label class="f-label">Notes (optional)</label>
-      <input class="f-input" id="cal-ev-notes-in" placeholder="Venue, call time, notes…"/>
+      <textarea class="f-textarea" id="cal-ev-notes-in" rows="2" placeholder="Call times, parking, contacts, anything the crew should know…"></textarea>
     </div>
     <div class="cal-modal-foot">
       <button class="cal-cancel-btn" onclick="calCloseModal()">Cancel</button>
