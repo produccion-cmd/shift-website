@@ -1255,6 +1255,12 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
             </select>
           </div>
         </div>
+        <div class="f-row" style="margin-top:14px"><label class="f-label">Currency</label>
+          <select class="f-select" id="p-currency" onchange="scheduleProposalPreview()">
+            <option value="USD">USD</option>
+            <option value="MXN">MXN</option>
+          </select>
+        </div>
         <div class="f-row"><label class="f-label">Proposal Title *</label><input class="f-input" id="p-title" value="Propuesta Integral de Servicios" oninput="scheduleProposalPreview()"/></div>
         <div class="f-row"><label class="f-label">Subtitle / Tagline</label><input class="f-input" id="p-subtitle" placeholder="A sensory portal where technology meets gastronomy." oninput="scheduleProposalPreview()"/></div>
         <div class="f-grid">
@@ -1288,6 +1294,14 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
             <button class="add-row-btn" style="flex:1;margin-top:0" onclick="addService()">+ Add Service</button>
             <button class="rc-add-btn" onclick="rcOpenPicker('proposal')">↓ Rate Card</button>
           </div>
+        </div>
+
+        <div class="f-section">
+          <div class="f-section-label">Event Breakdown (optional — one block per event, like the wedding proposals)</div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:10px">Each event gets its own venue, date, equipment list and price in the published proposal. When you mark the proposal approved, these events are added to your calendar automatically.</div>
+          <div id="p-events-list"></div>
+          <input type="hidden" id="p-events-json" value=""/>
+          <button class="add-row-btn" onclick="pEvAdd()">+ Add Event</button>
         </div>
 
         <div class="f-section">
@@ -1941,7 +1955,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
   </div>
 </div>
 
-<script src="js/doc-templates.js?v=20260702d"></script>
+<script src="js/doc-templates.js?v=20260702e"></script>
 <script>
 // ── CONSTANTS ────────────────────────────────────────────────
 const _SK = 'SHIFTportal#2026$key!xK9mPq3';
@@ -2831,6 +2845,9 @@ function renderDocumentsHub() {
     const openBtn = d.url
       ? `<a href="${esc(d.url)}" target="_blank"><button class="doc-open-btn">Open ↗</button></a>`
       : `<button class="doc-open-btn" onclick="docJumpToSource('${d.type}','${esc(d.id)}')">View</button>`;
+    const approveBtn = (d.type === 'proposal' && d.sourceKey === 'shift-proposals' && d.status !== 'approved')
+      ? `<button class="doc-open-btn" style="color:#4ade80;border-color:rgba(74,222,128,.4)" title="Mark approved and add its events to the calendar" onclick="approveProposal('${esc(d.id)}')">✓ Approve</button>`
+      : '';
     return `<div class="doc-row">
       <div><span class="doc-type-badge ${d.type}">${d.type}</span></div>
       <div>
@@ -2839,7 +2856,7 @@ function renderDocumentsHub() {
       </div>
       ${amtHtml}
       <div><span class="doc-status ${d.status}">${d.status}</span></div>
-      <div style="text-align:right">${openBtn}</div>
+      <div style="text-align:right;display:flex;gap:6px;justify-content:flex-end">${approveBtn}${openBtn}</div>
     </div>`;
   }).join('');
 }
@@ -3282,7 +3299,7 @@ function _setNextInvoiceNum() {
 function initForms() {
   document.getElementById('p-date').value = todayISO();
   document.getElementById('p-expiry').value = addDaysISO(30);
-  if (!document.querySelector('.svc-row')) addService();
+  if (!document.querySelector('#services-list .svc-row')) addService();
   document.getElementById('i-num').value = _nextInvoiceNum();
   document.getElementById('i-date').value = todayISO();
   document.getElementById('i-due').value = addDaysISO(30);
@@ -3324,24 +3341,70 @@ function addService() {
 }
 function removeService(btn) {
   const row = btn.closest('.svc-row');
-  if (document.querySelectorAll('.svc-row').length <= 1) { toast('Keep at least one service','err'); return; }
+  if (document.querySelectorAll('#services-list .svc-row').length <= 1) { toast('Keep at least one service','err'); return; }
   row.remove(); renumberServices(); updateProposalTotal(); scheduleProposalPreview();
 }
 function renumberServices() {
-  document.querySelectorAll('.svc-row').forEach((r,i) => {
+  document.querySelectorAll('#services-list .svc-row').forEach((r,i) => {
     r.querySelector('.svc-num').textContent = 'Service ' + (i+1);
   });
 }
 function updateProposalTotal() {
   let total = 0;
-  document.querySelectorAll('.svc-row input[name="svc-price"]').forEach(el => {
+  document.querySelectorAll('#services-list .svc-row input[name="svc-price"]').forEach(el => {
     total += parseFloat(el.value)||0;
   });
+  _pEvents.forEach(e => { total += parseFloat(e.price)||0; });
   document.getElementById('p-total-display').textContent = '$' + fmtPrice(total);
 }
+
+// ── PROPOSAL EVENT BREAKDOWN ─────────────────────────────────
+// State-driven blocks (one per sub-event, like the wedding proposals).
+// Mirrored into the hidden #p-events-json input so drafts capture them.
+let _pEvents = [];
+
+function _pEvSync() {
+  const h = document.getElementById('p-events-json');
+  if (h) h.value = JSON.stringify(_pEvents);
+  updateProposalTotal();
+  scheduleProposalPreview();
+}
+function pEvAdd() {
+  _pEvents.push({ name:'', venue:'', date:'', startTime:'', price:'', equipment:'' });
+  pEvRender(); _pEvSync();
+}
+function pEvRemove(i) { _pEvents.splice(i,1); pEvRender(); _pEvSync(); }
+function pEvSet(i, k, v) { if (_pEvents[i]) { _pEvents[i][k] = v; _pEvSync(); } }
+function pEvRender() {
+  const el = document.getElementById('p-events-list');
+  if (!el) return;
+  el.innerHTML = _pEvents.map((e,i) => `
+  <div class="svc-row">
+    <div class="svc-row-hd"><span class="svc-num">Event ${i+1}</span><button class="svc-remove" onclick="pEvRemove(${i})">Remove</button></div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Event Name *</label><input class="f-input" value="${esc(e.name)}" oninput="pEvSet(${i},'name',this.value)" placeholder="Mehendi"/></div>
+      <div class="f-row"><label class="f-label">Venue</label><input class="f-input" value="${esc(e.venue)}" oninput="pEvSet(${i},'venue',this.value)" placeholder="Citizens Restaurant — Sofitel"/></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Date</label><input class="f-input" type="date" value="${esc(e.date)}" onchange="pEvSet(${i},'date',this.value)"/></div>
+      <div class="f-row"><label class="f-label">Start Time</label><input class="f-input" type="time" value="${esc(e.startTime)}" onchange="pEvSet(${i},'startTime',this.value)"/></div>
+    </div>
+    <div class="f-row"><label class="f-label">Equipment / Included (one per line)</label><textarea class="f-textarea" rows="3" oninput="pEvSet(${i},'equipment',this.value)" placeholder="JBL PRX One Line Array&#10;Wireless mics ×2&#10;Uplighting ×8">${esc(e.equipment)}</textarea></div>
+    <div class="f-row"><label class="f-label">Event Price</label><input class="f-input" type="number" min="0" step="0.01" value="${esc(e.price)}" oninput="pEvSet(${i},'price',this.value)" placeholder="19000"/></div>
+  </div>`).join('');
+}
+// Restore blocks from the hidden JSON field (drafts / resume).
+function pEvLoadFromJson() {
+  try { _pEvents = JSON.parse(document.getElementById('p-events-json')?.value || '[]') || []; }
+  catch(e) { _pEvents = []; }
+  if (!Array.isArray(_pEvents)) _pEvents = [];
+  pEvRender();
+  updateProposalTotal();
+}
+
 function getProposalData() {
   const services = [];
-  document.querySelectorAll('.svc-row').forEach(row => {
+  document.querySelectorAll('#services-list .svc-row').forEach(row => {
     services.push({
       name: row.querySelector('[name="svc-name"]').value.trim(),
       desc: row.querySelector('[name="svc-desc"]').value.trim(),
@@ -3369,6 +3432,15 @@ function getProposalData() {
       return { url, pos: m ? m[1].toLowerCase().replace('end','gallery') : 'gallery' };
     }).filter(Boolean),
     services,
+    currency: document.getElementById('p-currency')?.value || 'USD',
+    events: _pEvents.filter(e => (e.name||'').trim() || parseFloat(e.price)).map(e => ({
+      name: (e.name||'').trim(),
+      venue: (e.venue||'').trim(),
+      date: e.date || '',
+      startTime: e.startTime || '',
+      price: parseFloat(e.price) || 0,
+      equipment: (e.equipment||'').split('\n').map(s => s.trim()).filter(Boolean)
+    })),
     depositPct: parseInt(document.getElementById('p-deposit').value),
     notes: document.getElementById('p-notes').value.trim(),
     formsUrl: document.getElementById('p-forms').value.trim()
@@ -3552,7 +3624,8 @@ function _migrateBackfillProposals() {
 
 function saveProposalRecord(d, url, filename) {
   const records = _proposalsLoad();
-  const total = (d.services || []).reduce((s,x) => s + (parseFloat(x.price) || 0), 0);
+  const total = (d.services || []).reduce((s,x) => s + (parseFloat(x.price) || 0), 0)
+              + (d.events || []).reduce((s,e) => s + (parseFloat(e.price) || 0), 0);
   records.unshift({
     id: 'prop_' + Date.now(),
     client: d.client || '',
@@ -3564,6 +3637,7 @@ function saveProposalRecord(d, url, filename) {
     expiry: d.expiry || '',
     amount: total,
     services: (d.services||[]).filter(s => s.name || s.price),
+    events: d.events || [],
     currency: d.currency || 'USD',
     lang: d.lang || 'en',
     status: 'sent',      // sent | approved | declined | expired
@@ -3572,6 +3646,41 @@ function saveProposalRecord(d, url, filename) {
   });
   _proposalsSave(records);
   toast('Proposal record saved ✓','ok');
+}
+
+// Approve a proposal and (if it has an event breakdown) populate the
+// calendar: one event per block, carrying venue, time, package price and
+// equipment as service lines, plus a link back to the live proposal.
+function approveProposal(id) {
+  const rec = _proposalsLoad().find(r => r.id === id);
+  if (!rec) return;
+  markProposalStatus(id, 'approved');
+  const evts = rec.events || [];
+  if (!evts.length) return;
+  if (!confirm(`Add ${evts.length} event(s) from "${rec.title || 'this proposal'}" to the calendar?`)) return;
+  const contact = _crmLoad().find(c => (c.name||'').trim().toLowerCase() === (rec.client||'').trim().toLowerCase());
+  const events = _eventsLoad();
+  let added = 0, skipped = 0;
+  evts.forEach(ev => {
+    if (!ev.date) { skipped++; return; }
+    if (events.some(x => x.title === ev.name && x.date === ev.date)) { skipped++; return; }
+    events.push({
+      id: 'ev_' + Date.now() + '_' + Math.random().toString(36).slice(2,5),
+      title: ev.name, client: rec.client || '', clientId: contact?.id || '',
+      date: ev.date, type: 'show', venue: ev.venue || '',
+      startTime: ev.startTime || '', endTime: '', pocName: '', pocPhone: '',
+      services: [
+        { name: (rec.title ? rec.title + ' — ' : '') + ev.name + ' (package)', price: ev.price || 0, currency: rec.currency || 'USD' },
+        ...(ev.equipment || []).map(q => ({ name: q, price: 0, currency: rec.currency || 'USD' }))
+      ],
+      links: rec.url ? [{ label: 'Proposal', url: rec.url }] : [],
+      staff: [], notes: '', created: Date.now()
+    });
+    added++;
+  });
+  _eventsSave(events);
+  toast(`${added} event(s) added to the calendar ✓${skipped ? ` (${skipped} skipped — no date or already there)` : ''}`, added ? 'ok' : 'err');
+  if (added) calGoToEvent(events[events.length - 1].id);
 }
 
 function markProposalStatus(id, status) {
@@ -5505,7 +5614,7 @@ function copyCardHTML() {
 // resume it later. Drafts live in localStorage under 'shift-drafts' (cloud-
 // synced via CLOUD_SYNC_KEYS) as { id, type, name, fields, rows, savedAt }.
 const DRAFT_FIELDS = {
-  proposal: ['p-client-id','p-client','p-company','p-city','p-lang','p-title','p-subtitle','p-date','p-expiry','p-intro','p-hero','p-gallery','p-deposit','p-notes','p-forms','p-filename'],
+  proposal: ['p-client-id','p-client','p-company','p-city','p-lang','p-currency','p-title','p-subtitle','p-date','p-expiry','p-intro','p-hero','p-gallery','p-events-json','p-deposit','p-notes','p-forms','p-filename'],
   invoice:  ['i-num','i-lang','i-date','i-due','i-payment-terms','i-client-id','i-client','i-company','i-addr','i-city','i-country','i-email','i-tax','i-payment','i-notes','i-filename'],
   contract: ['c-num','c-lang','c-date','c-event-date','c-client','c-company','c-addr','c-city','c-country','c-event','c-venue','c-deposit-pct','c-deposit-due','c-balance-due','c-payment-inst','c-cancel','c-liability','c-terms','c-filename'],
   quote:    ['qq-client-id','qq-client','qq-num','qq-amount','qq-valid','qq-desc','qq-notes']
@@ -5519,7 +5628,7 @@ function _draftsSave(d) { localStorage.setItem('shift-drafts', JSON.stringify(d.
 
 // Line-item rows are stored as arrays of input values, in DOM order.
 function _draftRows(type) {
-  if (type === 'proposal') return [...document.querySelectorAll('.svc-row')].map(r =>
+  if (type === 'proposal') return [...document.querySelectorAll('#services-list .svc-row')].map(r =>
     [r.querySelector('[name="svc-name"]').value, r.querySelector('[name="svc-desc"]').value, r.querySelector('[name="svc-price"]').value]);
   if (type === 'invoice')  return [...document.querySelectorAll('#invoice-items tr')].map(tr => [...tr.querySelectorAll('input')].map(i => i.value));
   if (type === 'contract') return [...document.querySelectorAll('#contract-items tr')].map(tr => [...tr.querySelectorAll('input')].map(i => i.value));
@@ -5562,7 +5671,7 @@ function resumeDraft(id) {
   if (d.type === 'proposal') {
     document.getElementById('services-list').innerHTML = '';
     (d.rows.length ? d.rows : [['','','']]).forEach(() => addService());
-    [...document.querySelectorAll('.svc-row')].forEach((r,i) => {
+    [...document.querySelectorAll('#services-list .svc-row')].forEach((r,i) => {
       const row = d.rows[i] || ['','',''];
       r.querySelector('[name="svc-name"]').value = row[0]||'';
       r.querySelector('[name="svc-desc"]').value = row[1]||'';
@@ -5587,7 +5696,7 @@ function resumeDraft(id) {
   }
   Object.entries(d.fields || {}).forEach(([fid,v]) => { const el = document.getElementById(fid); if (el) el.value = v; });
   _activeDraftId[d.type] = d.id;
-  if (d.type === 'proposal') { updateProposalTotal(); forceProposalPreview(); }
+  if (d.type === 'proposal') { pEvLoadFromJson(); updateProposalTotal(); forceProposalPreview(); }
   if (d.type === 'invoice')  { calcInvoiceTotal(); forceInvoicePreview(); }
   if (d.type === 'contract') { calcContractDeposit(); renderContractPreview(); }
   renderDraftBars();

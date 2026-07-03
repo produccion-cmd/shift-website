@@ -209,7 +209,10 @@ thead th:last-child{text-align:right}
 // and every image ("full" mode). Default print is the stripped light
 // reference copy. The page also carries its own PDF / Full PDF buttons.
 function generateProposalHTML(d, printFull) {
-  const total = d.services.reduce((s,x)=>s+(parseFloat(x.price)||0),0);
+  const evts = d.events || [];
+  const cur = d.currency || 'USD';
+  const total = d.services.reduce((s,x)=>s+(parseFloat(x.price)||0),0)
+              + evts.reduce((s,e)=>s+(parseFloat(e.price)||0),0);
   const deposit = total * d.depositPct / 100;
   const balance = total - deposit;
   const heroImg = d.heroImg || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1920&q=85&fit=crop';
@@ -231,7 +234,7 @@ function generateProposalHTML(d, printFull) {
     inv: es ? 'Estructura de Inversión' : 'Investment Structure',
     transparent: es ? 'Transparencia total en cada línea.' : 'Full transparency on every line.',
     service: es ? 'Servicio' : 'Service',
-    investment: es ? 'Inversión (USD)' : 'Investment (USD)',
+    investment: es ? `Inversión (${cur})` : `Investment (${cur})`,
     total: 'Total',
     terms: es ? 'Términos' : 'Terms',
     simple: es ? 'Simples, claros, sin sorpresas.' : 'Simple, clear, no surprises.',
@@ -262,11 +265,36 @@ function generateProposalHTML(d, printFull) {
     pdf: es ? 'Descargar PDF' : 'Download PDF'
   };
 
-  const tableRows = d.services.map(s => `
+  const fmtEvDate = iso => iso ? new Date(iso + 'T12:00:00').toLocaleDateString(es ? 'es-MX' : 'en-US', { month:'short', day:'numeric', year:'numeric' }) : '';
+  const tableRows =
+    evts.map((ev,i) => `
+    <tr>
+      <td><div class="service-name">${es?'Evento':'Event'} ${i+1} · ${esc(ev.name)}</div>${ev.venue?`<div class="service-desc">${esc(ev.venue)}${ev.date?' · '+fmtEvDate(ev.date):''}</div>`:''}</td>
+      <td>$${fmtPrice(ev.price)}</td>
+    </tr>`).join('')
+    + d.services.map(s => `
     <tr>
       <td><div class="service-name">${esc(s.name)}</div>${s.desc?`<div class="service-desc">${esc(s.desc)}</div>`:''}</td>
       <td>$${fmtPrice(s.price)}</td>
     </tr>`).join('');
+
+  // Per-event breakdown blocks — venue, date/time, equipment list, price.
+  const eventsSection = evts.length ? `
+  <section><div class="wrap">
+    <div class="sec-eyebrow reveal">${es ? 'Desglose por Evento' : 'Event Breakdown'}</div>
+    <h2 class="sec-lead reveal">${es ? 'Cada evento, cubierto.' : 'Every event, covered.'}</h2>
+    ${evts.map((ev,i) => `
+    <div class="pev reveal">
+      <div class="pev-hd">
+        <div>
+          <div class="pev-eyebrow">${es?'Evento':'Event'} ${i+1}${ev.date ? ' · ' + fmtEvDate(ev.date) : ''}${ev.startTime ? ' · ' + ev.startTime : ''}</div>
+          <h3 class="pev-name">${esc(ev.name)}${ev.venue ? ` <span class="pev-venue">— ${esc(ev.venue)}</span>` : ''}</h3>
+        </div>
+        <div class="pev-price">$${fmtPrice(ev.price)}${cur !== 'USD' ? `<span class="pev-cur"> ${cur}</span>` : ''}</div>
+      </div>
+      ${ev.equipment && ev.equipment.length ? `<ul class="pev-eq">${ev.equipment.map(q => `<li>${esc(q)}</li>`).join('')}</ul>` : ''}
+    </div>`).join('')}
+  </div></section>` : '';
 
   // End gallery (default position) — gets the "Visual References" headline.
   const endGalleryItems = galleryItems.filter(g => (g.pos || 'gallery') === 'gallery');
@@ -379,6 +407,18 @@ footer small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:
 .btn.btn-ghost{border-color:var(--line);color:var(--mute)}
 .btn.btn-ghost:hover{border-color:var(--white);color:var(--white)}
 .cta-note{margin-top:1.6em;font-size:12.5px;color:var(--dim);max-width:44ch;line-height:1.7}
+/* Event breakdown blocks */
+.pev{border:1px solid var(--line);background:var(--panel);padding:clamp(20px,3vw,30px);margin-top:16px;break-inside:avoid}
+.pev-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
+.pev-eyebrow{font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--gold, #c8a84b);margin-bottom:7px}
+.pev-name{font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(17px,2.4vw,22px);letter-spacing:-.01em;line-height:1.25}
+.pev-venue{font-weight:400;color:var(--mute);font-size:.85em}
+.pev-price{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(17px,2.4vw,22px);white-space:nowrap}
+.pev-cur{font-size:.6em;color:var(--mute);font-weight:600}
+.pev-eq{margin-top:16px;padding:0;list-style:none;columns:2;column-gap:32px}
+.pev-eq li{font-size:12.5px;color:var(--mute);padding:4px 0;border-bottom:1px solid var(--line-soft);break-inside:avoid}
+.pev-eq li::before{content:'— ';color:var(--dim)}
+@media(max-width:640px){.pev-eq{columns:1}}
 @media print{
 /* shared: both print modes */
 nav,#bg-canvas,#cur-dot,#cur-ring,#expired-overlay,.scroll-cue{display:none!important}
@@ -431,7 +471,7 @@ html.print-full .img-band,html.print-full .gallery{break-inside:avoid}
     ${d.subtitle?`<p class="hero-sub">${esc(d.subtitle)}</p>`:''}
     <div class="hero-meta">
       ${dateDisplay?`<div class="hero-meta-item"><div class="lbl">${L.date}</div><div class="val">${esc(dateDisplay)}</div></div>`:''}
-      <div class="hero-meta-item"><div class="lbl">${L.totalInv}</div><div class="val">$${fmtPrice(total)} USD</div></div>
+      <div class="hero-meta-item"><div class="lbl">${L.totalInv}</div><div class="val">$${fmtPrice(total)} ${cur}</div></div>
       ${d.city?`<div class="hero-meta-item"><div class="lbl">${L.city}</div><div class="val">${esc(d.city)}</div></div>`:''}
     </div>
   </div>
@@ -443,6 +483,7 @@ html.print-full .img-band,html.print-full .gallery{break-inside:avoid}
     <h2 class="sec-lead reveal">${L.together}</h2>
     ${introSection}
   </div></section>
+  ${eventsSection}
   ${imgBand('intro')}
   <section><div class="wrap">
     <div class="sec-eyebrow reveal">02 — ${L.inv}</div>
@@ -458,8 +499,8 @@ html.print-full .img-band,html.print-full .gallery{break-inside:avoid}
     <div class="sec-eyebrow reveal">03 — ${L.terms}</div>
     <h2 class="sec-lead reveal">${L.simple}</h2>
     <div class="terms-grid reveal" style="margin-top:2.2em">
-      <div class="term-item"><div class="t-label">${L.deposit}</div><div class="t-val"><b>${d.depositPct}%</b> ${L.depositDesc}<br><span style="color:var(--mute);font-size:12px;display:block;margin-top:5px">$${fmtPrice(deposit)} USD</span></div></div>
-      <div class="term-item"><div class="t-label">${L.balance}</div><div class="t-val"><b>${100-d.depositPct}%</b> ${L.balanceDesc}<br><span style="color:var(--mute);font-size:12px;display:block;margin-top:5px">$${fmtPrice(balance)} USD</span></div></div>
+      <div class="term-item"><div class="t-label">${L.deposit}</div><div class="t-val"><b>${d.depositPct}%</b> ${L.depositDesc}<br><span style="color:var(--mute);font-size:12px;display:block;margin-top:5px">$${fmtPrice(deposit)} ${cur}</span></div></div>
+      <div class="term-item"><div class="t-label">${L.balance}</div><div class="t-val"><b>${100-d.depositPct}%</b> ${L.balanceDesc}<br><span style="color:var(--mute);font-size:12px;display:block;margin-top:5px">$${fmtPrice(balance)} ${cur}</span></div></div>
       ${notesItem}
     </div>
   </div></section>
