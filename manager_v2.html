@@ -3375,6 +3375,19 @@ function pEvAdd() {
 }
 function pEvRemove(i) { _pEvents.splice(i,1); pEvRender(); _pEvSync(); }
 function pEvSet(i, k, v) { if (_pEvents[i]) { _pEvents[i][k] = v; _pEvSync(); } }
+
+// Open the Rate Card picker to add equipment (with unit counts) to one event.
+let _pEventIdx = null;
+function pEvOpenItemPicker(idx) { _pEventIdx = idx; rcOpenPicker('p-event'); }
+// Append "N× Item" to an event's equipment list from the picker.
+function pEvAddEquip(name, qty) {
+  const ev = _pEvents[_pEventIdx];
+  if (!ev) return;
+  const line = (qty > 1 ? qty + '× ' : '') + name;
+  ev.equipment = (ev.equipment && ev.equipment.trim() ? ev.equipment.replace(/\s+$/,'') + '\n' : '') + line;
+  pEvRender();
+  _pEvSync();
+}
 function pEvRender() {
   const el = document.getElementById('p-events-list');
   if (!el) return;
@@ -3389,7 +3402,10 @@ function pEvRender() {
       <div class="f-row"><label class="f-label">Date</label><input class="f-input" type="date" value="${esc(e.date)}" onchange="pEvSet(${i},'date',this.value)"/></div>
       <div class="f-row"><label class="f-label">Start Time</label><input class="f-input" type="time" value="${esc(e.startTime)}" onchange="pEvSet(${i},'startTime',this.value)"/></div>
     </div>
-    <div class="f-row"><label class="f-label">Equipment / Included (one per line)</label><textarea class="f-textarea" rows="3" oninput="pEvSet(${i},'equipment',this.value)" placeholder="JBL PRX One Line Array&#10;Wireless mics ×2&#10;Uplighting ×8">${esc(e.equipment)}</textarea></div>
+    <div class="f-row"><label class="f-label">Equipment / Included</label>
+      <button type="button" class="rc-add-btn" style="width:100%;margin-bottom:8px" onclick="pEvOpenItemPicker(${i})">🔍 Search &amp; Add Equipment (set units, no typing)</button>
+      <textarea class="f-textarea" rows="3" oninput="pEvSet(${i},'equipment',this.value)" placeholder="Or type here — one per line:&#10;8× LED Uplights&#10;2× Wireless mics">${esc(e.equipment)}</textarea>
+    </div>
     <div class="f-row"><label class="f-label">Event Price</label><input class="f-input" type="number" min="0" step="0.01" value="${esc(e.price)}" oninput="pEvSet(${i},'price',this.value)" placeholder="19000"/></div>
   </div>`).join('');
 }
@@ -4395,7 +4411,8 @@ function rcOpenPicker(target) {
   document.getElementById('rcp-ctx').textContent =
     target === 'invoice' ? 'Adding to Invoice' :
     target === 'quickquote' ? 'Adding to Quick Quote' :
-    target === 'production' ? 'Adding to Gear Manifest' : 'Adding to Proposal';
+    target === 'production' ? 'Adding to Gear Manifest' :
+    target === 'p-event' ? 'Adding equipment to event · set units, then Add' : 'Adding to Proposal';
   document.getElementById('rcp-search').value = '';
   renderRCPicker();
   document.getElementById('rcp-modal').classList.add('open');
@@ -4426,8 +4443,9 @@ function renderRCPicker() {
             ${s.description ? `<div class="rcp-item-desc">${esc(s.description)}</div>` : ''}
           </div>
           <div class="rcp-item-right">
-            ${s.unit ? `<div class="rcp-item-unit">${esc(s.unit)}</div>` : ''}
-            <div class="rcp-item-price">${s.price>0?'$'+s.price.toLocaleString():'—'}</div>
+            ${_rcPickerTarget === 'p-event'
+              ? `<input type="number" class="f-input" id="rcpq-${s.id}" value="1" min="1" title="Units" style="width:58px;padding:6px 8px;text-align:center" onkeydown="if(event.key==='Enter')rcInsert('${s.id}',document.getElementById('rcpb-${s.id}'))"/>`
+              : (s.unit ? `<div class="rcp-item-unit">${esc(s.unit)}</div>` : '') + `<div class="rcp-item-price">${s.price>0?'$'+s.price.toLocaleString():'—'}</div>`}
             <button class="rcp-ins-btn" id="rcpb-${s.id}" onclick="rcInsert('${s.id}',this)">Add</button>
           </div>
         </div>`).join('');
@@ -4439,7 +4457,11 @@ function rcInsert(id, btn) {
   const s = _rcLoad().find(x => x.id === id);
   if (!s) return;
 
-  if (_rcPickerTarget === 'production') {
+  if (_rcPickerTarget === 'p-event') {
+    const qty = Math.max(1, parseInt(document.getElementById('rcpq-'+id)?.value) || 1);
+    pEvAddEquip(s.name, qty);
+
+  } else if (_rcPickerTarget === 'production') {
     _rcInsertToProd(s);
 
   } else if (_rcPickerTarget === 'quickquote') {
