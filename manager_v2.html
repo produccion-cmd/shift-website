@@ -2592,19 +2592,31 @@ if (sessionStorage.getItem('shift-mgr') === '1') {
 
 // ── SETTINGS ────────────────────────────────────────────────
 function saveGHToken() {
-  const t = document.getElementById('gh-token-input').value.trim();
-  if (!t) { setStatus('token-status','Enter a token first','err'); return; }
+  const el = document.getElementById('gh-token-input');
+  const t = el.value.trim();
+  // Guard: the field may show masking dots after load — never save those as
+  // the token (that was corrupting the token → 401 on every cloud call).
+  if (/^[●•]+$/.test(t)) { setStatus('token-status','That is the masked value — paste your real token to change it','err'); return; }
+  if (!t) {
+    if (getGHToken()) { setStatus('token-status','Existing token kept ✓','ok'); return; }
+    setStatus('token-status','Enter a token first','err'); return;
+  }
+  if (!/^(ghp_|github_pat_|gho_|ghs_)/.test(t)) {
+    setStatus('token-status','That doesn\'t look like a GitHub token (should start with github_pat_ or ghp_)','err'); return;
+  }
   sessionStorage.setItem('shift-gh-token', t);
-  document.getElementById('gh-token-input').value = '●'.repeat(Math.min(t.length,20));
+  el.value = '';
+  el.placeholder = 'Token active this session — paste a new one only to replace';
   setStatus('token-status','Token saved for this session ✓','ok');
   // Kick a cloud sync check now that we have a token
   if (typeof startAutoSync === 'function') startAutoSync();
 }
 function loadGHToken() {
-  const t = sessionStorage.getItem('shift-gh-token');
-  if (t) {
-    document.getElementById('gh-token-input').value = '●'.repeat(Math.min(t.length,20));
-    setStatus('token-status','Token loaded from session ✓','ok');
+  if (getGHToken()) {
+    const el = document.getElementById('gh-token-input');
+    el.value = '';
+    el.placeholder = 'Token active this session — paste a new one only to replace';
+    setStatus('token-status','Token active this session ✓','ok');
   }
 }
 function getGHToken() { return sessionStorage.getItem('shift-gh-token'); }
@@ -3094,6 +3106,7 @@ async function _apiGetJson(repo, filename, token, silent, kind) {
     const url = `https://api.github.com/repos/${repo}/contents/${filename}`;
     const res = await fetch(url, { headers: {'Authorization':'token '+token, 'Accept':'application/vnd.github+json'} });
     if (res.status === 404) { if (!silent) toast(`No ${kind} yet in ${repo}`,'ok'); return null; }
+    if (res.status === 401 || res.status === 403) throw new Error(res.status + ' — GitHub rejected your token. Paste a fresh PAT in Settings (it may have expired or been replaced).');
     if (!res.ok) throw new Error(res.status);
     const meta = await res.json();
     const content = decodeURIComponent(escape(atob(meta.content.replace(/\n/g,''))));
