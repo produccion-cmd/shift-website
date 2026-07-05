@@ -2661,6 +2661,7 @@ async function doLogin() {
     _migrateBackfillProposals();
     _migrateAssignEventServices();
     _migrateEnrichCdmxDetail();
+    _migrateSplitCdmxDays();
     _migrateRateCardHouston();
     startAutoSync();
   } else {
@@ -2681,7 +2682,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); renderDraftBars(); _applyBuilderFocus(); _migrateBackfillProposals(); _migrateAssignEventServices(); _migrateEnrichCdmxDetail(); _migrateRateCardHouston(); startAutoSync(); });
+  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); renderDraftBars(); _applyBuilderFocus(); _migrateBackfillProposals(); _migrateAssignEventServices(); _migrateEnrichCdmxDetail(); _migrateSplitCdmxDays(); _migrateRateCardHouston(); startAutoSync(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -6605,6 +6606,7 @@ function renderCalendar() {
       ? `<label class="cal-ev-selwrap" title="Select for pack export"><input type="checkbox" class="cal-ev-sel" ${_calSelected.has(ev.id)?'checked':''} onchange="calToggleSelect('${ev.id}',this.checked)"/></label>
          <button class="cal-ev-edit" onclick="calOpenSheet('${ev.id}')">Sheet ↗</button>
          <button class="cal-ev-edit" onclick="calSheetPDF('${ev.id}')">↓ PDF</button>
+         ${_calChunks(ev).length >= 2 ? `<button class="cal-ev-edit" title="One event per priced service — own price, venue, sold list" onclick="calSplitEvent('${ev.id}')">⑃ Split</button>` : ''}
          <button class="cal-ev-edit" onclick="calOpenEdit('${ev.id}')">Edit</button>
          <button class="cal-ev-del" onclick="calDelete('${ev.id}')">✕</button>`
       : '';
@@ -6942,6 +6944,62 @@ document.addEventListener('keydown', e => {
     open ? cmdkClose() : cmdkOpen();
   }
 });
+
+// ── EVENT SPLITTER ───────────────────────────────────────────
+// A calendar entry that holds several priced services (Baraat + Ceremony +
+// Reception, or gala + breakouts + lobby + pool) can be split so every
+// sub-event stands alone — its own price, venue, and sold elements.
+function _calChunks(ev) {
+  const chunks = [];
+  let cur = null;
+  (ev.services || []).forEach(s => {
+    if ((s.name || '').startsWith('· ')) { if (cur) cur.details.push(s); }
+    else { cur = { main: s, details: [] }; chunks.push(cur); }
+  });
+  return chunks;
+}
+
+function calSplitEvent(id, silent) {
+  const events = _eventsLoad();
+  const idx = events.findIndex(e => e.id === id);
+  if (idx === -1) return 0;
+  const ev = events[idx];
+  const chunks = _calChunks(ev);
+  if (chunks.length < 2) { if (!silent) toast('Nothing to split — this event has a single priced service', 'err'); return 0; }
+  const prefix = (ev.title || '').split(' — ')[0].trim();
+  const made = chunks.map(ch => {
+    const m = (ch.main.name || '').match(/^(?:Event \d+ · )?([^—]+?)(?:\s*—\s*(.+))?$/);
+    const name = (m ? m[1] : ch.main.name || 'Event').trim();
+    const venue = (m && m[2] ? m[2] : ev.venue || '').trim();
+    return {
+      id: 'ev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
+      title: (prefix ? prefix + ' — ' : '') + name,
+      client: ev.client || '', clientId: ev.clientId || '',
+      date: ev.date, type: ev.type || 'show', venue,
+      startTime: '', endTime: '', pocName: ev.pocName || '', pocPhone: ev.pocPhone || '',
+      services: [ch.main, ...ch.details],
+      links: (ev.links || []).map(l => ({ ...l })),
+      staff: (ev.staff || []).map(s => ({ ...s })),
+      notes: ev.notes || '', created: Date.now()
+    };
+  });
+  if (!silent && !confirm(`Split into ${made.length} separate events?\n\n${made.map(x => '• ' + x.title + (x.venue ? ' @ ' + x.venue : '')).join('\n')}`)) return 0;
+  events.splice(idx, 1, ...made);
+  _eventsSave(events);
+  renderCalendar();
+  if (!silent) toast(`Split into ${made.length} events ✓`, 'ok');
+  return made.length;
+}
+
+// One-time (2026-07-05): split the existing CDMX day-group entries
+// ("Events 4-6", "Day 1", "Day 2") into individual events.
+function _migrateSplitCdmxDays() {
+  if (localStorage.getItem('shift-cdmx-split-v1')) return;
+  let n = 0;
+  _eventsLoad().filter(ev => _calChunks(ev).length >= 2).forEach(ev => { n += calSplitEvent(ev.id, true); });
+  if (n) console.warn('Split grouped events into', n, 'individual events');
+  localStorage.setItem('shift-cdmx-split-v1', '1');
+}
 
 // ── EVENT SHEETS (view + PDF export) ─────────────────────────
 const _calSelected = new Set();
