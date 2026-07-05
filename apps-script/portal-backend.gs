@@ -249,3 +249,88 @@ function notify_(subject, html) {
     htmlBody: html
   });
 }
+
+// ── Files listing ────────────────────────────────────────────────
+
+function filesList_(v) {
+  var rec = getClientRow_(v.name);
+  var folderId = (rec && rec.folderId) || v.driveId || '';
+  if (!folderId) return { ok: true, files: [] };
+  var folder;
+  try { folder = DriveApp.getFolderById(folderId); }
+  catch (e) { return { ok: true, files: [] }; }
+  var files = [];
+  var subs = ['Uploads', 'Brand Assets'];
+  for (var s = 0; s < subs.length; s++) {
+    var it = folder.getFoldersByName(subs[s]);
+    if (!it.hasNext()) continue;
+    var fit = it.next().getFiles();
+    while (fit.hasNext() && files.length < 100) {
+      var f = fit.next();
+      var mime = f.getMimeType();
+      files.push({
+        id: f.getId(), name: f.getName(), size: f.getSize(),
+        date: f.getDateCreated().toISOString(), folder: subs[s],
+        isImage: isImageMime_(mime),
+        thumbUrl: isImageMime_(mime) ? thumbUrl_(f.getId()) : '',
+        url: f.getUrl()
+      });
+    }
+  }
+  files.sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+  return { ok: true, files: files };
+}
+
+// ── Notes ────────────────────────────────────────────────────
+
+function notesList_(v, body) {
+  var pid = String(body.proposalId || 'general');
+  var data = notesSheet_().getDataRange().getValues();
+  var needle = v.name.toLowerCase();
+  var out = [];
+  for (var r = 1; r < data.length; r++) {
+    if (String(data[r][1]).toLowerCase() !== needle) continue;
+    if (pid !== '*' && String(data[r][2]) !== pid) continue;
+    out.push({ ts: data[r][0], proposalId: String(data[r][2]), author: data[r][3], text: data[r][4] });
+  }
+  return { ok: true, notes: out };
+}
+
+function notesAdd_(v, body) {
+  var text = String(body.text || '').trim().slice(0, 4000);
+  if (!text) return { ok: false, error: 'empty' };
+  var pid = String(body.proposalId || 'general');
+  notesSheet_().appendRow([new Date().toISOString(), v.name, pid, 'client', text]);
+  logActivity_(v.name, 'note', pid + ': ' + text.slice(0, 140), '');
+  notify_(
+    '💬 New note from ' + v.name + (pid !== 'general' ? ' · ' + pid : ''),
+    '<b>' + escHtml_(v.name) + '</b> wrote on <i>' + escHtml_(pid) + '</i>:<br><br>' +
+    escHtml_(text).replace(/\n/g, '<br>')
+  );
+  return { ok: true };
+}
+
+// ── Admin (manager-only) ─────────────────────────────────────
+
+function adminActivity_(body) {
+  var limit = Number(body.limit || 50);
+  var data = activitySheet_().getDataRange().getValues();
+  var activity = [];
+  for (var r = data.length - 1; r >= 1 && activity.length < limit; r--) {
+    activity.push({ ts: data[r][0], client: data[r][1], type: data[r][2], detail: data[r][3], link: data[r][4] });
+  }
+  var nd = notesSheet_().getDataRange().getValues();
+  var notes = [];
+  for (var n = nd.length - 1; n >= 1 && notes.length < 100; n--) {
+    notes.push({ ts: nd[n][0], client: nd[n][1], proposalId: String(nd[n][2]), author: nd[n][3], text: nd[n][4] });
+  }
+  return { ok: true, activity: activity, notes: notes };
+}
+
+function adminReply_(body) {
+  var text = String(body.text || '').trim().slice(0, 4000);
+  var client = String(body.clientName || '').trim();
+  if (!text || !client) return { ok: false, error: 'empty' };
+  notesSheet_().appendRow([new Date().toISOString(), client, String(body.proposalId || 'general'), 'shift', text]);
+  return { ok: true };
+}
