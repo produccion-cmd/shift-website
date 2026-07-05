@@ -1863,6 +1863,23 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       </div>
 
       <div class="settings-block">
+        <div class="settings-block-label">Client Portal Backend</div>
+        <p class="settings-hint" style="margin-top:0;margin-bottom:14px">
+          The Apps Script that powers client uploads, notes and notifications.
+          Setup guide: <code>apps-script/SETUP.md</code> in the repo.
+        </p>
+        <label class="f-label" style="margin-bottom:7px">Backend URL (ends in /exec)</label>
+        <input class="f-input" id="portal-backend-url" placeholder="https://script.google.com/macros/s/…/exec"/>
+        <label class="f-label" style="margin-top:12px;margin-bottom:7px">Admin Key</label>
+        <input class="f-input" type="password" id="portal-admin-key" placeholder="ADMIN_KEY from Script Properties"/>
+        <label class="f-label" style="margin-top:12px;margin-bottom:7px">Portal Signing Secret</label>
+        <input class="f-input" type="password" id="portal-secret" placeholder="PORTAL_SECRET from Script Properties"/>
+        <div class="settings-hint">The signing secret is stored in this browser only — it is never committed to the site. Portal links are signed with it, and the backend verifies with the same value.</div>
+        <button class="save-btn" onclick="savePortalSettings()">Save Portal Settings</button>
+        <div class="token-status" id="portal-settings-status"></div>
+      </div>
+
+      <div class="settings-block">
         <div class="settings-block-label">Invoice Defaults</div>
         <label class="f-label" style="margin-bottom:7px">Default Payment Terms</label>
         <select class="f-select" id="default-payment-terms" onchange="saveSettings()">
@@ -2050,7 +2067,8 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 <script src="js/doc-templates.js?v=20260705b"></script>
 <script>
 // ── CONSTANTS ────────────────────────────────────────────────
-const _SK = 'SHIFTportal#2026$key!xK9mPq3';
+// Portal signing secret lives in Settings → localStorage — never in this file.
+function _portalSecret() { return localStorage.getItem('shift-portal-secret') || ''; }
 const PORTAL_URL = 'https://shiftevnts.com/SHIFT_proposals_hub.html';
 const QUOTE_URL  = 'https://shiftevnts.com/SHIFT_quick_quote.html';
 const SITE_URL   = 'https://shiftevnts.com';
@@ -2650,6 +2668,7 @@ async function doLogin() {
     renderHistory();
     loadGHToken();
     loadSettings();
+    loadPortalSettings();
     crmInit();
     rcInit();
     renderDashboard();
@@ -2683,7 +2702,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); renderDraftBars(); _applyBuilderFocus(); _migrateBackfillProposals(); _migrateAssignEventServices(); _migrateEnrichCdmxDetail(); _migrateSplitCdmxDays(); _migrateRateCardHouston(); startAutoSync(); });
+  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); loadPortalSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); renderDraftBars(); _applyBuilderFocus(); _migrateBackfillProposals(); _migrateAssignEventServices(); _migrateEnrichCdmxDetail(); _migrateSplitCdmxDays(); _migrateRateCardHouston(); startAutoSync(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -2745,6 +2764,36 @@ async function changePW() {
   document.getElementById('pw-current').value = '';
   document.getElementById('pw-new').value = '';
   setStatus('pw-status','Password updated ✓ (syncs to your other browsers via cloud)','ok');
+}
+
+// ── Client Portal Backend settings ──────────────────────────
+function savePortalSettings() {
+  localStorage.setItem('shift-portal-backend-url', document.getElementById('portal-backend-url').value.trim());
+  localStorage.setItem('shift-portal-admin-key', document.getElementById('portal-admin-key').value.trim());
+  localStorage.setItem('shift-portal-secret', document.getElementById('portal-secret').value.trim());
+  const st = document.getElementById('portal-settings-status');
+  st.textContent = '✓ Saved (this browser only)';
+  setTimeout(() => { st.textContent = ''; }, 3000);
+}
+function loadPortalSettings() {
+  const g = (k) => localStorage.getItem(k) || '';
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  set('portal-backend-url', g('shift-portal-backend-url'));
+  set('portal-admin-key', g('shift-portal-admin-key'));
+  set('portal-secret', g('shift-portal-secret'));
+}
+
+async function portalApi_(action, body) {
+  const url = localStorage.getItem('shift-portal-backend-url');
+  const key = localStorage.getItem('shift-portal-admin-key');
+  if (!url || !key) { toast('Set Portal Backend URL + Admin Key in Settings', 'err'); return null; }
+  try {
+    const res = await fetch(url, { method: 'POST', body: JSON.stringify(Object.assign({ action, adminKey: key }, body || {})) });
+    return await res.json();
+  } catch (e) {
+    toast('Portal backend unreachable', 'err');
+    return null;
+  }
 }
 
 // ── DOCUMENTS HUB (unified view over invoices + contracts + quotes + proposals + links) ──
@@ -3286,7 +3335,7 @@ function startAutoSync() {
 
 // ── PORTAL LINKS ────────────────────────────────────────────
 async function _hmac(msg) {
-  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(_SK), {name:'HMAC',hash:'SHA-256'}, false, ['sign']);
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(_portalSecret()), {name:'HMAC',hash:'SHA-256'}, false, ['sign']);
   const sig = await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(msg));
   return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
@@ -3303,6 +3352,7 @@ async function generateLink() {
   const name = document.getElementById('client-name').value.trim();
   const days = parseInt(document.getElementById('expiry-days').value);
   if (!name) { toast('Enter a client name','err'); return; }
+  if (!_portalSecret()) { toast('Set the Portal Signing Secret in Settings first', 'err'); switchTab('settings'); return; }
   const exp = Math.floor(Date.now()/1000) + days*86400;
   // Include the client's shared Drive folder (CRM contact → Files tab in the portal).
   const contact = _crmLoad().find(c =>
@@ -3366,6 +3416,7 @@ function delHistLink(i) {
   renderHistory();
 }
 async function openPortal() {
+  if (!_portalSecret()) { toast('Set the Portal Signing Secret in Settings first', 'err'); switchTab('settings'); return; }
   const exp = Math.floor(Date.now()/1000)+365*86400;
   const payload = `Manager|${exp}`;
   const sig = (await _hmac(payload)).slice(0,32);
