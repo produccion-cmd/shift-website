@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="SHIFT-ICON.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@100..800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script id="tailwind-config">
@@ -34,6 +34,7 @@ tailwind.config = {
         "primary":                   "#ffffff",
         "on-primary":                "#2f3131",
         "secondary":                 "#c6c6c6",
+        "accent":                    "#c8a84b",
         "surface-tint":              "#c6c6c7",
         "inverse-surface":           "#e3e2e2",
         "inverse-on-surface":        "#303031",
@@ -90,9 +91,51 @@ tailwind.config = {
   #mobile-drawer { display:none; }
   #mobile-drawer.open { display:flex; }
   /* Scroll progress bar */
-  #scroll-bar { position:fixed; top:0; left:0; height:1px; background:#fff; z-index:9999; width:0%; transition:width .1s linear; }
+  #scroll-bar { position:fixed; top:0; left:0; height:1px; background:linear-gradient(to right,#c8a84b,#fff); z-index:9999; width:0%; transition:width .1s linear; }
   /* Stat counter */
   .stat-num { font-family:'Sora',sans-serif; font-weight:800; font-size:clamp(44px,6vw,80px); letter-spacing:-0.04em; line-height:1; }
+
+  /* ── ICONIC PASS (2026) ─────────────────────────────────── */
+  /* Film grain — the whole site breathes */
+  #grain{position:fixed;inset:-50%;width:200%;height:200%;pointer-events:none;z-index:9990;opacity:.045;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation:grainShift 7s steps(9) infinite}
+  @keyframes grainShift{0%{transform:translate(0,0)}11%{transform:translate(-3%,2%)}22%{transform:translate(2%,-4%)}33%{transform:translate(-4%,-2%)}44%{transform:translate(3%,3%)}55%{transform:translate(-2%,4%)}66%{transform:translate(4%,-3%)}77%{transform:translate(-3%,-4%)}88%{transform:translate(2%,2%)}100%{transform:translate(0,0)}}
+  /* Marquee — signature strip between hero and services */
+  .marquee{overflow:hidden;border-top:1px solid rgba(255,255,255,.09);border-bottom:1px solid rgba(255,255,255,.09);padding:26px 0;position:relative}
+  .marquee-track{display:flex;gap:0;width:max-content;animation:marq 38s linear infinite;will-change:transform}
+  .marquee:hover .marquee-track{animation-play-state:paused}
+  .marquee-chunk{display:flex;align-items:center;white-space:nowrap;font-family:'Sora',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:-.02em;
+    font-size:clamp(44px,6.5vw,84px);line-height:1;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.28)}
+  .marquee-chunk em{font-style:normal;color:#c8a84b;-webkit-text-stroke:0;font-size:.42em;margin:0 30px;transform:translateY(-6px)}
+  @keyframes marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  /* Hero line reveal — kinetic entrance */
+  .hline{display:block;overflow:hidden}
+  .hline-in{display:inline-block;transform:translateY(115%);animation:hUp 1.05s cubic-bezier(.22,1,.36,1) forwards}
+  .hline:nth-child(1) .hline-in{animation-delay:.12s}
+  .hline:nth-child(2) .hline-in{animation-delay:.26s}
+  .hline:nth-child(3) .hline-in{animation-delay:.40s}
+  @keyframes hUp{to{transform:translateY(0)}}
+  /* Nav link underline sweep */
+  .u-sweep{position:relative}
+  .u-sweep::after{content:'';position:absolute;left:0;bottom:-5px;height:1px;width:100%;background:#c8a84b;transform:scaleX(0);transform-origin:right;transition:transform .38s cubic-bezier(.22,1,.36,1)}
+  .u-sweep:hover::after{transform:scaleX(1);transform-origin:left}
+  /* Service cards — lift + gold edge */
+  #services .group{border:1px solid transparent;padding:22px;margin:-22px;transition:border-color .3s,transform .35s cubic-bezier(.22,1,.36,1),background .3s}
+  #services .group:hover{border-color:rgba(200,168,75,.35);transform:translateY(-5px);background:rgba(255,255,255,.015)}
+  #services .group:hover .material-symbols-outlined{color:#c8a84b}
+  #services .group:hover h3{color:#c8a84b}
+  /* Magnetic buttons */
+  .magnetic{transition:transform .25s cubic-bezier(.22,1,.36,1);will-change:transform}
+  /* Giant footer wordmark */
+  .foot-word{display:block;text-align:center;font-family:'SHIFTBrand','Sora',sans-serif;letter-spacing:.32em;line-height:.9;
+    font-size:clamp(90px,17.5vw,270px);color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.14);user-select:none;pointer-events:none;
+    margin:0 -8px 60px;transform:translateX(.16em)}
+  @media (prefers-reduced-motion: reduce){
+    .marquee-track{animation:none}
+    #grain{animation:none}
+    .hline-in{animation:none;transform:none}
+  }
 </style>
 </head>
 <body class="bg-background text-on-background font-body antialiased overflow-x-hidden selection:bg-primary selection:text-background">
@@ -100,6 +143,9 @@ tailwind.config = {
 <!-- Custom cursor -->
 <div id="cur-dot"></div>
 <div id="cur-ring"></div>
+
+<!-- Film grain -->
+<div id="grain"></div>
 
 <!-- Scroll Progress -->
 <div id="scroll-bar"></div>
@@ -111,13 +157,13 @@ tailwind.config = {
     <span class="text-primary text-[26px] leading-none" style="font-family:'SHIFTBrand',sans-serif;letter-spacing:0.5em;">SHIFT</span>
   </a>
   <div class="hidden md:flex items-center gap-8">
-    <a href="#services" class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Services</a>
-    <a href="#process"  class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Process</a>
-    <a href="#projects" class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Projects</a>
-    <a href="#about"    class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">About</a>
-    <a href="#contact"  class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Contact</a>
+    <a href="#services" class="u-sweep font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Services</a>
+    <a href="#process"  class="u-sweep font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Process</a>
+    <a href="#projects" class="u-sweep font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Projects</a>
+    <a href="#about"    class="u-sweep font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">About</a>
+    <a href="#contact"  class="u-sweep font-body text-label-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors duration-200">Contact</a>
   </div>
-  <a href="#contact" class="hidden md:inline-flex items-center gap-2 border border-primary text-primary px-6 py-3 font-body text-label-sm uppercase tracking-widest hover:bg-primary hover:text-background transition-all duration-300 rounded-none">
+  <a href="#contact" class="magnetic hidden md:inline-flex items-center gap-2 border border-primary text-primary px-6 py-3 font-body text-label-sm uppercase tracking-widest hover:bg-primary hover:text-background transition-all duration-300 rounded-none">
     Start a Project
     <span class="material-symbols-outlined" style="font-size:16px">arrow_outward</span>
   </a>
@@ -150,8 +196,8 @@ tailwind.config = {
   </div>
   <div class="relative z-10 px-gm w-full max-w-7xl mx-auto">
     <p class="sr font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-8">Houston, TX · Available Nationwide</p>
-    <h1 class="sr font-display font-extrabold text-display-xl text-primary uppercase tracking-tighter mb-6" style="font-size:clamp(56px,10vw,120px);line-height:.95;transition-delay:60ms">
-      ENGINEERING<br/><span class="text-on-surface-variant">THE</span><br/>INVISIBLE.
+    <h1 id="hero-title" class="font-display font-extrabold text-display-xl text-primary uppercase tracking-tighter mb-6" style="font-size:clamp(56px,10vw,120px);line-height:.95;font-weight:800">
+      <span class="hline"><span class="hline-in">ENGINEERING</span></span><span class="hline"><span class="hline-in text-on-surface-variant">THE</span></span><span class="hline"><span class="hline-in">INVISIBLE.</span></span>
     </h1>
     <p class="sr font-body text-body-lg text-on-surface-variant max-w-xl mb-12" style="transition-delay:120ms">
       Event production, AV design, and lighting systems for South Asian weddings, multicultural events, and corporate experiences.
@@ -168,6 +214,14 @@ tailwind.config = {
     </a>
   </div>
 </section>
+
+<!-- ═══ MARQUEE ═══ -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span class="marquee-chunk">Event Production<em>✦</em>AV Design<em>✦</em>Lighting<em>✦</em>LED Architecture<em>✦</em>Projection Mapping<em>✦</em>DJ Production<em>✦</em></span>
+    <span class="marquee-chunk">Event Production<em>✦</em>AV Design<em>✦</em>Lighting<em>✦</em>LED Architecture<em>✦</em>Projection Mapping<em>✦</em>DJ Production<em>✦</em></span>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════ SERVICES ═══ -->
 <section id="services" class="px-gm py-sg border-t border-outline-variant/30">
@@ -270,22 +324,22 @@ tailwind.config = {
   <h2 class="sr font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-12">Our Process</h2>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gg divide-y sm:divide-y-0 sm:divide-x divide-outline-variant/30">
     <div class="sr pb-10 sm:pb-0 sm:pr-8 flex flex-col gap-4">
-      <span class="font-display font-light text-primary mb-2" style="font-size:48px;line-height:1">01</span>
+      <span class="font-display font-light text-accent mb-2" style="font-size:48px;line-height:1">01</span>
       <h4 class="font-body text-label-sm uppercase tracking-wider text-primary">Design Phase</h4>
       <p class="font-body text-body-md text-on-surface-variant">We map out every technical element — lighting plots, AV schematics, stage layout, and pixel maps. Starting at $1,150.</p>
     </div>
     <div class="sr py-10 sm:py-0 sm:px-8 flex flex-col gap-4" style="transition-delay:60ms">
-      <span class="font-display font-light text-primary mb-2" style="font-size:48px;line-height:1">02</span>
+      <span class="font-display font-light text-accent mb-2" style="font-size:48px;line-height:1">02</span>
       <h4 class="font-body text-label-sm uppercase tracking-wider text-primary">Approval</h4>
       <p class="font-body text-body-md text-on-surface-variant">You review the full technical plan and proposal. We refine until every detail aligns with your vision.</p>
     </div>
     <div class="sr py-10 sm:py-0 sm:px-8 flex flex-col gap-4" style="transition-delay:120ms">
-      <span class="font-display font-light text-primary mb-2" style="font-size:48px;line-height:1">03</span>
+      <span class="font-display font-light text-accent mb-2" style="font-size:48px;line-height:1">03</span>
       <h4 class="font-body text-label-sm uppercase tracking-wider text-primary">Build + Install</h4>
       <p class="font-body text-body-md text-on-surface-variant">Our crew handles load-in, rigging, cable management, and full system testing before any guest arrives.</p>
     </div>
     <div class="sr pt-10 sm:pt-0 sm:pl-8 flex flex-col gap-4" style="transition-delay:180ms">
-      <span class="font-display font-light text-primary mb-2" style="font-size:48px;line-height:1">04</span>
+      <span class="font-display font-light text-accent mb-2" style="font-size:48px;line-height:1">04</span>
       <h4 class="font-body text-label-sm uppercase tracking-wider text-primary">Event Day</h4>
       <p class="font-body text-body-md text-on-surface-variant">On-site operators run the full show live. You celebrate. We execute.</p>
     </div>
@@ -549,7 +603,8 @@ tailwind.config = {
 </section>
 
 <!-- ═══════════════════════════════ FOOTER ═══ -->
-<footer class="w-full py-sg px-gm border-t border-outline-variant/20 bg-background">
+<footer class="w-full py-sg px-gm border-t border-outline-variant/20 bg-background overflow-hidden">
+  <span class="foot-word sr">SHIFT</span>
   <div class="flex flex-col md:flex-row justify-between items-start gap-gg mb-16">
     <div class="flex flex-col gap-3">
       <div class="flex items-center gap-3">
@@ -735,6 +790,38 @@ tailwind.config = {
     ring.style.left = rx + 'px';
     ring.style.top  = ry + 'px';
   })();
+})();
+
+// ── MAGNETIC BUTTONS ─────────────────────────────────────────
+(function() {
+  if (window.matchMedia('(hover: none)').matches) return;
+  document.querySelectorAll('.magnetic').forEach(el => {
+    el.addEventListener('mousemove', e => {
+      const r = el.getBoundingClientRect();
+      const dx = e.clientX - (r.left + r.width / 2);
+      const dy = e.clientY - (r.top + r.height / 2);
+      el.style.transform = `translate(${dx * 0.22}px, ${dy * 0.3}px)`;
+    });
+    el.addEventListener('mouseleave', () => { el.style.transform = 'translate(0,0)'; });
+  });
+})();
+
+// ── KINETIC HERO TYPE ────────────────────────────────────────
+// Variable Sora: the headline's weight relaxes as you scroll away —
+// scroll-driven typography without a single library.
+(function() {
+  const t = document.getElementById('hero-title');
+  if (!t || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let ticking = false;
+  function apply() {
+    ticking = false;
+    const y = Math.min(window.scrollY, 560);
+    const w = Math.round(800 - (y / 560) * 300);   // 800 → 500
+    t.style.fontWeight = w;
+  }
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(apply); }
+  }, { passive: true });
 })();
 
 // ── MOBILE DRAWER ────────────────────────────────────────────
