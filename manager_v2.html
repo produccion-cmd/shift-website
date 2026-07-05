@@ -1213,6 +1213,11 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
         <div class="section-label">Generated Links</div>
         <div id="history-list"></div>
       </div>
+      <div class="link-h2" style="margin-top:36px;display:flex;align-items:center;justify-content:space-between">
+        Portal Activity
+        <button class="open-portal-btn" onclick="loadPortalActivity()">↻ Refresh</button>
+      </div>
+      <div id="portal-activity"><div class="history-empty">Click Refresh to load client uploads &amp; notes.</div></div>
     </div>
   </div>
 
@@ -2794,6 +2799,53 @@ async function portalApi_(action, body) {
     toast('Portal backend unreachable', 'err');
     return null;
   }
+}
+
+// ── Portal activity feed + note replies ─────────────────────
+async function loadPortalActivity() {
+  const box = document.getElementById('portal-activity');
+  box.innerHTML = '<div class="history-empty">Loading…</div>';
+  const r = await portalApi_('admin.activity', { limit: 50 });
+  if (!r) { box.innerHTML = '<div class="history-empty">Backend not configured or unreachable.</div>'; return; }
+  if (!r.ok) { box.innerHTML = `<div class="history-empty">Error: ${esc(r.error)}</div>`; return; }
+
+  const acts = r.activity.map((a) => `
+    <div class="hist-item">
+      <div>
+        <div class="hist-name">${a.type === 'upload' ? '📁' : '💬'} ${esc(a.client)} <span style="color:var(--dim);font-weight:400">· ${esc(a.detail)}</span></div>
+        <div class="hist-meta">${new Date(a.ts).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</div>
+      </div>
+      <div class="hist-actions">
+        ${a.link ? `<a class="hist-copy" href="${esc(a.link)}" target="_blank" rel="noopener" style="text-decoration:none">Open ↗</a>` : ''}
+      </div>
+    </div>`).join('');
+
+  // Latest client notes with inline reply
+  const clientNotes = r.notes.filter((n) => n.author === 'client').slice(0, 10);
+  const noteRows = clientNotes.map((n, i) => `
+    <div class="hist-item" style="flex-wrap:wrap;gap:10px">
+      <div style="flex:1;min-width:220px">
+        <div class="hist-name">${esc(n.client)} <span style="color:var(--dim);font-weight:400">on ${esc(n.proposalId)}</span></div>
+        <div class="hist-meta" style="white-space:normal;color:var(--gray)">${esc(n.text)}</div>
+      </div>
+      <div style="display:flex;gap:8px;width:100%">
+        <input class="f-input" id="pa-reply-${i}" placeholder="Reply to ${esc(n.client)}…" style="flex:1"/>
+        <button class="hist-copy" onclick="sendPortalReply(${i}, '${esc(n.client).replace(/'/g, "\\'")}', '${esc(n.proposalId).replace(/'/g, "\\'")}')">Reply</button>
+      </div>
+    </div>`).join('');
+
+  box.innerHTML =
+    (acts || '<div class="history-empty">No activity yet.</div>') +
+    (noteRows ? `<div class="link-h2" style="margin-top:24px">Latest Client Notes</div>${noteRows}` : '');
+}
+
+async function sendPortalReply(i, client, proposalId) {
+  const input = document.getElementById(`pa-reply-${i}`);
+  const text = input.value.trim();
+  if (!text) return;
+  const r = await portalApi_('admin.reply', { clientName: client, proposalId, text });
+  if (r && r.ok) { input.value = ''; toast('Reply sent — visible in the client portal'); }
+  else toast('Reply failed', 'err');
 }
 
 // ── DOCUMENTS HUB (unified view over invoices + contracts + quotes + proposals + links) ──
