@@ -7,3 +7,6 @@ SHIFT_DATABASE_V2.json
 .cursor/
 .claude/
 .DS_Store
+
+# SDD scratch (progress ledger, briefs, reports)
+.superpowers/
