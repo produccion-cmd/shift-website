@@ -1938,7 +1938,10 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
           <option value="">—</option>
         </select>
       </div>
-      <div class="f-row"><label class="f-label">Rate (USD) *</label><input class="f-input" id="rc-price" type="number" min="0" placeholder="500"/></div>
+      <div class="f-row"><label class="f-label">Rate (USD)</label><input class="f-input" id="rc-price" type="number" min="0" placeholder="500"/></div>
+    </div>
+    <div class="f-row"><label class="f-label">Rate (MXN) — used automatically when the proposal is in MXN, so pesos are never converted</label>
+      <input class="f-input" id="rc-price-mxn" type="number" min="0" placeholder="9000"/>
     </div>
     <div class="f-row"><label class="f-label">Units in Stock (equipment only — enables double-booking warnings; leave blank for services)</label>
       <input class="f-input" id="rc-stock" type="number" min="0" placeholder="e.g. 8"/>
@@ -3438,7 +3441,7 @@ function addService() {
   row.innerHTML = `<div class="svc-row-hd"><span class="svc-num">Service ${list.children.length+1}</span><button class="svc-remove" onclick="removeService(this)">Remove</button></div>
     <div class="f-row"><label class="f-label">Service Name *</label><input class="f-input" name="svc-name" placeholder="Logo Design" oninput="scheduleProposalPreview()"/></div>
     <div class="f-row"><label class="f-label">Short Description</label><input class="f-input" name="svc-desc" placeholder="Primary logo + 2 revision rounds" oninput="scheduleProposalPreview()"/></div>
-    <div class="f-row"><label class="f-label">Price (USD)</label><input class="f-input" type="number" name="svc-price" placeholder="1200" oninput="updateProposalTotal();scheduleProposalPreview()"/></div>`;
+    <div class="f-row"><label class="f-label">Price</label><input class="f-input" type="number" name="svc-price" placeholder="1200" oninput="updateProposalTotal();scheduleProposalPreview()"/></div>`;
   list.appendChild(row);
   renumberServices();
 }
@@ -4610,7 +4613,7 @@ function renderRateCard() {
           <div class="rc-item-right">
             ${s.stock != null ? `<div class="rc-item-stock">×${s.stock} stock</div>` : ''}
             ${s.unit ? `<div class="rc-item-unit">${esc(s.unit)}</div>` : ''}
-            <div class="rc-item-price${s.price===0?' free':''}">${s.price>0?'$'+s.price.toLocaleString():'—'}</div>
+            <div class="rc-item-price${s.price===0?' free':''}">${s.price>0?'$'+s.price.toLocaleString():'—'}${s.priceMXN!=null?`<span style="display:block;font-size:10px;color:var(--dim)">$${(+s.priceMXN).toLocaleString()} MXN</span>`:''}</div>
             <div class="rc-item-acts">
               <button class="rc-act" onclick="rcOpenEdit('${s.id}')">Edit</button>
               <button class="rc-act rc-act-del" onclick="rcDelete('${s.id}')">✕</button>
@@ -4654,6 +4657,7 @@ function rcOpenAdd() {
   document.getElementById('rc-category').value = 'Labor';
   document.getElementById('rc-unit').value     = 'Day';
   document.getElementById('rc-price').value    = '';
+  document.getElementById('rc-price-mxn').value = '';
   document.getElementById('rc-stock').value    = '';
   document.getElementById('rc-del-btn').style.display = 'none';
   document.getElementById('rc-modal').classList.add('open');
@@ -4669,6 +4673,7 @@ function rcOpenEdit(id) {
   document.getElementById('rc-category').value = s.category||'Labor';
   document.getElementById('rc-unit').value     = s.unit||'Day';
   document.getElementById('rc-price').value    = s.price||'';
+  document.getElementById('rc-price-mxn').value = s.priceMXN != null ? s.priceMXN : '';
   document.getElementById('rc-stock').value    = s.stock != null ? s.stock : '';
   document.getElementById('rc-del-btn').style.display = 'block';
   document.getElementById('rc-modal').classList.add('open');
@@ -4690,6 +4695,7 @@ function rcSave() {
       s.category    = document.getElementById('rc-category').value;
       s.unit        = document.getElementById('rc-unit').value;
       s.price       = price;
+      s.priceMXN    = document.getElementById('rc-price-mxn').value !== '' ? (parseFloat(document.getElementById('rc-price-mxn').value)||0) : null;
       s.stock       = document.getElementById('rc-stock').value !== '' ? Math.max(0, parseInt(document.getElementById('rc-stock').value)||0) : null;
       s.updated     = Date.now();
     }
@@ -4700,6 +4706,7 @@ function rcSave() {
       description: document.getElementById('rc-desc').value.trim(),
       category: document.getElementById('rc-category').value,
       unit: document.getElementById('rc-unit').value,
+      priceMXN: document.getElementById('rc-price-mxn').value !== '' ? (parseFloat(document.getElementById('rc-price-mxn').value)||0) : null,
       stock: document.getElementById('rc-stock').value !== '' ? Math.max(0, parseInt(document.getElementById('rc-stock').value)||0) : null,
       price, created: Date.now(), updated: Date.now()
     });
@@ -4766,12 +4773,19 @@ function renderRCPicker() {
           <div class="rcp-item-right">
             ${_rcPickerTarget === 'p-event'
               ? `<input type="number" class="f-input" id="rcpq-${s.id}" value="1" min="1" title="Units" style="width:58px;padding:6px 8px;text-align:center" onkeydown="if(event.key==='Enter')rcInsert('${s.id}',document.getElementById('rcpb-${s.id}'))"/>`
-              : (s.unit ? `<div class="rcp-item-unit">${esc(s.unit)}</div>` : '') + `<div class="rcp-item-price">${s.price>0?'$'+s.price.toLocaleString():'—'}</div>`}
+              : (s.unit ? `<div class="rcp-item-unit">${esc(s.unit)}</div>` : '') + `<div class="rcp-item-price">${s.price>0?'$'+s.price.toLocaleString():'—'}${s.priceMXN!=null?`<span style="display:block;font-size:10px;color:var(--dim)">$${(+s.priceMXN).toLocaleString()} MXN</span>`:''}</div>`}
             <button class="rcp-ins-btn" id="rcpb-${s.id}" onclick="rcInsert('${s.id}',this)">Add</button>
           </div>
         </div>`).join('');
   });
   body.innerHTML = html;
+}
+
+// Price for a rate card item in a given currency. MXN uses its own rate —
+// never a conversion. Returns null when that currency has no rate set.
+function _rcPriceFor(s, cur) {
+  if (cur === 'MXN') return (s.priceMXN != null && s.priceMXN !== '') ? s.priceMXN : null;
+  return s.price != null ? s.price : null;
 }
 
 function rcInsert(id, btn) {
@@ -4783,8 +4797,11 @@ function rcInsert(id, btn) {
     pEvAddEquip(s.name, qty);
 
   } else if (_rcPickerTarget === 'p-event-service') {
-    // Add as a service group inside the event, with its default price
-    pEvAddServiceFromRC(s.name, s.price || 0);
+    // Add as a service group inside the event, priced in the proposal's currency
+    const cur = document.getElementById('p-currency')?.value || 'USD';
+    const pr = _rcPriceFor(s, cur);
+    pEvAddServiceFromRC(s.name, pr || 0);
+    if (pr == null && cur === 'MXN') toast(`No MXN rate for "${s.name}" — set it in the Rate Card`, 'err');
 
   } else if (_rcPickerTarget === 'production') {
     _rcInsertToProd(s);
@@ -4812,7 +4829,11 @@ function rcInsert(id, btn) {
     scheduleInvoicePreview();
 
   } else {
-    // Add a pre-filled row to the proposal services list
+    // Add a pre-filled row to the proposal services list — price follows the
+    // proposal's currency (MXN rate when the doc is MXN)
+    const _cur = document.getElementById('p-currency')?.value || 'USD';
+    const _pcur = _rcPriceFor(s, _cur);
+    if (_pcur == null && _cur === 'MXN') toast(`No MXN rate for "${s.name}" — set it in the Rate Card`, 'err');
     _pServiceCount++;
     const list = document.getElementById('services-list');
     const row  = document.createElement('div');
@@ -4820,7 +4841,7 @@ function rcInsert(id, btn) {
     row.innerHTML = `<div class="svc-row-hd"><span class="svc-num">Service ${list.children.length+1}</span><button class="svc-remove" onclick="removeService(this)">Remove</button></div>
       <div class="f-row"><label class="f-label">Service Name *</label><input class="f-input" name="svc-name" value="${esc(s.name)}" oninput="scheduleProposalPreview()"/></div>
       <div class="f-row"><label class="f-label">Short Description</label><input class="f-input" name="svc-desc" value="${esc(s.description||'')}" oninput="scheduleProposalPreview()"/></div>
-      <div class="f-row"><label class="f-label">Price (USD)</label><input class="f-input" type="number" name="svc-price" value="${s.price||0}" oninput="updateProposalTotal();scheduleProposalPreview()"/></div>`;
+      <div class="f-row"><label class="f-label">Price</label><input class="f-input" type="number" name="svc-price" value="${_pcur ?? (s.price||0)}" oninput="updateProposalTotal();scheduleProposalPreview()"/></div>`;
     list.appendChild(row);
     renumberServices();
     updateProposalTotal();
