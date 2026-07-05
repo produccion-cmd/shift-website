@@ -703,9 +703,9 @@ async function _uploadFile(file, kind) {
     _toast(`"${file.name}" is over ${MAX_MB} MB — for big files use the Drive folder in the Files tab.`);
     return null;
   }
-  const dataB64 = await _fileToB64(file);
-  let r;
+  let dataB64, r;
   try {
+    dataB64 = await _fileToB64(file);
     r = await _api('upload', { filename: file.name, mimeType: file.type || 'application/octet-stream', dataB64, kind });
   } catch (e) {
     _toast('Upload failed — check your connection and try again.');
@@ -743,8 +743,8 @@ function _renderBrandSlot(kind, label, url) {
   const box = document.getElementById('brand-' + kind);
   if (!box) return;
   box.innerHTML = url
-    ? `<img src="${esc(url)}" alt="${esc(label)}"/><span class="brand-label">${label} · tap to replace</span>`
-    : `<span class="material-symbols-outlined" style="color:#8f9192">add_photo_alternate</span><span class="brand-label">Add your ${label}</span>`;
+    ? `<img src="${esc(url)}" alt="${esc(label)}"/><span class="brand-label">${esc(label)} · tap to replace</span>`
+    : `<span class="material-symbols-outlined" style="color:#8f9192">add_photo_alternate</span><span class="brand-label">Add your ${esc(label)}</span>`;
   box.onclick = () => _brandPick(kind);
 }
 

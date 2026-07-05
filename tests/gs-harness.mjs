@@ -102,16 +102,22 @@ function fakeSpreadsheetApp() {
   };
 }
 
+const FILE_BASE_DATE = new Date('2026-07-05T12:00:00Z');
+
 function fakeDriveApp() {
   let seq = 0;
   const byId = {};
   const iter = (arr) => { let i = 0; return { hasNext: () => i < arr.length, next: () => arr[i++] }; };
   const makeFile = (name, mime, bytes) => {
+    // Incrementing creation date (base + seq minutes) so upload-order and
+    // newest-first sorting are actually exercised by tests, instead of every
+    // fake file sharing one fixed timestamp.
+    const created = new Date(FILE_BASE_DATE.getTime() + seq * 60000);
     const f = {
       _shared: false,
       getName: () => name, getMimeType: () => mime,
       getSize: () => bytes.length,
-      getDateCreated: () => new Date('2026-07-05T12:00:00Z'),
+      getDateCreated: () => created,
       getUrl: () => 'https://drive.example/file/' + f._id,
       getId: () => f._id,
       setSharing: () => { f._shared = true; return f; },

@@ -3391,6 +3391,17 @@ async function _hmac(msg) {
   const sig = await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(msg));
   return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
+// Quote links are verified client-side by SHIFT_quick_quote.html against its own
+// embedded constant — they are display-only (all quote data is already visible in
+// the URL's q= param), so this is a link-integrity check, not a secret. It is
+// intentionally decoupled from the portal signing secret: rotating PORTAL_SECRET
+// must never break quote links. Keep in sync with _SK in SHIFT_quick_quote.html.
+const _QUOTE_SK = 'SHIFTportal#2026$key!xK9mPq3';
+async function _hmacQuote(msg) {
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(_QUOTE_SK), {name:'HMAC',hash:'SHA-256'}, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 // Pull the folder id out of any Google Drive folder URL (or accept a bare id).
 function _driveFolderId(url) {
   const u = (url||'').trim();
@@ -3413,7 +3424,7 @@ async function generateLink() {
   const driveId = _driveFolderId(contact?.drive);
   const payload = driveId ? `${name}|${exp}|${driveId}` : `${name}|${exp}`;
   const sig = (await _hmac(payload)).slice(0,32);
-  const token = btoa(payload)+'.'+sig;
+  const token = toBase64(payload)+'.'+sig;
   const url = `${PORTAL_URL}?t=${encodeURIComponent(token)}`;
   document.getElementById('url-display').textContent = url;
   document.getElementById('result-box').style.display = 'block';
@@ -3472,7 +3483,7 @@ async function openPortal() {
   const exp = Math.floor(Date.now()/1000)+365*86400;
   const payload = `Manager|${exp}`;
   const sig = (await _hmac(payload)).slice(0,32);
-  const token = btoa(payload)+'.'+sig;
+  const token = toBase64(payload)+'.'+sig;
   window.open(`${PORTAL_URL}?t=${encodeURIComponent(token)}`,'_blank');
 }
 
@@ -4563,7 +4574,7 @@ async function crmSendPortalLink(id, name) {
   const exp = Math.floor(Date.now()/1000) + 30*86400;
   const payload = `${clientName}|${exp}`;
   const sig = (await _hmac(payload)).slice(0,32);
-  const token = btoa(payload)+'.'+sig;
+  const token = toBase64(payload)+'.'+sig;
   const url = `${PORTAL_URL}?t=${encodeURIComponent(token)}`;
   // Save to link history
   const history = JSON.parse(localStorage.getItem('shift-links')||'[]');
@@ -5116,7 +5127,7 @@ async function generateQuote() {
 
   const exp = Math.floor(new Date(validUntil + 'T23:59:59').getTime() / 1000);
   const payload = `${client}|${exp}`;
-  const sig = (await _hmac(payload)).slice(0, 32);
+  const sig = (await _hmacQuote(payload)).slice(0, 32);
   const token = toBase64(payload) + '.' + sig;
 
   const qData = { num, amount: amount.toFixed(2), validUntil };

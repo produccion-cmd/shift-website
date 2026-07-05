@@ -58,3 +58,10 @@ test('isImageMime_ and thumbUrl_', () => {
   assert.equal(gs.isImageMime_('application/pdf'), false);
   assert.equal(gs.thumbUrl_('X1'), 'https://drive.google.com/thumbnail?id=X1&sz=w400');
 });
+
+test('verifyToken_ accepts UTF-8 client names (accented)', () => {
+  const gs = loadBackend();
+  const v = gs.verifyToken_(makeToken(`José García|${NOW + 3600}`, SECRET), SECRET, NOW);
+  assert.equal(v.ok, true);
+  assert.equal(v.name, 'José García');
+});

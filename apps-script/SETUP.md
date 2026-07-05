@@ -50,3 +50,4 @@ The URL stays the same. (Just saving the file does NOT update the live web app.)
 ## Rotating keys
 Generate new values, update the Script Property AND the manager Settings field,
 then regenerate client links (for `PORTAL_SECRET`) — `ADMIN_KEY` rotation needs no link changes.
+Quick-quote links (`SHIFT_quick_quote.html`) use their own separate link-signer and are NOT affected by rotating `PORTAL_SECRET`.

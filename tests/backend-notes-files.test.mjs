@@ -29,6 +29,9 @@ test('files.list returns uploads newest-first with metadata', () => {
   assert.equal(img.folder, 'Uploads');
   assert.match(img.thumbUrl, /thumbnail/);
   assert.equal(r.files.find((f) => f.name === 'logo.png').folder, 'Brand Assets');
+  assert.equal(r.files[0].name, 'logo.png'); // uploaded last → newest first
+  const dates = r.files.map((f) => f.date);
+  assert.deepEqual(dates, [...dates].sort().reverse());
 });
 
 test('files.list is empty for client with no folder', () => {
