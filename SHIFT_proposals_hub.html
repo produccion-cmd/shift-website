@@ -9,7 +9,7 @@
 // Backend URL is baked in at deploy time (apps-script/SETUP.md §4).
 // ?api= override works ONLY on localhost so tokens can never be exfiltrated
 // by a crafted link in production.
-const BACKEND_URL = 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE';
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxI_AwSrztB-Ta4KDBOEamrRGIe9_nT6PjEfmKnInxEtETgkS4wdNIlP-3hyOT3YZLV/exec';
 const _API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? (new URLSearchParams(location.search).get('api') || BACKEND_URL)
   : BACKEND_URL;
