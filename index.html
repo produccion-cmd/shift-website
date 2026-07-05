@@ -7,7 +7,6 @@
 <link rel="icon" type="image/svg+xml" href="SHIFT-ICON.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link rel="preconnect" href="https://images.unsplash.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -94,40 +93,6 @@ tailwind.config = {
   #scroll-bar { position:fixed; top:0; left:0; height:1px; background:#fff; z-index:9999; width:0%; transition:width .1s linear; }
   /* Stat counter */
   .stat-num { font-family:'Sora',sans-serif; font-weight:800; font-size:clamp(44px,6vw,80px); letter-spacing:-0.04em; line-height:1; }
-
-  /* ── CINEMATIC HERO ─────────────────────────────────────── */
-  /* Footage: 4 real production frames crossfading like a timelapse,
-     each with a slow push-in (Ken Burns) so nothing feels static. */
-  #hero-film .film{position:absolute;inset:-6%;width:112%;height:112%;object-fit:cover;opacity:0;
-    filter:brightness(.42) saturate(.85) contrast(1.06);
-    animation:filmFade 36s linear infinite, kenburns 36s ease-in-out infinite;will-change:opacity,transform}
-  #hero-film .film:nth-child(1){animation-delay:0s,0s}
-  #hero-film .film:nth-child(2){animation-delay:9s,9s}
-  #hero-film .film:nth-child(3){animation-delay:18s,18s}
-  #hero-film .film:nth-child(4){animation-delay:27s,27s}
-  @keyframes filmFade{0%{opacity:0}5%{opacity:1}25%{opacity:1}32%{opacity:0}100%{opacity:0}}
-  @keyframes kenburns{0%{transform:scale(1) translate(0,0)}32%{transform:scale(1.09) translate(1.6%,-1.2%)}100%{transform:scale(1.09) translate(1.6%,-1.2%)}}
-  /* Truss line — hangs just below the nav like a real rig */
-  #hero-truss{position:absolute;top:96px;left:0;width:100%;height:84px;opacity:.9;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
-  /* Moving-head beams — cones of light sweeping the floor */
-  .beam{position:absolute;top:168px;width:150px;height:125%;transform-origin:50% 0;
-    mix-blend-mode:screen;filter:blur(7px);pointer-events:none;
-    clip-path:polygon(44% 0,56% 0,100% 100%,0 100%)}
-  .b1{left:calc(13% - 75px);background:linear-gradient(to bottom,rgba(255,196,110,.34),rgba(255,196,110,.06) 55%,transparent 76%);animation:sweepA 9s ease-in-out infinite alternate}
-  .b2{left:calc(38% - 75px);background:linear-gradient(to bottom,rgba(235,240,255,.30),rgba(235,240,255,.05) 55%,transparent 76%);animation:sweepB 12.5s ease-in-out infinite alternate;animation-delay:-3s}
-  .b3{left:calc(62% - 75px);background:linear-gradient(to bottom,rgba(214,150,255,.26),rgba(214,150,255,.05) 55%,transparent 76%);animation:sweepA 10.6s ease-in-out infinite alternate-reverse;animation-delay:-6s}
-  .b4{left:calc(87% - 75px);background:linear-gradient(to bottom,rgba(180,215,255,.30),rgba(180,215,255,.05) 55%,transparent 76%);animation:sweepB 13.8s ease-in-out infinite alternate;animation-delay:-9s}
-  @keyframes sweepA{from{transform:rotate(-17deg)}to{transform:rotate(13deg)}}
-  @keyframes sweepB{from{transform:rotate(14deg)}to{transform:rotate(-15deg)}}
-  /* LED wall spectrum */
-  #spectrum-canvas{height:170px;opacity:.5;mix-blend-mode:screen;
-    -webkit-mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent);
-    mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent)}
-  @media (prefers-reduced-motion: reduce){
-    #hero-film .film{animation:none!important;opacity:0}
-    #hero-film .film:first-child{opacity:1}
-    .beam{animation:none!important}
-  }
 </style>
 </head>
 <body class="bg-background text-on-background font-body antialiased overflow-x-hidden selection:bg-primary selection:text-background">
@@ -179,50 +144,8 @@ tailwind.config = {
 <!-- ═══════════════════════════════ HERO ═══ -->
 <section id="hero" class="relative min-h-screen flex items-end pt-24 pb-sg overflow-hidden" style="background:#121414">
   <div class="absolute inset-0 z-0 pointer-events-none">
-    <!-- Real production footage — slow timelapse crossfade with camera drift -->
-    <div id="hero-film" class="absolute inset-0 overflow-hidden">
-      <img class="film" src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1600&q=72&fit=crop" alt="" fetchpriority="high"/>
-      <img class="film" src="https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=1600&q=72&fit=crop" alt=""/>
-      <img class="film" src="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=1600&q=72&fit=crop" alt=""/>
-      <img class="film" src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1600&q=72&fit=crop" alt=""/>
-    </div>
-    <!-- Rig: truss line + moving-head beams sweeping the room -->
-    <div id="hero-rig" class="absolute inset-0 overflow-hidden">
-      <div class="beam b1"></div>
-      <div class="beam b2"></div>
-      <div class="beam b3"></div>
-      <div class="beam b4"></div>
-      <svg id="hero-truss" viewBox="0 0 1200 84" preserveAspectRatio="none" aria-hidden="true">
-        <g stroke="#26282a" stroke-width="3" fill="none">
-          <line x1="0" y1="10" x2="1200" y2="10"/>
-          <line x1="0" y1="46" x2="1200" y2="46"/>
-        </g>
-        <g stroke="#1e2022" stroke-width="2.4" fill="none">
-          <path d="M0 10 L30 46 L60 10 L90 46 L120 10 L150 46 L180 10 L210 46 L240 10 L270 46 L300 10 L330 46 L360 10 L390 46 L420 10 L450 46 L480 10 L510 46 L540 10 L570 46 L600 10 L630 46 L660 10 L690 46 L720 10 L750 46 L780 10 L810 46 L840 10 L870 46 L900 10 L930 46 L960 10 L990 46 L1020 10 L1050 46 L1080 10 L1110 46 L1140 10 L1170 46 L1200 10"/>
-        </g>
-        <!-- moving-head fixtures at beam origins -->
-        <g fill="#0c0d0e" stroke="#303336" stroke-width="1.6">
-          <g transform="translate(156,46)"><rect x="-4" y="0" width="8" height="10"/><rect x="-11" y="10" width="22" height="18" rx="3"/></g>
-          <g transform="translate(456,46)"><rect x="-4" y="0" width="8" height="10"/><rect x="-11" y="10" width="22" height="18" rx="3"/></g>
-          <g transform="translate(744,46)"><rect x="-4" y="0" width="8" height="10"/><rect x="-11" y="10" width="22" height="18" rx="3"/></g>
-          <g transform="translate(1044,46)"><rect x="-4" y="0" width="8" height="10"/><rect x="-11" y="10" width="22" height="18" rx="3"/></g>
-        </g>
-        <!-- lit lenses -->
-        <g>
-          <circle cx="156" cy="72" r="4" fill="rgba(255,196,110,.9)"/>
-          <circle cx="456" cy="72" r="4" fill="rgba(235,240,255,.9)"/>
-          <circle cx="744" cy="72" r="4" fill="rgba(214,150,255,.85)"/>
-          <circle cx="1044" cy="72" r="4" fill="rgba(180,215,255,.9)"/>
-        </g>
-      </svg>
-    </div>
-    <!-- LED wall — live audio spectrum -->
-    <canvas id="spectrum-canvas" style="position:absolute;bottom:0;left:0;width:100%"></canvas>
-    <!-- Rectangle shader as data-texture over the footage -->
-    <canvas id="bg-canvas" class="absolute inset-0 w-full h-full" style="opacity:.42"></canvas>
-    <div class="absolute inset-0" style="background:radial-gradient(130% 100% at 50% 115%, rgba(18,20,20,0) 42%, rgba(18,20,20,.5) 100%)"></div>
-    <!-- left vignette so the copy stays readable over bright frames -->
-    <div class="absolute inset-0" style="background:linear-gradient(to right, rgba(18,20,20,.62) 0%, rgba(18,20,20,.25) 38%, transparent 62%)"></div>
+    <!-- Rectangle shader canvas -->
+    <canvas id="bg-canvas" class="absolute inset-0 w-full h-full"></canvas>
     <div class="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-background to-transparent"></div>
   </div>
   <div class="relative z-10 px-gm w-full max-w-7xl mx-auto">
@@ -672,7 +595,7 @@ tailwind.config = {
   const ctx = canvas.getContext('2d');
 
   const COLS = 52, ROWS = 30;
-  const RECT_W_FRAC = 0.52;   // fraction of cell width
+  const RECT_W_FRAC = 0.58;   // fraction of cell width
   const RECT_H = 1.5;          // px thickness
   const BASE_OPA = 0.042;
   const PEAK_OPA = 0.28;
@@ -729,25 +652,34 @@ tailwind.config = {
       if (falloff > 0.005) {
         target = Math.atan2(dy, dx);
       } else {
-        // Idle: gentle slow sine oscillation per rect
-        target = Math.sin(t * IDLE_SPD + rec.phase) * IDLE_AMP;
+        // Idle: organic flow field — the whole grid drifts like wind
+        // moving across it, no two regions ever in sync.
+        target = (Math.sin(rec.x * 0.0021 + t * 0.22)
+                + Math.cos(rec.y * 0.0027 - t * 0.17)
+                + Math.sin((rec.x + rec.y) * 0.0011 + t * 0.09)) * 0.55
+                + Math.sin(t * IDLE_SPD + rec.phase) * IDLE_AMP;
       }
 
       // Spring toward target (handle angle wrap)
       let diff = target - rec.ang;
       // Wrap to [-PI, PI] so spring takes shortest path
       diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-      rec.vel += diff * SPRING * (falloff > 0.005 ? 1.0 : 0.15);
+      rec.vel += diff * SPRING * (falloff > 0.005 ? 1.0 : 0.22);
       rec.vel *= DAMP;
       rec.ang += rec.vel;
 
-      // Opacity rises near mouse
-      const opa = BASE_OPA + falloff * (PEAK_OPA - BASE_OPA);
+      // Luminance: slow waves of light travel across the field,
+      // and everything brightens toward the cursor.
+      const wave = 0.5 + 0.5 * Math.sin(rec.x * 0.0013 - t * 0.45 + rec.y * 0.0008);
+      const opa = BASE_OPA + wave * 0.055 + falloff * (PEAK_OPA - BASE_OPA);
 
       ctx.save();
       ctx.translate(rec.x, rec.y);
       ctx.rotate(rec.ang);
-      ctx.fillStyle = `rgba(255,255,255,${opa.toFixed(4)})`;
+      // Near the cursor the needles warm toward brand gold; elsewhere pure white
+      ctx.fillStyle = falloff > 0.02
+        ? `rgba(255,${(255 - 35 * falloff) | 0},${(255 - 95 * falloff) | 0},${opa.toFixed(4)})`
+        : `rgba(255,255,255,${opa.toFixed(4)})`;
       ctx.fillRect(-rec.w * 0.5, -RECT_H * 0.5, rec.w, RECT_H);
       ctx.restore();
     }
@@ -803,83 +735,6 @@ tailwind.config = {
     ring.style.left = rx + 'px';
     ring.style.top  = ry + 'px';
   })();
-})();
-
-// ── LED WALL SPECTRUM ────────────────────────────────────────
-// Pseudo-audio analyzer: layered sines + smoothed noise drive the bars,
-// with falling peak caps like a real console meter. Pauses off-screen
-// and renders a single static frame under prefers-reduced-motion.
-(function() {
-  const c = document.getElementById('spectrum-canvas');
-  if (!c) return;
-  const ctx = c.getContext('2d');
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const N = 72;
-  const vals = new Array(N).fill(0);
-  const peaks = new Array(N).fill(0);
-  let W, H, running = true;
-
-  function size() {
-    W = c.width = c.offsetWidth * (window.devicePixelRatio > 1 ? 2 : 1);
-    H = c.height = 170 * (window.devicePixelRatio > 1 ? 2 : 1);
-  }
-
-  function frame(t) {
-    ctx.clearRect(0, 0, W, H);
-    const bw = W / N;
-    for (let i = 0; i < N; i++) {
-      // "music": a bass hump + mids movement + hi-hat shimmer
-      const x = i / N;
-      const bass = Math.pow(1 - x, 2.2) * (0.55 + 0.45 * Math.sin(t * 0.0021 + x * 4));
-      const mids = 0.38 * Math.abs(Math.sin(t * 0.0034 + i * 0.9)) * Math.abs(Math.sin(t * 0.0009 + i * 0.23));
-      const hats = 0.22 * Math.abs(Math.sin(t * 0.011 + i * 2.7)) * Math.pow(x, 1.4);
-      const target = Math.min(1, bass * 0.7 + mids + hats + 0.03);
-      vals[i] += (target - vals[i]) * 0.18;
-      if (vals[i] > peaks[i]) peaks[i] = vals[i];
-      else peaks[i] = Math.max(0, peaks[i] - 0.006);
-
-      const h = vals[i] * (H - 14);
-      const px = i * bw + bw * 0.18, pw = bw * 0.64;
-      const g = ctx.createLinearGradient(0, H, 0, H - h);
-      g.addColorStop(0, 'rgba(255,255,255,.55)');
-      g.addColorStop(1, 'rgba(255,255,255,.10)');
-      ctx.fillStyle = g;
-      ctx.fillRect(px, H - h, pw, h);
-      // peak cap
-      ctx.fillStyle = 'rgba(255,205,120,.7)';
-      ctx.fillRect(px, H - peaks[i] * (H - 14) - 3, pw, 2);
-    }
-  }
-
-  function loop(t) {
-    if (c.width === 0 && c.offsetWidth > 0) size();  // self-heal after 0-width layout
-    if (running && !document.hidden && c.width > 0) frame(t);
-    if (!reduced) requestAnimationFrame(loop);
-  }
-
-  // Pause when the hero scrolls out of view
-  const hero = document.getElementById('hero');
-  if (hero && 'IntersectionObserver' in window) {
-    new IntersectionObserver(en => { running = en[0].isIntersecting; }).observe(hero);
-  }
-  window.addEventListener('resize', size, { passive: true });
-  window.addEventListener('load', size, { once: true });
-  size();
-  if (reduced) frame(12000); else requestAnimationFrame(loop);
-})();
-
-// ── HERO PARALLAX ────────────────────────────────────────────
-(function() {
-  const film = document.getElementById('hero-film');
-  const rig  = document.getElementById('hero-rig');
-  if (!film) return;
-  window.addEventListener('scroll', () => {
-    const y = window.scrollY;
-    if (y < window.innerHeight * 1.3) {
-      film.style.transform = 'translateY(' + (y * 0.18) + 'px)';
-      if (rig) rig.style.transform = 'translateY(' + (y * 0.09) + 'px)';
-    }
-  }, { passive: true });
 })();
 
 // ── MOBILE DRAWER ────────────────────────────────────────────
