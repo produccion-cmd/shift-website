@@ -16,7 +16,7 @@
 
 | Question | Decision |
 |---|---|
-| Backend | **Google Apps Script web app** in Edwin's Google account (free, writes directly to his Drive, sends email natively) |
+| Backend | **Google Apps Script web app** in the **Produccion@5hift.com.mx** Google account — SHIFT and DJD are separate businesses; nothing portal-related touches the desijunctiondjs account (free, writes directly to the Produccion Drive, sends email natively) |
 | Drive folders | **Hybrid**: use the contact's manually-pasted Drive folder if present; otherwise auto-create `SHIFT Clients/<Client Name>/` with `Uploads/` and `Brand Assets/` subfolders and remember the mapping |
 | Notes | **Two-way thread** per proposal, plus one general "Event info" thread per client. Client writes in portal; Edwin replies from the manager |
 | Notifications | **Email** to `ventas@5hift.com.mx` and `Produccion@5hift.com.mx` on every upload and every client note, with direct links |
@@ -27,7 +27,7 @@
 Client browser (portal page, GitHub Pages)
     │  fetch POST, Content-Type: text/plain (JSON body — avoids CORS preflight)
     ▼
-Google Apps Script web app  (deployed "execute as Edwin", "anyone with link")
+Google Apps Script web app  (owned by Produccion@5hift.com.mx, deployed "execute as me", "anyone with link")
     ├── verifies portal token server-side (secret in Script Properties)
     ├── Google Drive        — client folders, uploads, brand assets, avatars
     ├── Google Sheet        — "SHIFT Portal Data" (Clients, Notes, Activity tabs)

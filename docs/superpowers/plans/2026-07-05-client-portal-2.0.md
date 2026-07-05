@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Upgrade the static client portal so clients can upload files to Edwin's Google Drive, add logos/monograms/profile pictures, hold two-way notes threads on proposals, and trigger email notifications — all via a new Google Apps Script backend.
+**Goal:** Upgrade the static client portal so clients can upload files to the SHIFT Google Drive (Produccion@5hift.com.mx), add logos/monograms/profile pictures, hold two-way notes threads on proposals, and trigger email notifications — all via a new Google Apps Script backend.
 
 **Architecture:** A single Apps Script web app (`apps-script/portal-backend.gs`) is the only backend. The portal page (`SHIFT_proposals_hub.html`) and manager (`manager_v2.html`) call it with `fetch` POST + JSON string bodies (Content-Type stays `text/plain` → no CORS preflight; Apps Script allows this). Backend state lives in a Google Sheet ("SHIFT Portal Data") and Google Drive folders. Backend pure logic is TDD'd in Node via a `vm`-based harness that stubs GAS globals; UI work is verified against a local Node mock backend that implements the same JSON protocol.
 
@@ -12,6 +12,7 @@
 
 ## Global Constraints
 
+- **Google account: everything backend-side belongs to Produccion@5hift.com.mx** (Apps Script owner, Drive folders, "SHIFT Portal Data" sheet, email sender). SHIFT and DJD are separate businesses — the desijunctiondjs account is never involved.
 - Notification recipients (default, overridable via Script Property `NOTIFY_EMAILS`): `ventas@5hift.com.mx,Produccion@5hift.com.mx`
 - Backend per-file cap: 25 MB decoded (`MAX_UPLOAD_BYTES = 25 * 1024 * 1024`); portal client-side cap: 20 MB (`MAX_MB = 20`) with message directing to the Drive folder.
 - Token format (unchanged, secret rotated): `btoa("name|expUnixSeconds[|driveFolderId]") + "." + hmacSha256Hex(payload, secret).slice(0,32)`.
@@ -224,7 +225,7 @@ test('verifyToken_ rejects malformed tokens', () => {
 test('sanitizeFilename_ strips paths, control chars, caps length', () => {
   const gs = loadBackend();
   assert.equal(gs.sanitizeFilename_('../../etc/passwd'), '.etcpasswd');
-  assert.equal(gs.sanitizeFilename_('logo  final.png'), 'logo final.png');
+  assert.equal(gs.sanitizeFilename_('logo\u0000\u001f final.png'), 'logo final.png');
   assert.equal(gs.sanitizeFilename_(''), 'file');
   assert.equal(gs.sanitizeFilename_('a'.repeat(200)).length, 120);
 });
@@ -954,7 +955,7 @@ It writes uploads into your Drive, keeps notes in a Google Sheet, and emails
 ventas@5hift.com.mx + Produccion@5hift.com.mx when clients act.
 
 ## 1. Create the script
-1. Open https://script.new (log in as the Google account that owns your Drive).
+1. Open https://script.new — **log in as Produccion@5hift.com.mx**. Everything portal-related (script, client Drive folders, data sheet, notification sender) lives in that account. SHIFT ≠ DJD: never use the desijunctiondjs account for any of this.
 2. Name it **SHIFT Portal Backend** (click "Untitled project" top-left).
 3. Delete the placeholder code, paste ALL of `apps-script/portal-backend.gs`, save (⌘S).
 
