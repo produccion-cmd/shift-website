@@ -877,6 +877,8 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .cal-ev-link{display:inline-flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.06em;color:var(--mute);border:1px solid var(--border);padding:4px 10px;text-decoration:none;transition:all .15s}
 .cal-ev-link:hover{color:var(--white);border-color:var(--white)}
 .cal-ev-time{color:var(--gold)}
+.cal-ev-title-link{cursor:pointer}
+.cal-ev-title-link:hover{color:var(--gold);text-decoration:underline;text-underline-offset:4px}
 .cal-ev-venue{color:var(--mute);text-decoration:none;border-bottom:1px dotted var(--dim)}
 .cal-ev-venue:hover{color:var(--white);border-bottom-color:var(--white)}
 .cal-link-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
@@ -1803,6 +1805,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
             <button class="cal-flt"    id="calf-90"  onclick="setCalFilter(90)">90 days</button>
             <button class="cal-flt"    id="calf-all" onclick="setCalFilter(0)">All</button>
           </div>
+          <input class="rc-search" id="cal-search" placeholder="Search events, gear, venues…" oninput="renderCalendar()" style="width:210px"/>
           <button class="crm-new-btn" id="cal-export-btn" style="display:none;background:transparent;color:var(--gold);border:1px solid var(--gold)" onclick="calExportSelected()">↓ Export 0 Sheets</button>
           <button class="crm-new-btn" onclick="calOpenAdd()">+ Add Event</button>
         </div>
@@ -2657,6 +2660,7 @@ async function doLogin() {
     _applyBuilderFocus();
     _migrateBackfillProposals();
     _migrateAssignEventServices();
+    _migrateEnrichCdmxDetail();
     _migrateRateCardHouston();
     startAutoSync();
   } else {
@@ -2677,7 +2681,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); renderDraftBars(); _applyBuilderFocus(); _migrateBackfillProposals(); _migrateAssignEventServices(); _migrateRateCardHouston(); startAutoSync(); });
+  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); renderDraftBars(); _applyBuilderFocus(); _migrateBackfillProposals(); _migrateAssignEventServices(); _migrateEnrichCdmxDetail(); _migrateRateCardHouston(); startAutoSync(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -6231,8 +6235,20 @@ function _calOwnServicesHTML(ev) {
   const byCur = {};
   svcs.forEach(s => { const c = s.currency||'USD'; byCur[c] = (byCur[c]||0) + (s.price||0); });
   const totalStr = Object.entries(byCur).filter(([,v])=>v>0).map(([c,v])=>fmtCur(v,c)).join(' + ');
+  // Sold-detail lines (elements, prefixed '· ') collapse behind a toggle so
+  // the card stays scannable but everything sold is one click away.
+  const main = svcs.filter(s => !(s.name||'').startsWith('· '));
+  const detail = svcs.filter(s => (s.name||'').startsWith('· '));
+  const uid = 'soldd-' + ev.id;
   return `<div class="cal-ev-own-svcs">
-    ${svcs.map(s=>`<div class="cal-ev-own-svc"><span>${esc(s.name)}</span><span class="price">${s.price?fmtCur(s.price,s.currency):''}</span></div>`).join('')}
+    ${main.map(s=>`<div class="cal-ev-own-svc"><span>${esc(s.name)}</span><span class="price">${s.price?fmtCur(s.price,s.currency):''}</span></div>`).join('')}
+    ${detail.length?`
+    <button class="svcs-toggle" style="margin-top:6px" onclick="const b=document.getElementById('${uid}');const on=b.style.display!=='none';b.style.display=on?'none':'block';this.classList.toggle('open',!on)">
+      <span class="svcs-arr">▸</span> Everything sold (${detail.length} lines)
+    </button>
+    <div id="${uid}" style="display:none">
+      ${detail.map(s=>`<div class="cal-ev-own-svc" style="color:var(--dim)"><span>${esc(s.name)}</span></div>`).join('')}
+    </div>`:''}
     ${totalStr?`<div class="cal-ev-own-total"><span>Event total</span><span>${totalStr}</span></div>`:''}
   </div>`;
 }
@@ -6270,6 +6286,90 @@ function _migrateAssignEventServices() {
     if (picked.length) { ev.services = picked; changed = true; }
   });
   if (changed) { _eventsSave(events); console.log('Auto-assigned services to events'); }
+}
+
+// One-time enrichment (2026-07-05): the CDMX wedding calendar events showed
+// only per-event totals — the actual sold equipment lives in the published
+// proposals. This mirrors those element lists (already public on the live
+// pages) into the proposal records and the matching calendar events, so
+// "what was sold" is visible without opening the proposal.
+const CDMX_DETAIL = {
+  'SHIFT_PROPOSAL_INDIAN_WEDDING_CDMX_SEP2026.html': {
+    'Mehendi': { 'Audio System': ['4 RCF Professional Speakers on Stands','Yamaha 6-Channel Console','2 Shure Wireless Microphones','Complete Cabling Package','Audio Playback Connectivity'], 'Personnel': ['2× Audio Technicians'] },
+    'Ganesh Puja & Haldi': { 'Audio System': ['4 RCF Professional Speakers on Stands','Yamaha 6-Channel Console','2 Shure Wireless Microphones','Complete Cabling Package','Audio Playback Connectivity'], 'Personnel': ['2× Audio Technicians'] },
+    'Sangeet': { 'Audio & DJ Rider Upgrade': ['6 RCF HDL6 Line Array Modules','2 RCF 9006 Dual Subwoofers','2× Pioneer CDJ-3000','1× Pioneer DJM-S11 Scratch Mixer','Yamaha Digital Audio Console','Dedicated DJ Booth Monitor','2 Shure Wireless Microphones','30A Power Distribution (110V/220V)','Complete Cabling Package'], 'Lighting System': ['6× ROBE Robin Pointe / Claypaky Beam','2× ROBE / Claypaky Wash Moving Heads','2 Lighting Towers (3m)','DMX Lighting Console','Complete Cabling & Rigging'], 'Personnel & Operations': ['2× Audio Technicians','1× Lighting Technician','Transport, Setup, Operation, Strike'] },
+    'Mobile Baraat': { 'Mobile Audio & DJ Setup': ['Mobile Audio Cart','4 Wireless Battery-Powered Speakers','Pioneer DDJ-1000SRT Controller','MacBook Pro Playback','Complete Cabling Package'], 'Personnel & Labor': ['2× Audio Technicians (procession escort)','Transport, Logistics, Setup, Strike'] },
+    'Hindu & Sikh Ceremony': { 'Audio System': ['4 RCF Professional Speakers','12-Channel Digital Audio Console','2 Shure Wireless Microphones','Headset Microphone for Priest','MacBook Pro Playback','Complete Cabling Package'], 'Personnel': ['2× Audio Technicians'] },
+    'Grand Reception': { 'Audio & DJ Rider Upgrade': ['6 RCF HDL6 Line Array Modules','2 RCF 9006 Dual Subwoofers','2 Perimeter Speakers','2× Pioneer CDJ-3000','1× Pioneer DJM-S11 Scratch Mixer','Digital Audio Console','Dedicated Booth Monitor','2 Shure Wireless Microphones','30A Power Distribution & Cabling'], 'Lighting System': ['8× ROBE Robin Pointe / Claypaky Beam','2 Laser Fixtures','ROBE / Claypaky Wash Fixtures','4 Lighting Towers (3m)','DMX Lighting Console'], 'Personnel & Operations': ['2× Audio Technicians','1× Lighting Technician','Transport, Setup, Operation, Strike'] }
+  },
+  'SHIFT_PROPOSAL_INDIAN_WEDDING_CDMX_FEB2027.html': {
+    'Haldi': { 'Audio System': ['2 Professional Speakers','Audio Mixer','2 Wireless Microphones','DJ Controller & DJ Monitor','Cabling Package'], 'DJ Support': ['DJ Table, Laptop Stand, Power Distribution'], 'Personnel': ['Audio Engineer','Audio Technician'] },
+    'Sangeet': { 'Audio System': ['4 Main Speakers & 2 Side Fill Speakers','2 Dual 18" Subwoofers','Digital Audio Console','2 Wireless Microphones & DJ Monitor'], 'DJ Rider': ['2 Pioneer CDJ-3000','1 Pioneer DJM-V10 Mixer','DJ Booth & Laptop Stand'], 'Lighting System': ['40 LED PAR Fixtures','6 Moving Heads','2 Lighting Towers'] },
+    'Baraat': { 'Audio System': ['Portable Sound System','DJ Controller (Serato Compatible)','1 Wireless + 1 Wired Microphone','Portable Battery Power Unit'], 'DJ Support': ['DJ Table & Laptop Stand'], 'Personnel': ['Audio Technician'] },
+    'Hindu Ceremony': { 'Audio System': ['4 Distribution Speakers','Audio Mixer','2 Wireless Microphones','1 Lavalier Microphone (Wireless)','Playback Connectivity'], 'Personnel': ['Audio Engineer'] },
+    'Lunch': { 'Audio System': ['Background Music System','Playback Connectivity'], 'Personnel': ['Autonomous — monitored by ceremony crew'] },
+    'Cocktail Hour': { 'Audio System': ['2 Speakers','Audio Mixer','DJ Controller & DJ Monitor'], 'DJ Support': ['DJ Table & Laptop Stand'], 'Personnel': ['Audio Technician'] },
+    'Grand Reception': { 'Audio System': ['4 Main Speakers & 2 Side Fill Speakers','2 Dual 18" Subwoofers','Digital Audio Console','2 Wireless Microphones & DJ Monitor'], 'DJ Rider': ['2 Pioneer CDJ-3000','1 Pioneer DJM-V10 Mixer','DJ Booth & Laptop Stand'], 'Lighting System': ['40 LED PAR Fixtures','8 Moving Heads','2 Lighting Towers'] }
+  }
+};
+
+function _migrateEnrichCdmxDetail() {
+  if (localStorage.getItem('shift-cdmx-detail-v1')) return;
+  // 1. Proposal records get a real events structure (the backfilled records
+  //    stored per-event lines as flat services) + items with the sold elements
+  const props = _proposalsLoad();
+  let pChanged = false;
+  props.forEach(p => {
+    const detail = CDMX_DETAIL[p.filename];
+    if (!detail) return;
+    if (!Array.isArray(p.events) || !p.events.length) {
+      p.events = (p.services || [])
+        .filter(s => !/\b(vat|iva)\b/i.test(s.name||''))
+        .map(s => {
+          const m = (s.name||'').match(/^Event \d+ · ([^—]+?)(?:\s*—\s*(.+))?$/);
+          return { name: (m ? m[1] : (s.name||'')).trim(), venue: (m && m[2] ? m[2] : '').trim(),
+                   date: '', startTime: '', price: s.price || 0, items: [], equipment: [] };
+        });
+      pChanged = true;
+    }
+    p.events.forEach(ev => {
+      if (Array.isArray(ev.items) && ev.items.length) return;
+      const evKey = (ev.name||'').toLowerCase();
+      const key = Object.keys(detail).find(k => evKey.includes(k.toLowerCase()) || k.toLowerCase().includes(evKey));
+      if (!key) return;
+      ev.items = Object.entries(detail[key]).map(([g, els]) => ({ name: g, price: 0, elements: els }));
+      ev.equipment = ev.items.flatMap(it => it.elements);
+      pChanged = true;
+    });
+  });
+  if (pChanged) _proposalsSave(props);
+  // 2. Calendar events: under each priced service line, add one compact
+  //    "· Group: elements" line per group (only if no detail lines yet)
+  const events = _eventsLoad();
+  let eChanged = false;
+  const allDetail = Object.values(CDMX_DETAIL);
+  events.forEach(ev => {
+    if (!(ev.services||[]).length) return;
+    if (ev.services.some(s => (s.name||'').startsWith('· '))) return;
+    const evYear = (ev.date||'').slice(0,4);
+    const detail = evYear === '2027' ? CDMX_DETAIL['SHIFT_PROPOSAL_INDIAN_WEDDING_CDMX_FEB2027.html']
+                 : evYear === '2026' ? CDMX_DETAIL['SHIFT_PROPOSAL_INDIAN_WEDDING_CDMX_SEP2026.html'] : null;
+    if (!detail) return;
+    const out = [];
+    ev.services.forEach(s => {
+      out.push(s);
+      const key = Object.keys(detail).find(k => (s.name||'').toLowerCase().includes(k.toLowerCase()));
+      if (key && (s.price||0) > 0) {
+        Object.entries(detail[key]).forEach(([g, els]) => {
+          out.push({ name: '· ' + g + ': ' + els.join(', '), price: 0, currency: s.currency || 'MXN' });
+        });
+        eChanged = true;
+      }
+    });
+    ev.services = out;
+  });
+  if (eChanged) _eventsSave(events);
+  localStorage.setItem('shift-cdmx-detail-v1', '1');
 }
 
 // ── SERVICES PER EVENT ───────────────────────────────────────
@@ -6455,6 +6555,16 @@ function renderCalendar() {
     events.push({ date: dt, title: (inv.num||'Invoice') + ' Due', client: inv.client, type: 'invoice', id: 'inv_'+inv.id, manual: false });
   });
 
+  // Search filter — also matches gear/elements inside services
+  const q = (document.getElementById('cal-search')?.value || '').toLowerCase().trim();
+  const shown = (q ? events.filter(ev => {
+    const hay = [ev.title, ev.client, ev.venue, ev.notes,
+      ...(ev.services||[]).map(s => s.name),
+      ...(ev.links||[]).map(l => l.label)].join(' ').toLowerCase();
+    return hay.includes(q);
+  }) : events).slice();
+  events.length = 0; events.push(...shown);
+
   // Sort by date ascending
   events.sort((a,b) => a.date - b.date);
 
@@ -6504,7 +6614,7 @@ function renderCalendar() {
         <div class="cal-ev-dow${isToday?' cal-ev-today':''}">${dow}</div>
       </div>
       <div class="cal-event-body">
-        <div class="cal-ev-title">${esc(ev.title)}</div>
+        <div class="cal-ev-title${ev.manual?' cal-ev-title-link':''}"${ev.manual?` onclick="calOpenSheet('${ev.id}')" title="Open the event sheet — everything sold, staff, links"`:''}>${esc(ev.title)}</div>
         ${ev.client?`<div class="cal-ev-client">${esc(ev.client)}</div>`:''}
         <div class="cal-ev-meta">
           <span class="cal-ev-type ${typeClass}">${typeLabel}</span>
