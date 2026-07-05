@@ -9,7 +9,9 @@ export function loadBackend(overrides = {}) {
   const sandbox = { ...gasStubs(), ...overrides };
   vm.createContext(sandbox);
   vm.runInContext(src, sandbox);
-  // Wrap functions that return objects to normalize prototypes
+  // node:vm sandboxes are a separate JS realm: objects returned by .gs functions have a foreign Object.prototype,
+  // which breaks assert.deepEqual. JSON round-trip re-creates them in this realm. Caveat: undefined-valued fields
+  // are dropped — fine for this backend, which never returns undefined fields.
   const normalize = (v) => v && typeof v === 'object' ? JSON.parse(JSON.stringify(v)) : v;
   for (const key of Object.keys(sandbox)) {
     if (typeof sandbox[key] === 'function' && key.endsWith('_')) {
@@ -33,7 +35,6 @@ export function gasStubs() {
   const sentEmails = [];
   const sandbox = {
     console,
-    Object,
     _props: props,
     _sentEmails: sentEmails,
     Utilities: {
