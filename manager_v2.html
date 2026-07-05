@@ -1153,7 +1153,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       .docs-chip{font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);background:transparent;border:1px solid var(--border);padding:7px 12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
       .docs-chip:hover{color:var(--white);border-color:var(--white)}
       .docs-chip.on{color:var(--white);background:var(--white);color:var(--bg);border-color:var(--white)}
-      .doc-row{display:grid;grid-template-columns:110px 1fr 90px 90px 60px;gap:20px;align-items:center;padding:16px 20px;border:1px solid var(--border);border-top:none;background:var(--panel-2);font-size:12.5px}
+      .doc-row{display:grid;grid-template-columns:110px 1fr 90px 90px max-content;gap:20px;align-items:center;padding:16px 20px;border:1px solid var(--border);border-top:none;background:var(--panel-2);font-size:12.5px}
       .doc-row:first-child{border-top:1px solid var(--border)}
       .doc-row:hover{background:rgba(255,255,255,.03)}
       .doc-type-badge{font-size:9.5px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);display:inline-block;text-align:center}
@@ -3068,7 +3068,7 @@ function renderDocumentsHub() {
       </div>
       ${amtHtml}
       <div><span class="doc-status ${d.status}">${d.status}</span></div>
-      <div style="text-align:right;display:flex;gap:6px;justify-content:flex-end">${reuseBtn}${approveBtn}${openBtn}</div>
+      <div style="text-align:right;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">${reuseBtn}${approveBtn}${openBtn}</div>
     </div>`;
   }).join('');
 }
