@@ -707,7 +707,20 @@ table thead th{border-bottom-color:#ccc!important}tr td{border-bottom-color:#eee
 // One or many events → a presentation-style sheet: cover block per event,
 // schedule, venue, POC, services, staff & shifts, links, notes.
 // Screen = dark brand; print = clean light reference, one event per page.
-function generateEventSheetHTML(events) {
+// crew=true strips every price — the version you hand PMs, stagehands and
+// techs. Elements are organized into departments like a rental pull sheet.
+function generateEventSheetHTML(events, crew) {
+
+  // Classify a line into a department (big-company pull-sheet style)
+  const DEPTS = [
+    { id: 'Audio / DJ',        re: /audio|sound|speaker|\bpa\b|\bdj\b|mic|console|subwoofer|monitor|cdj|djm|playback|line array|serato/i },
+    { id: 'Lighting',          re: /light|beam|wash|laser|uplight|dmx|haze|spark|robe|claypaky|\bpar\b|follow spot/i },
+    { id: 'Video / LED',       re: /video|\bled\b|pixel|projector|screen|\btv\b|visual|wall/i },
+    { id: 'Staging / Rigging', re: /stage|truss|rig|pipe|drape|riser|totem/i },
+    { id: 'Power',             re: /power|generator|distro|distribution|\b30a\b|\b220v\b/i },
+    { id: 'Crew / Personnel',  re: /personnel|crew|technician|engineer|operator|labor|stagehand|escort/i },
+  ];
+  const deptFor = t => (DEPTS.find(d => d.re.test(t)) || { id: 'Production / Other' }).id;
   const one = events.length === 1;
   const client = events[0]?.client || '';
   const docTitle = one
@@ -726,7 +739,33 @@ function generateEventSheetHTML(events) {
     const byCur = {};
     svcs.forEach(s => { const c = s.currency||'USD'; byCur[c] = (byCur[c]||0) + (s.price||0); });
     const totalStr = Object.entries(byCur).filter(([,v])=>v>0).map(([c,v])=>fmtCur(v,c)).join(' + ');
-    const svcRows = svcs.map(s => `<tr><td class="chk">☐</td><td>${esc(s.name)}</td><td class="num">${s.price?fmtCur(s.price,s.currency):'—'}</td></tr>`).join('');
+    // Money table: only priced lines (PM view; hidden entirely on crew sheets)
+    const priced = svcs.filter(s => (s.price||0) > 0);
+    const svcRows = priced.map(s => `<tr><td>${esc(s.name)}</td><td class="num">${fmtCur(s.price,s.currency)}</td></tr>`).join('');
+    // Department pull list: every element, one row each, grouped by dept
+    const deptMap = {};
+    const pushRow = (dept, txt) => { (deptMap[dept] = deptMap[dept] || []).push(txt); };
+    svcs.forEach(s => {
+      const n = (s.name||'').trim();
+      if (!n) return;
+      const detail = n.startsWith('· ');
+      const body = detail ? n.slice(2) : n;
+      const gm = body.match(/^([^:]{2,40}):\s*(.+)$/);
+      if (detail && gm) {
+        const dept = deptFor(gm[1]) !== 'Production / Other' ? deptFor(gm[1]) : deptFor(gm[2]);
+        gm[2].split(/,\s(?![^()]*\))/).forEach(el => pushRow(dept, el.trim()));
+      } else if (detail) {
+        pushRow(deptFor(body), body);
+      } else if (!(s.price||0)) {
+        pushRow(deptFor(body), body);
+      }
+    });
+    const deptOrder = ['Audio / DJ','Lighting','Video / LED','Staging / Rigging','Power','Crew / Personnel','Production / Other'];
+    const deptHTML = deptOrder.filter(d => deptMap[d] && deptMap[d].length).map(d => `
+    <div class="es-dept">
+      <div class="es-dept-hd">${d}</div>
+      ${deptMap[d].map(el => `<div class="es-pull"><span class="chk">☐</span><span>${esc(el)}</span></div>`).join('')}
+    </div>`).join('');
     const staff = ev.staff || [];
     const staffRows = staff.map(s => `<tr><td>${esc(s.name)}</td><td>${esc(s.role||'—')}</td><td>${esc(s.phone||'—')}</td><td class="num">${s.callTime||'—'}</td><td class="num">${s.outTime||'—'}</td></tr>`).join('');
     const links = ev.links || [];
@@ -750,12 +789,17 @@ function generateEventSheetHTML(events) {
     <div class="es-cell"><div class="es-lbl">Schedule</div><div class="es-val">${ev.startTime ? `Start <b>${ev.startTime}</b>` : 'Start —'}<br>${ev.endTime ? `End <b>${ev.endTime}</b>` : 'End —'}</div></div>
     <div class="es-cell"><div class="es-lbl">POC — On-site Contact</div><div class="es-val">${ev.pocName ? `<b>${esc(ev.pocName)}</b>${ev.pocPhone ? '<br>' + esc(ev.pocPhone) : ''}` : '—'}</div></div>
   </div>
-  ${svcs.length ? `
-  <div class="es-sec">
-    <div class="es-sec-lbl">Services &amp; Pack List</div>
-    <table class="es-table"><thead><tr><th class="chk"></th><th>Service / Equipment</th><th class="num">Amount</th></tr></thead>
+  ${priced.length ? `
+  <div class="es-sec es-money">
+    <div class="es-sec-lbl">Services &amp; Investment</div>
+    <table class="es-table"><thead><tr><th>Service</th><th class="num">Amount</th></tr></thead>
     <tbody>${svcRows}</tbody>
-    ${totalStr ? `<tfoot><tr><td class="chk"></td><td>Total</td><td class="num">${totalStr}</td></tr></tfoot>` : ''}</table>
+    ${totalStr ? `<tfoot><tr><td>Total</td><td class="num">${totalStr}</td></tr></tfoot>` : ''}</table>
+  </div>` : ''}
+  ${deptHTML ? `
+  <div class="es-sec">
+    <div class="es-sec-lbl">Pull Sheet — by Department</div>
+    <div class="es-depts">${deptHTML}</div>
   </div>` : ''}
   ${staff.length ? `
   <div class="es-sec">
@@ -777,7 +821,7 @@ function generateEventSheetHTML(events) {
   };
 
   return `<!DOCTYPE html>
-<html lang="en"><head>
+<html lang="en"${crew ? ' class="no-prices"' : ''}><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>${esc(docTitle)}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -814,6 +858,12 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',system-ui,sans-
 .es-table td:first-child{color:var(--white)}
 .es-table .num{text-align:right}
 .es-table .chk{width:26px;color:var(--dim);font-size:14px}
+.es-depts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+.es-dept{break-inside:avoid}
+.es-dept-hd{font-size:10px;font-weight:800;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--line);padding-bottom:7px;margin-bottom:6px}
+.es-pull{display:flex;gap:10px;align-items:baseline;font-size:12.5px;color:var(--mute);padding:5px 0;border-bottom:1px solid var(--line-soft)}
+.es-pull .chk{color:var(--dim);font-size:13px}
+html.no-prices .es-money{display:none!important}
 .es-table tfoot td{border-top:1px solid var(--white);border-bottom:none;font-weight:700;color:var(--white);font-family:'Sora',sans-serif}
 .es-link{display:flex;gap:14px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:12.5px;flex-wrap:wrap}
 .es-link-lbl{flex:0 0 160px;color:var(--white);font-weight:600}
@@ -839,7 +889,8 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',system-ui,sans-
   <div class="brand"><img src="https://shiftevnts.com/SHIFT-ICON.svg" alt=""/><span>SHIFT</span></div>
   <small>${one ? 'Event Sheet' : 'Event Pack · ' + events.length + ' events'}${client ? ' · ' + esc(client) : ''}</small>
 </div>
-<button class="print-btn" onclick="window.print()">↓ Save PDF</button>
+<button class="print-btn" onclick="document.documentElement.classList.remove('no-prices');window.print()">↓ PDF</button>
+<button class="print-btn" style="right:110px;background:transparent;color:var(--gold,#c8a84b);border:1px solid var(--gold,#c8a84b)" title="No prices — for PMs, stagehands and techs" onclick="document.documentElement.classList.add('no-prices');window.print()">👷 Crew PDF</button>
 ${events.map(evSection).join('')}
 <div class="doc-ft"><span>SHIFT · Event Production</span><span>Produccion@5hift.com.mx · Houston, TX</span></div>
 </body></html>`;

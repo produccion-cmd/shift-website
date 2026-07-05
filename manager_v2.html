@@ -1807,6 +1807,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
           </div>
           <input class="rc-search" id="cal-search" placeholder="Search events, gear, venues…" oninput="renderCalendar()" style="width:210px"/>
           <button class="crm-new-btn" id="cal-export-btn" style="display:none;background:transparent;color:var(--gold);border:1px solid var(--gold)" onclick="calExportSelected()">↓ Export 0 Sheets</button>
+          <button class="crm-new-btn" id="cal-export-crew-btn" style="display:none;background:transparent;color:var(--mute);border:1px solid var(--border)" title="Same pack, no prices" onclick="calExportSelected(true)">👷 Crew Pack</button>
           <button class="crm-new-btn" onclick="calOpenAdd()">+ Add Event</button>
         </div>
       </div>
@@ -2046,7 +2047,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
   </div>
 </div>
 
-<script src="js/doc-templates.js?v=20260705a"></script>
+<script src="js/doc-templates.js?v=20260705b"></script>
 <script>
 // ── CONSTANTS ────────────────────────────────────────────────
 const _SK = 'SHIFTportal#2026$key!xK9mPq3';
@@ -6606,6 +6607,7 @@ function renderCalendar() {
       ? `<label class="cal-ev-selwrap" title="Select for pack export"><input type="checkbox" class="cal-ev-sel" ${_calSelected.has(ev.id)?'checked':''} onchange="calToggleSelect('${ev.id}',this.checked)"/></label>
          <button class="cal-ev-edit" onclick="calOpenSheet('${ev.id}')">Sheet ↗</button>
          <button class="cal-ev-edit" onclick="calSheetPDF('${ev.id}')">↓ PDF</button>
+         <button class="cal-ev-edit" title="No prices — for PMs, stagehands, techs" onclick="calSheetPDF('${ev.id}',true)">👷 Crew</button>
          ${_calChunks(ev).length >= 2 ? `<button class="cal-ev-edit" title="One event per priced service — own price, venue, sold list" onclick="calSplitEvent('${ev.id}')">⑃ Split</button>` : ''}
          <button class="cal-ev-edit" onclick="calOpenEdit('${ev.id}')">Edit</button>
          <button class="cal-ev-del" onclick="calDelete('${ev.id}')">✕</button>`
@@ -7010,27 +7012,29 @@ function calToggleSelect(id, on) {
 }
 function _calUpdateExportBtn() {
   const btn = document.getElementById('cal-export-btn');
+  const cbtn = document.getElementById('cal-export-crew-btn');
   if (!btn) return;
   const n = _calSelected.size;
   btn.style.display = n ? '' : 'none';
-  btn.textContent = `↓ Export ${n} Sheet${n!==1?'s':''} as PDF`;
+  btn.textContent = `↓ Export ${n} Sheet${n!==1?'s':''}`;
+  if (cbtn) cbtn.style.display = n ? '' : 'none';
 }
 function calOpenSheet(id) {
   const ev = _eventsLoad().find(e => e.id === id);
   if (!ev) return;
   window.open(URL.createObjectURL(new Blob([generateEventSheetHTML([ev])],{type:'text/html'})),'_blank');
 }
-function calSheetPDF(id) {
+function calSheetPDF(id, crew) {
   const ev = _eventsLoad().find(e => e.id === id);
   if (!ev) return;
-  _openPrintPDF(generateEventSheetHTML([ev]));
+  _openPrintPDF(generateEventSheetHTML([ev], !!crew));
 }
-function calExportSelected() {
+function calExportSelected(crew) {
   const all = _eventsLoad();
   const evs = [..._calSelected].map(id => all.find(e => e.id === id)).filter(Boolean)
     .sort((a,b) => (a.date||'').localeCompare(b.date||''));
   if (!evs.length) { toast('Select events first (checkbox on each card)','err'); return; }
-  _openPrintPDF(generateEventSheetHTML(evs));
+  _openPrintPDF(generateEventSheetHTML(evs, !!crew));
 }
 
 // Jump from anywhere (CRM activity, docs hub) to a specific calendar event:
