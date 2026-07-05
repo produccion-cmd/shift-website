@@ -164,3 +164,88 @@ function verifyAction_(v) {
     }
   };
 }
+
+// ── Drive folders (hybrid resolution) ────────────────────────
+
+function rootFolder_() {
+  var rootId = cfg_('ROOT_FOLDER_ID');
+  if (rootId) return DriveApp.getFolderById(rootId);
+  var it = DriveApp.getFoldersByName('SHIFT Clients');
+  return it.hasNext() ? it.next() : DriveApp.createFolder('SHIFT Clients');
+}
+
+function subFolder_(parent, name) {
+  var it = parent.getFoldersByName(name);
+  return it.hasNext() ? it.next() : parent.createFolder(name);
+}
+
+// Hybrid rule: recorded folder -> token's manual folder -> auto-create.
+function resolveClientFolder_(name, tokenDriveId) {
+  var rec = getClientRow_(name);
+  if (rec && rec.folderId) {
+    try { return DriveApp.getFolderById(rec.folderId); }
+    catch (e) { /* folder was deleted -- fall through and re-resolve */ }
+  }
+  if (tokenDriveId) {
+    var f = DriveApp.getFolderById(tokenDriveId);
+    upsertClient_(name, { folderId: tokenDriveId, folderSource: 'manual' });
+    return f;
+  }
+  var created = rootFolder_().createFolder(name);
+  upsertClient_(name, { folderId: created.getId(), folderSource: 'auto' });
+  return created;
+}
+
+// ── Upload ───────────────────────────────────────────────────
+
+var MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+var KIND_FIELD = { avatar: 'avatarFileId', logo: 'logoFileId', monogram: 'monogramFileId' };
+
+function uploadAction_(v, body) {
+  var kind = KIND_FIELD[body.kind] ? body.kind : 'file';
+  var name = sanitizeFilename_(body.filename);
+  var bytes;
+  try { bytes = Utilities.base64Decode(String(body.dataB64 || '')); }
+  catch (e) { return { ok: false, error: 'bad-file' }; }
+  if (!bytes.length) return { ok: false, error: 'bad-file' };
+  if (bytes.length > MAX_UPLOAD_BYTES) return { ok: false, error: 'too-big' };
+
+  var folder = resolveClientFolder_(v.name, v.driveId);
+  var sub = subFolder_(folder, kind === 'file' ? 'Uploads' : 'Brand Assets');
+  var file = sub.createFile(Utilities.newBlob(bytes, body.mimeType || 'application/octet-stream', name));
+
+  var isImg = isImageMime_(body.mimeType);
+  if (isImg) file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  if (KIND_FIELD[kind]) {
+    var patch = {};
+    patch[KIND_FIELD[kind]] = file.getId();
+    upsertClient_(v.name, patch);
+  }
+
+  logActivity_(v.name, 'upload', kind + ': ' + name, file.getUrl());
+  notify_(
+    '📁 ' + v.name + ' uploaded ' + name,
+    escHtml_(v.name) + ' uploaded <b>' + escHtml_(name) + '</b> (' + kind + ')<br><br>' +
+    '<a href="' + file.getUrl() + '">Open file</a> · ' +
+    '<a href="https://drive.google.com/drive/folders/' + folder.getId() + '">Client folder</a>'
+  );
+  return { ok: true, fileId: file.getId(), fileUrl: file.getUrl(), thumbUrl: isImg ? thumbUrl_(file.getId()) : '' };
+}
+
+// ── Activity + notifications ─────────────────────────────────
+
+function logActivity_(client, type, detail, link) {
+  activitySheet_().appendRow([new Date().toISOString(), client, type, detail, link || '']);
+}
+
+function escHtml_(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function notify_(subject, html) {
+  MailApp.sendEmail({
+    to: cfg_('NOTIFY_EMAILS', 'ventas@5hift.com.mx,Produccion@5hift.com.mx'),
+    subject: subject,
+    htmlBody: html
+  });
+}

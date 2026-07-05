@@ -130,7 +130,7 @@ function fakeDriveApp() {
     };
     fo._id = 'fo' + ++seq; byId[fo._id] = fo; return fo;
   };
-  const root = { _folders: [] };
+  const root = makeFolder('root');
   return {
     _byId: byId, _root: root,
     Access: { ANYONE_WITH_LINK: 'anyone' },
