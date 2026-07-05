@@ -6,37 +6,69 @@
 <title>SHIFT · Client Portal</title>
 <link rel="icon" type="image/svg+xml" href="SHIFT-ICON.svg"/>
 <script>
-const _SK = 'SHIFTportal#2026$key!xK9mPq3';
-async function _hmac(msg) {
-  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(_SK),
-    {name:'HMAC',hash:'SHA-256'}, false, ['sign']);
-  const sig = await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(msg));
-  return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
+// Backend URL is baked in at deploy time (apps-script/SETUP.md §4).
+// ?api= override works ONLY on localhost so tokens can never be exfiltrated
+// by a crafted link in production.
+const BACKEND_URL = 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE';
+const _API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? (new URLSearchParams(location.search).get('api') || BACKEND_URL)
+  : BACKEND_URL;
+
+let _token = '', _clientName = '', _profile = {};
+
+async function _api(action, extra) {
+  const res = await fetch(_API, {
+    method: 'POST',
+    body: JSON.stringify(Object.assign({ action, token: _token }, extra || {}))
+  });
+  return res.json();
 }
+
+function esc(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function _toast(msg) {
+  let t = document.getElementById('_toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = '_toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9998;background:#1b1c1c;border:1px solid rgba(255,255,255,.18);color:#e3e3e3;padding:12px 20px;font-size:13.5px;max-width:90vw;transition:opacity .3s;font-family:Inter,sans-serif';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._h);
+  t._h = setTimeout(() => { t.style.opacity = '0'; }, 4200);
+}
+
 async function _gateCheck() {
-  const t = new URLSearchParams(location.search).get('t');
-  if (!t) { _deny('no-token'); return; }
-  try {
-    const [b64, sig] = t.split('.');
-    const payload = atob(b64);
-    const [, expStr] = payload.split('|');
-    const exp = parseInt(expStr, 10);
-    if (isNaN(exp) || Date.now() / 1000 > exp) { _deny('expired'); return; }
-    const expected = await _hmac(payload);
-    if (sig !== expected.slice(0, 32)) { _deny('invalid'); return; }
-    const parts = payload.split('|');
-    const clientName = parts[0];
-    const driveId = parts[2] || '';   // optional Google Drive folder id (newer links)
-    document.getElementById('_gate').style.display = 'none';
-    document.getElementById('_portal').style.display = 'block';
-    const greet = document.getElementById('_client-greeting');
-    if (greet && clientName) greet.textContent = clientName;
-    const exp_el = document.getElementById('_link-expires');
-    if (exp_el) exp_el.textContent = new Date(exp*1000).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
-    _filterCardsForClient(clientName);
-    _renderFilesTab(driveId);
-  } catch(e) { _deny('error'); }
+  _token = new URLSearchParams(location.search).get('t') || '';
+  if (!_token) { _deny('no-token'); return; }
+  let r;
+  try { r = await _api('verify'); }
+  catch (e) { _deny('offline'); return; }
+  if (!r.ok) { _deny(r.error === 'expired' ? 'expired' : 'invalid'); return; }
+  _clientName = r.clientName;
+  _profile = r.profile || {};
+  document.getElementById('_gate').style.display = 'none';
+  document.getElementById('_portal').style.display = 'block';
+  const greet = document.getElementById('_client-greeting');
+  if (greet && _clientName) greet.textContent = _clientName;
+  const exp_el = document.getElementById('_link-expires');
+  if (exp_el) exp_el.textContent = new Date(r.exp * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  _filterCardsForClient(_clientName);
+  _renderFilesTab(_profile.driveFolderId);
+  _renderIdentity();
+  _decorateNoteButtons();
+  _refreshFiles();
 }
+
+// Filled in by later portal features (identity, notes, upload center).
+function _renderIdentity() {}
+function _decorateNoteButtons() {}
+function _refreshFiles() {}
 
 // Show a card only if this client owns it. Match is bidirectional substring
 // against data-client and data-company (case-insensitive, punctuation-tolerant),
@@ -93,11 +125,14 @@ function _deny(reason) {
   const msg = {
     'expired': 'This link has expired. Please contact SHIFT to request a new one.',
     'no-token': 'This page requires a private access link. Please check your email from SHIFT.',
-    'invalid':  'This link is not valid. Please use the link sent to you by SHIFT.',
-    'error':    'Something went wrong verifying your access. Please try your link again.'
+    'invalid': 'This link is not valid. Please use the link sent to you by SHIFT.',
+    'offline': 'We couldn’t reach the SHIFT server. Check your connection and try again.',
+    'error': 'Something went wrong verifying your access. Please try your link again.'
   };
   const el = document.getElementById('_gate-msg');
   if (el) el.textContent = msg[reason] || msg['error'];
+  const retry = document.getElementById('_gate-retry');
+  if (retry) retry.style.display = reason === 'offline' ? 'inline-flex' : 'none';
 }
 function _renderFilesTab(driveId) {
   const has = !!driveId;
@@ -197,6 +232,7 @@ tailwind.config = {
   <span class="material-symbols-outlined" style="font-size:36px;color:#444748;">lock</span>
   <p class="font-body text-label-sm uppercase tracking-widest text-outline">Restricted Access</p>
   <p id="_gate-msg" class="font-body text-[15px] text-on-surface-variant max-w-sm leading-relaxed"></p>
+  <button id="_gate-retry" onclick="_gateCheck()" style="display:none" class="font-body text-label-sm uppercase tracking-widest text-primary border border-primary px-7 py-3 hover:bg-primary hover:text-background transition-all">↻ Try Again</button>
   <a href="index.html" class="mt-2 font-body text-label-sm uppercase tracking-widest text-on-surface-variant border border-outline-variant px-7 py-3 hover:border-primary hover:text-primary transition-all">← Back to SHIFT</a>
 </div>
 
