@@ -12,7 +12,12 @@ export function loadBackend(overrides = {}) {
   // node:vm sandboxes are a separate JS realm: objects returned by .gs functions have a foreign Object.prototype,
   // which breaks assert.deepEqual. JSON round-trip re-creates them in this realm. Caveat: undefined-valued fields
   // are dropped — fine for this backend, which never returns undefined fields.
-  const normalize = (v) => v && typeof v === 'object' ? JSON.parse(JSON.stringify(v)) : v;
+  // Skip normalization for objects with methods (GAS service objects like PropertiesService results).
+  const normalize = (v) => {
+    if (!v || typeof v !== 'object') return v;
+    if (Object.getOwnPropertyNames(v).some(k => typeof v[k] === 'function')) return v;
+    return JSON.parse(JSON.stringify(v));
+  };
   for (const key of Object.keys(sandbox)) {
     if (typeof sandbox[key] === 'function' && key.endsWith('_')) {
       const original = sandbox[key];
