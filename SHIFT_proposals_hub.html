@@ -65,8 +65,7 @@ async function _gateCheck() {
   _refreshFiles();
 }
 
-// Filled in by later portal features (identity, notes, upload center).
-function _renderIdentity() {}
+// Filled in by later portal features (notes, upload center).
 function _decorateNoteButtons() {}
 function _refreshFiles() {}
 
@@ -219,6 +218,10 @@ tailwind.config = {
   #proposal-modal-bar .modal-back:hover{color:#fff;}
   #proposal-modal-bar .modal-title{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#8e9192;}
   #proposal-modal-iframe{flex:1;border:none;width:100%;height:100%;}
+  .brand-slot{width:200px;min-height:120px;border:1px dashed rgba(255,255,255,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px;cursor:pointer;transition:border-color .2s,background .2s}
+  .brand-slot:hover{border-color:#ffffff;background:rgba(255,255,255,.03)}
+  .brand-slot img{max-width:100%;max-height:96px;object-fit:contain}
+  .brand-slot .brand-label{font-family:Inter,sans-serif;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#8f9192}
 </style>
 </head>
 <body class="bg-background text-on-surface font-body antialiased overflow-x-hidden">
@@ -271,12 +274,32 @@ tailwind.config = {
 <header class="pt-32 pb-12 px-gm border-b border-outline-variant/20 sr">
   <div class="max-w-5xl mx-auto">
     <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-3">Client Portal</p>
-    <h1 class="font-display font-bold text-primary mb-2" style="font-size:clamp(36px,6vw,72px);line-height:1;letter-spacing:-0.02em;">
-      Welcome back, <span id="_client-greeting" class="text-on-surface-variant">—</span>
-    </h1>
+    <div class="flex items-end gap-5 flex-wrap">
+      <button id="pf-avatar" onclick="document.getElementById('pf-avatar-input').click()" title="Add / change your profile photo"
+        class="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border border-outline-variant hover:border-primary transition-all font-display font-semibold text-xl text-on-surface-variant flex items-center justify-center bg-surface-container-low relative group">
+        <span id="pf-avatar-content">—</span>
+        <span class="absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/60 text-primary material-symbols-outlined text-xl">photo_camera</span>
+      </button>
+      <input id="pf-avatar-input" type="file" accept="image/*" style="display:none" onchange="_avatarPicked(this)"/>
+      <h1 class="font-display font-bold text-primary mb-2" style="font-size:clamp(36px,6vw,72px);line-height:1;letter-spacing:-0.02em;">
+        Welcome back, <span id="_client-greeting" class="text-on-surface-variant">—</span>
+      </h1>
+    </div>
     <p class="font-body text-on-surface-variant mt-3">Your SHIFT project hub · Link expires <span id="_link-expires" class="text-primary"></span></p>
   </div>
 </header>
+
+<!-- BRAND ASSETS -->
+<section aria-label="Your brand assets" class="px-gm py-8 border-b border-outline-variant/20">
+  <div class="max-w-5xl mx-auto">
+    <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant mb-4">Your Brand Assets — logo &amp; monogram for your event design</p>
+    <div class="flex gap-4 flex-wrap">
+      <div id="brand-logo" class="brand-slot"></div>
+      <div id="brand-monogram" class="brand-slot"></div>
+    </div>
+    <input id="brand-input" type="file" accept="image/*" style="display:none"/>
+  </div>
+</section>
 
 <!-- TABS -->
 <div class="sticky top-[73px] z-30 glass-nav border-b border-outline-variant/30">
@@ -620,6 +643,102 @@ function closeProposal() {
 document.addEventListener('keydown', function(e){
   if(e.key === 'Escape') closeProposal();
 });
+
+// ── Identity: avatar + brand assets ─────────────────────────
+const MAX_MB = 20;
+
+function _initials(name) {
+  return (name || '').split(/\s+/).slice(0, 2).map((w) => (w[0] || '')).join('').toUpperCase() || '—';
+}
+
+function _fileToB64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1]);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+async function _uploadFile(file, kind) {
+  if (file.size > MAX_MB * 1024 * 1024) {
+    _toast(`"${file.name}" is over ${MAX_MB} MB — for big files use the Drive folder in the Files tab.`);
+    return null;
+  }
+  const dataB64 = await _fileToB64(file);
+  let r;
+  try {
+    r = await _api('upload', { filename: file.name, mimeType: file.type || 'application/octet-stream', dataB64, kind });
+  } catch (e) {
+    _toast('Upload failed — check your connection and try again.');
+    return null;
+  }
+  if (!r.ok) {
+    _toast(r.error === 'too-big'
+      ? `"${file.name}" is too large — use the Drive folder in the Files tab.`
+      : 'Upload failed — please try again.');
+    return null;
+  }
+  return r;
+}
+
+function _renderIdentity() {
+  const av = document.getElementById('pf-avatar-content');
+  if (av) {
+    av.parentElement.querySelectorAll('img').forEach((i) => i.remove());
+    if (_profile.avatarUrl) {
+      av.textContent = '';
+      const img = document.createElement('img');
+      img.src = _profile.avatarUrl;
+      img.alt = '';
+      img.className = 'absolute inset-0 w-full h-full object-cover';
+      av.parentElement.prepend(img);
+    } else {
+      av.textContent = _initials(_clientName);
+    }
+  }
+  _renderBrandSlot('logo', 'Logo', _profile.logoUrl);
+  _renderBrandSlot('monogram', 'Monogram', _profile.monogramUrl);
+}
+
+function _renderBrandSlot(kind, label, url) {
+  const box = document.getElementById('brand-' + kind);
+  if (!box) return;
+  box.innerHTML = url
+    ? `<img src="${esc(url)}" alt="${esc(label)}"/><span class="brand-label">${label} · tap to replace</span>`
+    : `<span class="material-symbols-outlined" style="color:#8f9192">add_photo_alternate</span><span class="brand-label">Add your ${label}</span>`;
+  box.onclick = () => _brandPick(kind);
+}
+
+function _brandPick(kind) {
+  const input = document.getElementById('brand-input');
+  input.onchange = async () => {
+    const file = input.files[0];
+    input.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { _toast('Please choose an image file (PNG, JPG, SVG).'); return; }
+    _toast('Uploading ' + file.name + '…');
+    const r = await _uploadFile(file, kind);
+    if (!r) return;
+    _profile[kind + 'Url'] = r.thumbUrl;
+    _renderIdentity();
+    _toast((kind === 'logo' ? 'Logo' : 'Monogram') + ' saved — SHIFT has been notified. ✓');
+  };
+  input.click();
+}
+
+async function _avatarPicked(input) {
+  const file = input.files[0];
+  input.value = '';
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { _toast('Please choose an image file.'); return; }
+  _toast('Uploading photo…');
+  const r = await _uploadFile(file, 'avatar');
+  if (!r) return;
+  _profile.avatarUrl = r.thumbUrl;
+  _renderIdentity();
+  _toast('Profile photo saved ✓');
+}
 </script>
 
 <!-- PROPOSAL MODAL -->
