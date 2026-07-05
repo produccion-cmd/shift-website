@@ -857,6 +857,16 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .cal-link-preset:hover{color:var(--white);border-color:var(--white)}
 .cal-ev-selwrap{display:inline-flex;align-items:center;padding:6px;cursor:pointer}
 .cal-ev-sel{width:15px;height:15px;accent-color:var(--gold);cursor:pointer}
+.cal-warn{display:inline-block;margin-top:8px;margin-right:8px;font-size:11px;font-weight:600;color:#ff8080;border:1px solid rgba(255,107,107,.4);background:rgba(255,107,107,.07);padding:4px 10px}
+/* Rate card availability checker */
+.rc-avail{border:1px solid var(--border);background:var(--panel);padding:14px 16px;margin-bottom:16px}
+.rc-avail-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rc-avail-lbl{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.rc-avail-item{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--line-soft, #1a1a1e);color:var(--mute)}
+.rc-avail-item b{color:var(--white);font-weight:600}
+.rc-avail-item .over{color:#ff8080;font-weight:700}
+.rc-avail-item .ok{color:#4ade80}
+.rc-item-stock{font-size:10px;letter-spacing:.08em;color:var(--dim);border:1px solid var(--border);padding:2px 7px}
 /* Command palette (⌘K) */
 .cmdk{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:400;align-items:flex-start;justify-content:center;padding:12vh 24px 24px;backdrop-filter:blur(4px)}
 .cmdk.open{display:flex}
@@ -1700,6 +1710,15 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
           <button class="crm-new-btn" onclick="rcOpenAdd()">+ New Service</button>
         </div>
       </div>
+      <div class="rc-avail">
+        <div class="rc-avail-row">
+          <span class="rc-avail-lbl">Gear availability on</span>
+          <input class="f-input" type="date" id="rc-avail-date" style="width:170px;padding:8px 10px" onchange="rcCheckAvailability()"/>
+          <button class="rc-add-btn" type="button" onclick="rcCheckAvailability()">Check</button>
+          <span class="rc-avail-lbl" style="letter-spacing:.08em;text-transform:none;font-weight:400">Items with a stock count are checked against every event on that date.</span>
+        </div>
+        <div id="rc-avail-results" style="margin-top:6px"></div>
+      </div>
       <div class="rc-list" id="rc-list"></div>
     </div>
   </div>
@@ -1874,6 +1893,9 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       </div>
       <div class="f-row"><label class="f-label">Rate (USD) *</label><input class="f-input" id="rc-price" type="number" min="0" placeholder="500"/></div>
     </div>
+    <div class="f-row"><label class="f-label">Units in Stock (equipment only — enables double-booking warnings; leave blank for services)</label>
+      <input class="f-input" id="rc-stock" type="number" min="0" placeholder="e.g. 8"/>
+    </div>
     <div class="rc-modal-acts">
       <button class="pipe-save-btn" onclick="rcSave()">Save</button>
       <button class="pipe-cancel-btn" onclick="closeRCModal()">Cancel</button>
@@ -1971,7 +1993,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
   </div>
 </div>
 
-<script src="js/doc-templates.js?v=20260702e"></script>
+<script src="js/doc-templates.js?v=20260703a"></script>
 <script>
 // ── CONSTANTS ────────────────────────────────────────────────
 const _SK = 'SHIFTportal#2026$key!xK9mPq3';
@@ -4380,6 +4402,7 @@ function renderRateCard() {
             ${s.description ? `<div class="rc-item-desc">${esc(s.description)}</div>` : ''}
           </div>
           <div class="rc-item-right">
+            ${s.stock != null ? `<div class="rc-item-stock">×${s.stock} stock</div>` : ''}
             ${s.unit ? `<div class="rc-item-unit">${esc(s.unit)}</div>` : ''}
             <div class="rc-item-price${s.price===0?' free':''}">${s.price>0?'$'+s.price.toLocaleString():'—'}</div>
             <div class="rc-item-acts">
@@ -4393,6 +4416,27 @@ function renderRateCard() {
   el.innerHTML = html;
 }
 
+// Availability check for one date — usage of every stocked item vs stock.
+function rcCheckAvailability() {
+  const el = document.getElementById('rc-avail-results');
+  const iso = document.getElementById('rc-avail-date').value;
+  if (!iso) { el.innerHTML = '<div style="font-size:12px;color:var(--dim);padding:6px 0">Pick a date first.</div>'; return; }
+  const stocked = _rcLoad().filter(i => i.stock != null);
+  if (!stocked.length) { el.innerHTML = '<div style="font-size:12px;color:var(--dim);padding:6px 0">No items have a stock count yet — edit an equipment item and set "Units in Stock".</div>'; return; }
+  const usage = gearUsageOn(iso);
+  const usedIds = new Set(usage.map(u => u.item.id));
+  let html = usage.map(u => {
+    const over = u.used > u.item.stock;
+    return `<div class="rc-avail-item">
+      <span><b>${esc(u.item.name)}</b> · ${esc(u.events.join(', '))}</span>
+      <span class="${over?'over':'ok'}">${u.used} / ${u.item.stock}${over ? ' — sub-rent ' + (u.used - u.item.stock) : ' ✓'}</span>
+    </div>`;
+  }).join('');
+  const idle = stocked.filter(i => !usedIds.has(i.id));
+  if (idle.length) html += `<div class="rc-avail-item"><span style="color:var(--dim)">Free that day: ${esc(idle.map(i => i.name + ' ×' + i.stock).join(' · '))}</span><span class="ok">✓</span></div>`;
+  el.innerHTML = html || '<div style="font-size:12px;color:var(--dim);padding:6px 0">Nothing booked on that date.</div>';
+}
+
 // ── RC CRUD modal ─────────────────────────────────────────────
 let _rcEditId = null;
 
@@ -4404,6 +4448,7 @@ function rcOpenAdd() {
   document.getElementById('rc-category').value = 'Labor';
   document.getElementById('rc-unit').value     = 'Day';
   document.getElementById('rc-price').value    = '';
+  document.getElementById('rc-stock').value    = '';
   document.getElementById('rc-del-btn').style.display = 'none';
   document.getElementById('rc-modal').classList.add('open');
   setTimeout(() => document.getElementById('rc-name').focus(), 50);
@@ -4418,6 +4463,7 @@ function rcOpenEdit(id) {
   document.getElementById('rc-category').value = s.category||'Labor';
   document.getElementById('rc-unit').value     = s.unit||'Day';
   document.getElementById('rc-price').value    = s.price||'';
+  document.getElementById('rc-stock').value    = s.stock != null ? s.stock : '';
   document.getElementById('rc-del-btn').style.display = 'block';
   document.getElementById('rc-modal').classList.add('open');
 }
@@ -4438,6 +4484,7 @@ function rcSave() {
       s.category    = document.getElementById('rc-category').value;
       s.unit        = document.getElementById('rc-unit').value;
       s.price       = price;
+      s.stock       = document.getElementById('rc-stock').value !== '' ? Math.max(0, parseInt(document.getElementById('rc-stock').value)||0) : null;
       s.updated     = Date.now();
     }
   } else {
@@ -4447,6 +4494,7 @@ function rcSave() {
       description: document.getElementById('rc-desc').value.trim(),
       category: document.getElementById('rc-category').value,
       unit: document.getElementById('rc-unit').value,
+      stock: document.getElementById('rc-stock').value !== '' ? Math.max(0, parseInt(document.getElementById('rc-stock').value)||0) : null,
       price, created: Date.now(), updated: Date.now()
     });
   }
@@ -4505,7 +4553,7 @@ function renderRCPicker() {
       items.map(s => `
         <div class="rcp-item" id="rcpi-${s.id}">
           <div class="rcp-item-left">
-            <div class="rcp-item-name">${esc(s.name)}</div>
+            <div class="rcp-item-name">${esc(s.name)}${s.stock != null ? ` <span style="font-size:10px;color:var(--dim)">· ×${s.stock} stock</span>` : ''}</div>
             ${s.description ? `<div class="rcp-item-desc">${esc(s.description)}</div>` : ''}
           </div>
           <div class="rcp-item-right">
@@ -5861,6 +5909,63 @@ function renderDraftBars() {
 function _eventsLoad() { return JSON.parse(localStorage.getItem('shift-events')||'[]'); }
 function _eventsSave(d) { localStorage.setItem('shift-events', JSON.stringify(d)); }
 
+// ── GEAR AVAILABILITY ENGINE ─────────────────────────────────
+// What Rentman/Current RMS/Flex do for rental houses, kept simple: rate
+// card items with a stock count are matched against every event's service
+// lines ("8× LED Wall …") on the same date. Over stock = overbooked.
+function _gearParse(name) {
+  const m = (name||'').match(/^(\d+)\s*[×x]\s*(.+)$/i);
+  return m ? { qty: +m[1], name: m[2].trim() } : { qty: 1, name: (name||'').trim() };
+}
+function _gearNorm(s) { return (s||'').toLowerCase().replace(/\s*\(.*?\)\s*/g,' ').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
+
+// Usage of every stocked item on one date → [{item, used, events[]}]
+function gearUsageOn(dateISO) {
+  const stocked = _rcLoad().filter(i => i.stock != null && i.stock >= 0);
+  if (!stocked.length) return [];
+  const map = {};
+  stocked.forEach(i => { map[_gearNorm(i.name)] = { item: i, used: 0, events: [] }; });
+  const keys = Object.keys(map);
+  _eventsLoad().forEach(ev => {
+    if (ev.date !== dateISO) return;
+    (ev.services||[]).forEach(s => {
+      const p = _gearParse(s.name);
+      const key = _gearNorm(p.name);
+      let hit = map[key];
+      if (!hit) {
+        const k = keys.find(k => key === k || key.includes(k) || k.includes(key));
+        if (k) hit = map[k];
+      }
+      if (hit) {
+        hit.used += p.qty;
+        if (!hit.events.includes(ev.title)) hit.events.push(ev.title);
+      }
+    });
+  });
+  return Object.values(map).filter(x => x.used > 0);
+}
+
+// Warnings for one date: overbooked gear + crew on 2+ events.
+function _dateWarnings(dateISO) {
+  const warns = [];
+  gearUsageOn(dateISO).forEach(u => {
+    if (u.used > u.item.stock) {
+      warns.push(`${u.item.name}: ${u.used} booked / ${u.item.stock} in stock — sub-rent ${u.used - u.item.stock}`);
+    }
+  });
+  const seen = {};
+  _eventsLoad().forEach(ev => {
+    if (ev.date !== dateISO) return;
+    (ev.staff||[]).forEach(s => {
+      const k = (s.name||'').trim().toLowerCase();
+      if (!k) return;
+      (seen[k] = seen[k] || { name: s.name, n: 0 }).n++;
+    });
+  });
+  Object.values(seen).forEach(p => { if (p.n > 1) warns.push(`${p.name} is on ${p.n} events this day`); });
+  return warns;
+}
+
 // Icon for an event link chip based on where it points.
 function _calLinkIcon(url) {
   const u = (url||'').toLowerCase();
@@ -6133,6 +6238,11 @@ function renderCalendar() {
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const TYPE_LABELS = { show:'Show Day', loadin:'Load In', pickup:'Pickup', invoice:'Invoice Due', proposal:'Proposal', other:'Other' };
 
+  // Availability warnings per date (gear overbooked / crew double-booked),
+  // computed once per unique date in this render.
+  const warnCache = {};
+  const warnsFor = iso => { if (!(iso in warnCache)) warnCache[iso] = _dateWarnings(iso); return warnCache[iso]; };
+
   let html = '';
   let lastMonth = -1;
 
@@ -6172,6 +6282,7 @@ function renderCalendar() {
           ${ev.pocName?`<span>☎ POC: ${esc(ev.pocName)}</span>`:''}
           ${ev.notes?`<span>${esc(ev.notes)}</span>`:''}
         </div>
+        ${ev.manual ? (warnsFor(ev.date.toISOString().slice(0,10))||[]).map(w=>`<div class="cal-warn">⚠ ${esc(w)}</div>`).join('') : ''}
         ${_calOwnServicesHTML(ev)}
         ${(ev.links||[]).length?`<div class="cal-ev-links">${ev.links.map(l=>`<a class="cal-ev-link" href="${esc(l.url)}" target="_blank" rel="noopener">${_calLinkIcon(l.url)} ${esc(l.label)} ↗</a>`).join('')}</div>`:''}
         ${(!ev.services || !ev.services.length) && ev.type !== 'invoice' ? _servicesBlockHTML(ev.client, 'cal-' + ev.id, ev.clientId) : ''}

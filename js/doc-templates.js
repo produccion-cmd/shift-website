@@ -714,7 +714,7 @@ function generateEventSheetHTML(events) {
     const byCur = {};
     svcs.forEach(s => { const c = s.currency||'USD'; byCur[c] = (byCur[c]||0) + (s.price||0); });
     const totalStr = Object.entries(byCur).filter(([,v])=>v>0).map(([c,v])=>fmtCur(v,c)).join(' + ');
-    const svcRows = svcs.map(s => `<tr><td>${esc(s.name)}</td><td class="num">${s.price?fmtCur(s.price,s.currency):'—'}</td></tr>`).join('');
+    const svcRows = svcs.map(s => `<tr><td class="chk">☐</td><td>${esc(s.name)}</td><td class="num">${s.price?fmtCur(s.price,s.currency):'—'}</td></tr>`).join('');
     const staff = ev.staff || [];
     const staffRows = staff.map(s => `<tr><td>${esc(s.name)}</td><td>${esc(s.role||'—')}</td><td>${esc(s.phone||'—')}</td><td class="num">${s.callTime||'—'}</td><td class="num">${s.outTime||'—'}</td></tr>`).join('');
     const links = ev.links || [];
@@ -740,10 +740,10 @@ function generateEventSheetHTML(events) {
   </div>
   ${svcs.length ? `
   <div class="es-sec">
-    <div class="es-sec-lbl">Services</div>
-    <table class="es-table"><thead><tr><th>Service</th><th class="num">Amount</th></tr></thead>
+    <div class="es-sec-lbl">Services &amp; Pack List</div>
+    <table class="es-table"><thead><tr><th class="chk"></th><th>Service / Equipment</th><th class="num">Amount</th></tr></thead>
     <tbody>${svcRows}</tbody>
-    ${totalStr ? `<tfoot><tr><td>Total</td><td class="num">${totalStr}</td></tr></tfoot>` : ''}</table>
+    ${totalStr ? `<tfoot><tr><td class="chk"></td><td>Total</td><td class="num">${totalStr}</td></tr></tfoot>` : ''}</table>
   </div>` : ''}
   ${staff.length ? `
   <div class="es-sec">
@@ -801,6 +801,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',system-ui,sans-
 .es-table td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line-soft);color:var(--mute)}
 .es-table td:first-child{color:var(--white)}
 .es-table .num{text-align:right}
+.es-table .chk{width:26px;color:var(--dim);font-size:14px}
 .es-table tfoot td{border-top:1px solid var(--white);border-bottom:none;font-weight:700;color:var(--white);font-family:'Sora',sans-serif}
 .es-link{display:flex;gap:14px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:12.5px;flex-wrap:wrap}
 .es-link-lbl{flex:0 0 160px;color:var(--white);font-weight:600}
