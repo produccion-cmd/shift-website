@@ -86,6 +86,11 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .p-mode-btn:hover{border-color:var(--mute)}
 .p-mode-btn.on{border-color:var(--gold)}
 .p-mode-btn.on b{color:var(--gold)}
+/* Service groups inside an event block */
+.pev-item{border:1px solid var(--border);background:rgba(255,255,255,.02);padding:10px 12px;margin-top:8px}
+.pev-item-hd{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.pev-total-row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);margin-top:12px;padding-top:10px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.pev-total-row b{font-family:'Sora',sans-serif;font-size:17px;color:var(--white);letter-spacing:0}
 .builder-form{border-right:1px solid var(--border);overflow-y:auto;padding:24px 28px}
 .builder-preview{display:flex;flex-direction:column;overflow:hidden;background:#0d0d0d}
 .preview-bar{border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
@@ -2035,7 +2040,7 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
   </div>
 </div>
 
-<script src="js/doc-templates.js?v=20260703a"></script>
+<script src="js/doc-templates.js?v=20260705a"></script>
 <script>
 // ── CONSTANTS ────────────────────────────────────────────────
 const _SK = 'SHIFTportal#2026$key!xK9mPq3';
@@ -2649,6 +2654,7 @@ async function doLogin() {
     _applyBuilderFocus();
     _migrateBackfillProposals();
     _migrateAssignEventServices();
+    _migrateRateCardHouston();
     startAutoSync();
   } else {
     const fresh = Date.now() - th.t < LOGIN_COOLDOWN_MS ? th.n : 0;
@@ -2668,7 +2674,7 @@ function doLogout() {
 if (sessionStorage.getItem('shift-mgr') === '1') {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); renderDraftBars(); _applyBuilderFocus(); _migrateBackfillProposals(); _migrateAssignEventServices(); startAutoSync(); });
+  document.addEventListener('DOMContentLoaded', () => { _showFAB(true); initForms(); renderHistory(); loadGHToken(); loadSettings(); crmInit(); rcInit(); renderDashboard(); _refreshOverdueBadge(); _refreshTaskBadge(); initContractForm(); initQuoteForm(); renderDraftBars(); _applyBuilderFocus(); _migrateBackfillProposals(); _migrateAssignEventServices(); _migrateRateCardHouston(); startAutoSync(); });
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
@@ -3451,7 +3457,7 @@ function updateProposalTotal() {
   document.querySelectorAll('#services-list .svc-row input[name="svc-price"]').forEach(el => {
     total += parseFloat(el.value)||0;
   });
-  if (_pMode === 'events') _pEvents.forEach(e => { total += parseFloat(e.price)||0; });
+  if (_pMode === 'events') _pEvents.forEach(e => { total += _pEvTotal(_pEvNormalize(e)); });
   document.getElementById('p-total-display').textContent = '$' + fmtPrice(total);
 }
 
@@ -3493,28 +3499,64 @@ function _pEvSync() {
   updateProposalTotal();
   scheduleProposalPreview();
 }
+// Each event holds SERVICE GROUPS (Audio System, Lighting, Personnel…),
+// and each group holds its elements — exactly the structure of the
+// published wedding proposals. Event price = sum of its groups.
+function _pEvNormalize(e) {
+  // Legacy shape {price, equipment} → one "Production Package" group
+  if (!Array.isArray(e.items)) {
+    e.items = (e.price || e.equipment)
+      ? [{ name: 'Production Package', price: e.price != null ? String(e.price) : '', elements: e.equipment || '' }]
+      : [];
+    delete e.price; delete e.equipment;
+  }
+  return e;
+}
+function _pEvTotal(e) { return (e.items||[]).reduce((s,it) => s + (parseFloat(it.price)||0), 0); }
+
 function pEvAdd() {
-  _pEvents.push({ name:'', venue:'', date:'', startTime:'', price:'', equipment:'' });
+  _pEvents.push({ name:'', venue:'', date:'', startTime:'', items: [{ name:'Audio System', price:'', elements:'' }] });
   pEvRender(); _pEvSync();
 }
 function pEvRemove(i) { _pEvents.splice(i,1); pEvRender(); _pEvSync(); }
 function pEvSet(i, k, v) { if (_pEvents[i]) { _pEvents[i][k] = v; _pEvSync(); } }
+function pEvItemAdd(i, name, price) {
+  if (!_pEvents[i]) return;
+  _pEvents[i].items.push({ name: name || '', price: price != null ? String(price) : '', elements: '' });
+  pEvRender(); _pEvSync();
+}
+function pEvItemRemove(i, j) { if (_pEvents[i]) { _pEvents[i].items.splice(j,1); pEvRender(); _pEvSync(); } }
+function pEvItemSet(i, j, k, v) {
+  const it = _pEvents[i] && _pEvents[i].items[j];
+  if (!it) return;
+  it[k] = v;
+  if (k === 'price') { const t = document.getElementById(`pev-total-${i}`); if (t) t.textContent = '$' + fmtPrice(_pEvTotal(_pEvents[i])); }
+  _pEvSync();
+}
 
-// Open the Rate Card picker to add equipment (with unit counts) to one event.
-let _pEventIdx = null;
-function pEvOpenItemPicker(idx) { _pEventIdx = idx; rcOpenPicker('p-event'); }
-// Append "N× Item" to an event's equipment list from the picker.
+// Rate Card pickers: one adds a SERVICE GROUP to an event (with its default
+// price), the other appends "N× Item" ELEMENTS into a specific group.
+let _pEventIdx = null, _pItemIdx = null;
+function pEvOpenServicePicker(i) { _pEventIdx = i; rcOpenPicker('p-event-service'); }
+function pEvOpenItemPicker(i, j) { _pEventIdx = i; _pItemIdx = j; rcOpenPicker('p-event'); }
+function pEvAddServiceFromRC(name, price) {
+  if (_pEvents[_pEventIdx] == null) return;
+  _pEvents[_pEventIdx].items.push({ name, price: price ? String(price) : '', elements: '' });
+  pEvRender(); _pEvSync();
+}
 function pEvAddEquip(name, qty) {
-  const ev = _pEvents[_pEventIdx];
-  if (!ev) return;
+  const it = _pEvents[_pEventIdx] && _pEvents[_pEventIdx].items[_pItemIdx];
+  if (!it) return;
   const line = (qty > 1 ? qty + '× ' : '') + name;
-  ev.equipment = (ev.equipment && ev.equipment.trim() ? ev.equipment.replace(/\s+$/,'') + '\n' : '') + line;
+  it.elements = (it.elements && it.elements.trim() ? it.elements.replace(/\s+$/,'') + '\n' : '') + line;
   pEvRender();
   _pEvSync();
 }
+
 function pEvRender() {
   const el = document.getElementById('p-events-list');
   if (!el) return;
+  _pEvents.forEach(_pEvNormalize);
   el.innerHTML = _pEvents.map((e,i) => `
   <div class="svc-row">
     <div class="svc-row-hd"><span class="svc-num">Event ${i+1}</span><button class="svc-remove" onclick="pEvRemove(${i})">Remove</button></div>
@@ -3526,11 +3568,23 @@ function pEvRender() {
       <div class="f-row"><label class="f-label">Date</label><input class="f-input" type="date" value="${esc(e.date)}" onchange="pEvSet(${i},'date',this.value)"/></div>
       <div class="f-row"><label class="f-label">Start Time</label><input class="f-input" type="time" value="${esc(e.startTime)}" onchange="pEvSet(${i},'startTime',this.value)"/></div>
     </div>
-    <div class="f-row"><label class="f-label">Equipment / Included</label>
-      <button type="button" class="rc-add-btn" style="width:100%;margin-bottom:8px" onclick="pEvOpenItemPicker(${i})">🔍 Search &amp; Add Equipment (set units, no typing)</button>
-      <textarea class="f-textarea" rows="3" oninput="pEvSet(${i},'equipment',this.value)" placeholder="Or type here — one per line:&#10;8× LED Uplights&#10;2× Wireless mics">${esc(e.equipment)}</textarea>
+    <div class="f-row"><label class="f-label">Services in this event</label>
+      ${(e.items||[]).map((it,j) => `
+      <div class="pev-item">
+        <div class="pev-item-hd">
+          <input class="f-input" value="${esc(it.name)}" oninput="pEvItemSet(${i},${j},'name',this.value)" placeholder="Audio System / Lighting / Personnel…" style="flex:2;min-width:0"/>
+          <input class="f-input" type="number" min="0" step="0.01" value="${esc(it.price)}" oninput="pEvItemSet(${i},${j},'price',this.value)" placeholder="Price (0 = included)" style="flex:0 0 130px"/>
+          <button class="svc-remove" type="button" onclick="pEvItemRemove(${i},${j})">✕</button>
+        </div>
+        <textarea class="f-textarea" rows="2" oninput="pEvItemSet(${i},${j},'elements',this.value)" placeholder="Elements — one per line:&#10;4× RCF Speakers on Stands&#10;2× Shure Wireless Microphones">${esc(it.elements)}</textarea>
+        <button type="button" class="cal-link-preset" style="margin-top:6px" onclick="pEvOpenItemPicker(${i},${j})">🔍 Add elements from Rate Card (set units)</button>
+      </div>`).join('')}
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button type="button" class="add-row-btn" style="flex:1;margin-top:0" onclick="pEvItemAdd(${i})">+ Add Service</button>
+        <button type="button" class="rc-add-btn" onclick="pEvOpenServicePicker(${i})">↓ Service from Rate Card</button>
+      </div>
     </div>
-    <div class="f-row"><label class="f-label">Event Price</label><input class="f-input" type="number" min="0" step="0.01" value="${esc(e.price)}" oninput="pEvSet(${i},'price',this.value)" placeholder="19000"/></div>
+    <div class="pev-total-row"><span>Event Total</span><b id="pev-total-${i}">$${fmtPrice(_pEvTotal(e))}</b></div>
   </div>`).join('');
 }
 // Restore blocks from the hidden JSON field (drafts / resume).
@@ -3538,6 +3592,7 @@ function pEvLoadFromJson() {
   try { _pEvents = JSON.parse(document.getElementById('p-events-json')?.value || '[]') || []; }
   catch(e) { _pEvents = []; }
   if (!Array.isArray(_pEvents)) _pEvents = [];
+  _pEvents.forEach(_pEvNormalize);
   pEvRender();
   // Restore the mode the proposal was built in
   pSetMode(_pEvents.length ? 'events' : 'simple', true);
@@ -3575,14 +3630,27 @@ function getProposalData() {
     }).filter(Boolean),
     services,
     currency: document.getElementById('p-currency')?.value || 'USD',
-    events: (_pMode === 'events' ? _pEvents : []).filter(e => (e.name||'').trim() || parseFloat(e.price)).map(e => ({
-      name: (e.name||'').trim(),
-      venue: (e.venue||'').trim(),
-      date: e.date || '',
-      startTime: e.startTime || '',
-      price: parseFloat(e.price) || 0,
-      equipment: (e.equipment||'').split('\n').map(s => s.trim()).filter(Boolean)
-    })),
+    events: (_pMode === 'events' ? _pEvents : []).map(_pEvNormalize)
+      .filter(e => (e.name||'').trim() || _pEvTotal(e) > 0)
+      .map(e => {
+        const items = (e.items||[])
+          .filter(it => (it.name||'').trim() || parseFloat(it.price) || (it.elements||'').trim())
+          .map(it => ({
+            name: (it.name||'').trim() || 'Service',
+            price: parseFloat(it.price) || 0,
+            elements: (it.elements||'').split('\n').map(s => s.trim()).filter(Boolean)
+          }));
+        return {
+          name: (e.name||'').trim(),
+          venue: (e.venue||'').trim(),
+          date: e.date || '',
+          startTime: e.startTime || '',
+          items,
+          price: items.reduce((s,it) => s + it.price, 0),
+          // Flattened for older consumers (event sheets, gear engine)
+          equipment: items.flatMap(it => it.elements)
+        };
+      }),
     depositPct: parseInt(document.getElementById('p-deposit').value),
     notes: document.getElementById('p-notes').value.trim(),
     formsUrl: document.getElementById('p-forms').value.trim()
@@ -3811,10 +3879,16 @@ function approveProposal(id) {
       title: ev.name, client: rec.client || '', clientId: contact?.id || '',
       date: ev.date, type: 'show', venue: ev.venue || '',
       startTime: ev.startTime || '', endTime: '', pocName: '', pocPhone: '',
-      services: [
-        { name: (rec.title ? rec.title + ' — ' : '') + ev.name + ' (package)', price: ev.price || 0, currency: rec.currency || 'USD' },
-        ...(ev.equipment || []).map(q => ({ name: q, price: 0, currency: rec.currency || 'USD' }))
-      ],
+      services: (Array.isArray(ev.items) && ev.items.length)
+        // New shape: each service group with its price, then its elements
+        ? ev.items.flatMap(it => [
+            { name: it.name, price: it.price || 0, currency: rec.currency || 'USD' },
+            ...(it.elements || []).map(q => ({ name: '· ' + q, price: 0, currency: rec.currency || 'USD' }))
+          ])
+        : [
+            { name: (rec.title ? rec.title + ' — ' : '') + ev.name + ' (package)', price: ev.price || 0, currency: rec.currency || 'USD' },
+            ...(ev.equipment || []).map(q => ({ name: q, price: 0, currency: rec.currency || 'USD' }))
+          ],
       links: rec.url ? [{ label: 'Proposal', url: rec.url }] : [],
       staff: [], notes: '', created: Date.now()
     });
@@ -3850,8 +3924,12 @@ function reuseProposal(id) {
   // Event breakdown blocks
   _pEvents = (r.events || []).map(e => ({
     name: e.name || '', venue: e.venue || '', date: e.date || '',
-    startTime: e.startTime || '', price: e.price != null ? String(e.price) : '',
-    equipment: (e.equipment || []).join('\n')
+    startTime: e.startTime || '',
+    items: (Array.isArray(e.items) && e.items.length)
+      ? e.items.map(it => ({ name: it.name || '', price: it.price != null ? String(it.price) : '', elements: (it.elements || []).join('\n') }))
+      : ((e.price || (e.equipment || []).length)
+          ? [{ name: 'Production Package', price: e.price != null ? String(e.price) : '', elements: (e.equipment || []).join('\n') }]
+          : [])
   }));
   pEvRender(); _pEvSync();
   pSetMode(_pEvents.length ? 'events' : 'simple', true);
@@ -4432,6 +4510,61 @@ const RC_DEFAULTS = [
   {category:'Creative',  name:'Post-Event Media Package', description:'Highlight reel + photo selects',           unit:'Event', price:350},
 ];
 
+// Houston-market defaults (2026) — merged into the rate card once, by name,
+// so every picker fills a realistic price instead of you typing it. Edit any
+// of them in the Rate Card tab; your edits always win.
+const RC_HOUSTON = [
+  // Labor
+  {category:'Labor',     name:'DJ — 4 Hours',                description:'Open format, includes basic mixer rider',      unit:'Event', price:600},
+  {category:'Labor',     name:'MC / Host',                   description:'Bilingual MC, full event',                      unit:'Event', price:400},
+  {category:'Labor',     name:'Stagehand',                   description:'Load-in / strike labor',                        unit:'Day',   price:280},
+  {category:'Labor',     name:'Lighting Operator',           description:'Console op, full show',                         unit:'Day',   price:550},
+  // Audio
+  {category:'Equipment', name:'Line Array L/R + Subs',       description:'Full range PA for 500+ guests, processing',     unit:'Day',   price:2400},
+  {category:'Equipment', name:'Powered Speaker on Stand',    description:'RCF/QSC 12-15", each',                          unit:'Day',   price:75},
+  {category:'Equipment', name:'Monitor Wedge',               description:'Stage monitor, each',                           unit:'Day',   price:60},
+  {category:'Equipment', name:'Wireless Mic (each)',         description:'Shure handheld or lav',                          unit:'Day',   price:45},
+  {category:'Equipment', name:'6-Channel Mixing Console',    description:'Yamaha/Behringer small format',                 unit:'Day',   price:75},
+  {category:'Equipment', name:'DJ Booth — Pioneer Rider',    description:'2× CDJ-3000 + DJM-A9 + booth',                  unit:'Event', price:800},
+  // Lighting
+  {category:'Equipment', name:'Moving Head (each)',          description:'Beam/spot fixture incl. clamp + safety',       unit:'Day',   price:85},
+  {category:'Equipment', name:'LED Uplight (each)',          description:'Battery wireless wash',                          unit:'Day',   price:25},
+  {category:'Equipment', name:'Lighting Console',            description:'Programmed + cabling',                          unit:'Day',   price:150},
+  {category:'Equipment', name:'Haze Machine',                description:'Incl. fluid',                                    unit:'Day',   price:75},
+  {category:'Equipment', name:'Cold Spark (pair)',           description:'Two units + fluid + op check',                  unit:'Event', price:350},
+  {category:'Equipment', name:'Follow Spot',                 description:'Incl. stand',                                    unit:'Day',   price:200},
+  // Video / LED
+  {category:'Equipment', name:'LED Wall 12×8 ft',            description:'Panels, rigging, processor, tech check',        unit:'Day',   price:2200},
+  {category:'Equipment', name:'LED Pixel Tube (each)',       description:'Kinetic tube, mapped',                          unit:'Day',   price:35},
+  {category:'Equipment', name:'Projector 10K Lumen',         description:'Incl. lens + shot check',                       unit:'Day',   price:450},
+  {category:'Equipment', name:'Fast-Fold Screen 9×5',        description:'Front/rear surface',                            unit:'Day',   price:200},
+  {category:'Equipment', name:'65" TV on Stand',             description:'Incl. HDMI run',                                 unit:'Day',   price:180},
+  // Staging / power
+  {category:'Equipment', name:'Truss Totem (pair)',          description:'8ft wrapped totems',                             unit:'Day',   price:220},
+  {category:'Equipment', name:'Stage 12×16',                 description:'Decking + skirt + steps',                        unit:'Day',   price:900},
+  {category:'Equipment', name:'Pipe & Drape (10ft section)', description:'Black velour',                                   unit:'Day',   price:85},
+  {category:'Equipment', name:'Quiet Generator 7kW',         description:'Fuel included, distro',                          unit:'Day',   price:350},
+  // Production / Creative
+  {category:'Production',name:'Delivery — Houston Metro',    description:'Round trip, box truck',                          unit:'Event', price:150},
+  {category:'Production',name:'Travel Day',                  description:'Out-of-town crew day rate',                      unit:'Day',   price:300},
+  {category:'Creative',  name:'Vectorworks Venue Design',    description:'Scaled plot + patch',                            unit:'Event', price:650},
+  {category:'Creative',  name:'Capture Previsualization',    description:'Rendered look previews',                         unit:'Event', price:450},
+];
+
+function _migrateRateCardHouston() {
+  if (localStorage.getItem('shift-rc-houston-v1')) return;
+  const all = _rcLoad();
+  const have = new Set(all.map(i => (i.name||'').trim().toLowerCase()));
+  let added = 0;
+  RC_HOUSTON.forEach(s => {
+    if (have.has(s.name.trim().toLowerCase())) return;
+    all.push({ ...s, stock: null, id: 'rc_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), created: Date.now(), updated: Date.now() });
+    added++;
+  });
+  if (added) _rcSave(all);
+  localStorage.setItem('shift-rc-houston-v1', '1');
+}
+
 function _rcLoad() { return JSON.parse(localStorage.getItem('shift-ratecards')||'[]'); }
 function _rcSave(d) { localStorage.setItem('shift-ratecards', JSON.stringify(d)); }
 
@@ -4599,7 +4732,8 @@ function rcOpenPicker(target) {
     target === 'invoice' ? 'Adding to Invoice' :
     target === 'quickquote' ? 'Adding to Quick Quote' :
     target === 'production' ? 'Adding to Gear Manifest' :
-    target === 'p-event' ? 'Adding equipment to event · set units, then Add' : 'Adding to Proposal';
+    target === 'p-event' ? 'Adding elements to a service · set units, then Add' :
+    target === 'p-event-service' ? 'Adding a service to the event — default price included' : 'Adding to Proposal';
   document.getElementById('rcp-search').value = '';
   renderRCPicker();
   document.getElementById('rcp-modal').classList.add('open');
@@ -4647,6 +4781,10 @@ function rcInsert(id, btn) {
   if (_rcPickerTarget === 'p-event') {
     const qty = Math.max(1, parseInt(document.getElementById('rcpq-'+id)?.value) || 1);
     pEvAddEquip(s.name, qty);
+
+  } else if (_rcPickerTarget === 'p-event-service') {
+    // Add as a service group inside the event, with its default price
+    pEvAddServiceFromRC(s.name, s.price || 0);
 
   } else if (_rcPickerTarget === 'production') {
     _rcInsertToProd(s);

@@ -292,7 +292,15 @@ function generateProposalHTML(d, printFull) {
         </div>
         <div class="pev-price">$${fmtPrice(ev.price)}${cur !== 'USD' ? `<span class="pev-cur"> ${cur}</span>` : ''}</div>
       </div>
-      ${ev.equipment && ev.equipment.length ? `<ul class="pev-eq">${ev.equipment.map(q => `<li>${esc(q)}</li>`).join('')}</ul>` : ''}
+      ${ev.items && ev.items.length ? `
+      <div class="pev-grps">
+        ${ev.items.map(it => `
+        <div class="pev-grp">
+          <div class="pev-grp-hd"><span>${esc(it.name)}</span>${it.price > 0 ? `<span class="pev-grp-price">$${fmtPrice(it.price)}${cur !== 'USD' ? ' ' + cur : ''}</span>` : ''}</div>
+          ${it.elements && it.elements.length ? `<ul class="pev-eq">${it.elements.map(q => `<li>${esc(q)}</li>`).join('')}</ul>` : ''}
+        </div>`).join('')}
+      </div>`
+      : (ev.equipment && ev.equipment.length ? `<ul class="pev-eq">${ev.equipment.map(q => `<li>${esc(q)}</li>`).join('')}</ul>` : '')}
     </div>`).join('')}
   </div></section>` : '';
 
@@ -415,6 +423,10 @@ footer small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:
 .pev-venue{font-weight:400;color:var(--mute);font-size:.85em}
 .pev-price{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(17px,2.4vw,22px);white-space:nowrap}
 .pev-cur{font-size:.6em;color:var(--mute);font-weight:600}
+.pev-grps{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.pev-grp-hd{display:flex;justify-content:space-between;gap:12px;align-items:baseline;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold,#c8a84b);border-bottom:1px solid var(--line-soft);padding-bottom:7px}
+.pev-grp-price{color:var(--mute);font-weight:600;letter-spacing:.06em}
+.pev-grp .pev-eq{margin-top:10px;columns:1}
 .pev-eq{margin-top:16px;padding:0;list-style:none;columns:2;column-gap:32px}
 .pev-eq li{font-size:12.5px;color:var(--mute);padding:4px 0;border-bottom:1px solid var(--line-soft);break-inside:avoid}
 .pev-eq li::before{content:'— ';color:var(--dim)}
