@@ -65,9 +65,6 @@ async function _gateCheck() {
   _refreshFiles();
 }
 
-// Filled in by later portal features (notes, upload center).
-function _decorateNoteButtons() {}
-
 // Show a card only if this client owns it. Match is bidirectional substring
 // against data-client and data-company (case-insensitive, punctuation-tolerant),
 // so a token for "Palwinder Chamdal" reveals cards tagged with "DJD" or
@@ -285,6 +282,11 @@ tailwind.config = {
       </h1>
     </div>
     <p class="font-body text-on-surface-variant mt-3">Your SHIFT project hub · Link expires <span id="_link-expires" class="text-primary"></span></p>
+    <button onclick="_openNotes('general','Event Info & Requests')"
+      class="mt-6 font-body text-label-sm uppercase tracking-widest border border-outline-variant text-on-surface-variant px-6 py-3 hover:border-primary hover:text-primary transition-all inline-flex items-center gap-2">
+      <span class="material-symbols-outlined text-base">forum</span> Event Info &amp; Requests
+      <span id="general-notes-badge" class="text-primary" style="display:none"></span>
+    </button>
   </div>
 </header>
 
@@ -580,6 +582,25 @@ tailwind.config = {
 
 </main>
 
+<!-- NOTES SLIDE-OVER -->
+<div id="notes-overlay" onclick="_closeNotes()" style="display:none;position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.55)"></div>
+<aside id="notes-panel" aria-label="Notes" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);z-index:9991;background:#0d0e0f;border-left:1px solid rgba(255,255,255,.14);flex-direction:column">
+  <div class="flex items-center justify-between p-5 border-b border-outline-variant/30">
+    <div>
+      <p class="font-body text-label-sm uppercase tracking-widest text-on-surface-variant">Notes &amp; Requests</p>
+      <p id="notes-title" class="font-display font-semibold text-primary text-lg tracking-tight"></p>
+    </div>
+    <button onclick="_closeNotes()" class="text-on-surface-variant hover:text-primary transition-colors text-xl px-2" aria-label="Close">✕</button>
+  </div>
+  <div id="notes-thread" class="flex-1 overflow-y-auto p-5 flex flex-col gap-3"></div>
+  <div class="p-5 border-t border-outline-variant/30">
+    <textarea id="notes-input" rows="3" placeholder="Write a note, request, or extra info for SHIFT…"
+      class="w-full bg-background border border-outline-variant/50 text-primary font-body text-sm p-3 focus:border-primary outline-none resize-none"></textarea>
+    <button id="notes-send" onclick="_sendNote()"
+      class="mt-2 w-full font-body text-label-sm uppercase tracking-widest border border-primary text-primary px-5 py-3 hover:bg-primary hover:text-background transition-all">Send to SHIFT</button>
+  </div>
+</aside>
+
 <!-- FOOTER -->
 <footer class="border-t border-outline-variant/20 mt-8">
   <div class="max-w-5xl mx-auto px-gm py-10 flex justify-between items-center gap-4 flex-wrap">
@@ -807,6 +828,89 @@ async function _filesPicked(fileList) {
   ['dragleave', 'drop'].forEach((ev) => zone.addEventListener(ev, (e) => { e.preventDefault(); zone.classList.remove('border-primary'); }));
   zone.addEventListener('drop', (e) => _filesPicked(e.dataTransfer.files));
 })();
+
+// ── Notes threads ────────────────────────────────────────────
+let _notesPid = '', _noteCounts = {};
+
+async function _decorateNoteButtons() {
+  // Count badges: one call for all of this client's notes.
+  try {
+    const all = await _api('notes.list', { proposalId: '*' });
+    if (all.ok) {
+      _noteCounts = {};
+      all.notes.forEach((n) => { _noteCounts[n.proposalId] = (_noteCounts[n.proposalId] || 0) + 1; });
+    }
+  } catch (e) { /* badges are cosmetic — portal still works */ }
+
+  document.querySelectorAll('.proposal-card[onclick]').forEach((card) => {
+    if (card.querySelector('.notes-chip') || card.style.display === 'none') return;
+    const m = (card.getAttribute('onclick') || '').match(/openProposal\('([^']+)','([^']*)'/);
+    if (!m) return;
+    const [, pid, title] = m;
+    const chip = document.createElement('button');
+    chip.className = 'notes-chip font-body text-[10px] uppercase tracking-widest text-on-surface-variant border border-outline-variant/50 px-3 py-2 mt-4 self-start hover:border-primary hover:text-primary transition-all inline-flex items-center gap-1.5';
+    chip.innerHTML = `<span class="material-symbols-outlined text-sm">chat_bubble</span> Notes${_noteCounts[pid] ? ` (${_noteCounts[pid]})` : ''}`;
+    chip.onclick = (e) => { e.stopPropagation(); _openNotes(pid, title); };
+    card.appendChild(chip);
+  });
+
+  const badge = document.getElementById('general-notes-badge');
+  if (badge && _noteCounts['general']) {
+    badge.textContent = `(${_noteCounts['general']})`;
+    badge.style.display = 'inline';
+  }
+}
+
+async function _openNotes(pid, title) {
+  _notesPid = pid;
+  document.getElementById('notes-title').textContent = title || pid;
+  document.getElementById('notes-overlay').style.display = 'block';
+  document.getElementById('notes-panel').style.display = 'flex';
+  const thread = document.getElementById('notes-thread');
+  thread.innerHTML = '<p class="font-body text-sm text-on-surface-variant">Loading…</p>';
+  let r;
+  try { r = await _api('notes.list', { proposalId: pid }); }
+  catch (e) { thread.innerHTML = '<p class="font-body text-sm text-on-surface-variant">Couldn’t load notes — close and try again.</p>'; return; }
+  _renderThread(r.ok ? r.notes : []);
+}
+
+function _renderThread(notes) {
+  const thread = document.getElementById('notes-thread');
+  thread.innerHTML = notes.length ? notes.map((n) => `
+    <div class="max-w-[85%] ${n.author === 'client' ? 'self-end' : 'self-start'}">
+      <div class="font-body text-sm leading-relaxed p-3 ${n.author === 'client'
+        ? 'bg-surface-container-low text-primary border border-outline-variant/30'
+        : 'border border-primary/40 text-primary'}">${esc(n.text).replace(/\n/g, '<br>')}</div>
+      <p class="font-body text-[10px] uppercase tracking-widest text-on-surface-variant mt-1 ${n.author === 'client' ? 'text-right' : ''}">
+        ${n.author === 'client' ? 'You' : 'SHIFT'} · ${new Date(n.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+    </div>`).join('')
+    : '<p class="font-body text-sm text-on-surface-variant">No notes yet — anything you write here goes straight to the SHIFT team.</p>';
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function _closeNotes() {
+  document.getElementById('notes-overlay').style.display = 'none';
+  document.getElementById('notes-panel').style.display = 'none';
+}
+
+async function _sendNote() {
+  const input = document.getElementById('notes-input');
+  const btn = document.getElementById('notes-send');
+  const text = input.value.trim();
+  if (!text) return;
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  let r;
+  try { r = await _api('notes.add', { proposalId: _notesPid, text }); }
+  catch (e) { r = { ok: false }; }
+  btn.disabled = false;
+  btn.textContent = 'Send to SHIFT';
+  if (!r.ok) { _toast('Couldn’t send — please try again.'); return; }
+  input.value = '';
+  const list = await _api('notes.list', { proposalId: _notesPid });
+  _renderThread(list.ok ? list.notes : []);
+  _toast('Sent — the SHIFT team has been notified ✓');
+}
 </script>
 
 <!-- PROPOSAL MODAL -->
