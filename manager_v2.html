@@ -167,8 +167,6 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 .add-row-btn:hover{border-color:#555;color:var(--white)}
 
 /* CLIENT PICKER */
-.client-picker{display:flex;gap:8px;margin-bottom:14px}
-.client-picker .f-select{flex:1;color:var(--gray)}
 .cp-save{white-space:nowrap;background:transparent;border:1px solid var(--border);color:var(--dim);font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;padding:11px 16px;cursor:pointer;transition:border-color .2s,color .2s;flex-shrink:0}
 .cp-save:hover{border-color:#555;color:var(--white)}
 /* CLIENTS ROSTER */
@@ -1587,11 +1585,13 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
 
         <div class="f-section">
           <div class="f-section-label">Client (Bill To)</div>
-          <div class="client-picker">
-            <select class="f-select" id="c-client-picker" onchange="loadContractClient(this.value)">
-              <option value="">— Load saved client —</option>
+          <div class="crm-pick-row">
+            <span class="crm-pick-lbl">Load from CRM</span>
+            <select class="crm-pick-sel" id="c-client-picker" onchange="pickFromCRM('c-client-picker','c-client','c-client-id','contract')">
+              <option value="">— Pick a client —</option>
             </select>
           </div>
+          <input type="hidden" id="c-client-id"/>
           <div class="f-grid">
             <div class="f-row"><label class="f-label">Client Name *</label><input class="f-input" id="c-client" placeholder="Client Name" oninput="scheduleContractPreview()"/></div>
             <div class="f-row"><label class="f-label">Company</label><input class="f-input" id="c-company" placeholder="Company" oninput="scheduleContractPreview()"/></div>
@@ -4336,6 +4336,7 @@ function showCRMProfile(id) {
     <div class="crm-quick">
       <button class="crm-q-btn primary" onclick="crmNewInvoice('${id}')">New Invoice</button>
       <button class="crm-q-btn" onclick="crmNewProposal('${id}')">New Proposal</button>
+      <button class="crm-q-btn" onclick="crmNewContract('${id}')">New Contract</button>
       <button class="crm-q-btn" onclick="crmNewProduction('${id}')">New Production</button>
       <button class="crm-q-btn" onclick="crmNewQuote('${id}')">Quick Quote</button>
       <button class="crm-q-btn" onclick="crmSendPortalLink('${id}','${esc(c.name).replace(/'/g,"\\'")}')">Send Portal Link</button>
@@ -4544,6 +4545,17 @@ function crmNewProposal(id) {
   set('p-client-id', c.id); set('p-client', c.name); set('p-company', c.company); set('p-city', c.city);
   scheduleProposalPreview();
   toast(`${c.name} loaded into Proposal builder`, 'ok');
+}
+
+function crmNewContract(id) {
+  const c = _crmById(id);
+  if (!c) return;
+  switchTab('contracts');
+  const set = (eid,v) => { const el=document.getElementById(eid); if(el) el.value=v||''; };
+  set('c-client-id', c.id); set('c-client', c.name); set('c-company', c.company);
+  set('c-addr', c.addr); set('c-city', c.city); set('c-country', c.country);
+  scheduleContractPreview();
+  toast(`${c.name} loaded into Contract builder`, 'ok');
 }
 
 function crmNewQuote(id) {
@@ -5008,6 +5020,11 @@ function pickFromCRM(selId, nameId, hiddenId, context) {
     const fill = (id,v) => { const el=document.getElementById(id); if(el&&v) el.value=v; };
     fill('p-company', c.company); fill('p-city', c.city);
     scheduleProposalPreview();
+  } else if (context === 'contract') {
+    const fill = (id,v) => { const el=document.getElementById(id); if(el&&v) el.value=v; };
+    fill('c-company', c.company); fill('c-addr', c.addr);
+    fill('c-city', c.city); fill('c-country', c.country);
+    scheduleContractPreview();
   }
   sel.value = '';
   toast(`${c.name} loaded`, 'ok');
@@ -5480,29 +5497,7 @@ function initContractForm() {
   if (!document.querySelector('#contract-items tr')) addContractItem();
   const n = parseInt(localStorage.getItem('shift-contract-counter')||'0') + 1;
   document.getElementById('c-num').value = 'SC-' + new Date().getFullYear() + '-' + String(n).padStart(3,'0');
-  renderContractClientPicker();
-}
-
-function renderContractClientPicker() {
-  const sel = document.getElementById('c-client-picker');
-  if (!sel) return;
-  const clients = JSON.parse(localStorage.getItem('shift-clients')||'[]');
-  sel.innerHTML = '<option value="">— Load saved client —</option>' +
-    clients.map((c,i) => `<option value="${i}">${esc(c.name)}${c.company?' — '+esc(c.company):''}</option>`).join('');
-}
-
-function loadContractClient(val) {
-  if (!val) return;
-  const clients = JSON.parse(localStorage.getItem('shift-clients')||'[]');
-  const c = clients[parseInt(val)];
-  if (!c) return;
-  document.getElementById('c-client').value = c.name||'';
-  document.getElementById('c-company').value = c.company||'';
-  document.getElementById('c-addr').value = c.addr||'';
-  document.getElementById('c-city').value = c.city||'';
-  document.getElementById('c-country').value = c.country||'';
-  document.getElementById('c-client-picker').value = '';
-  scheduleContractPreview();
+  _populateCRMPickers();
 }
 
 function addContractItem() {
@@ -5545,6 +5540,7 @@ function getContractData() {
     lang: document.getElementById('c-lang').value,
     date: document.getElementById('c-date').value,
     eventDate: document.getElementById('c-event-date').value,
+    clientId: document.getElementById('c-client-id')?.value||'',
     client: document.getElementById('c-client').value.trim(),
     company: document.getElementById('c-company').value.trim(),
     addr: document.getElementById('c-addr').value.trim(),
@@ -5611,7 +5607,7 @@ async function publishContract() {
     localStorage.setItem('shift-contract-counter', String(counter));
     // Save record
     const records = JSON.parse(localStorage.getItem('shift-contracts')||'[]');
-    records.unshift({ id:'ctr_'+Date.now(), contractNum:d.contractNum, client:d.client,
+    records.unshift({ id:'ctr_'+Date.now(), contractNum:d.contractNum, clientId:d.clientId||'', client:d.client,
       company:d.company, eventName:d.eventName, eventDate:d.eventDate,
       total:d.total, items:(d.items||[]).filter(x => x.desc || x.amount),
       status:'sent', url, created:Date.now() });
@@ -6132,7 +6128,7 @@ function copyCardHTML() {
 const DRAFT_FIELDS = {
   proposal: ['p-client-id','p-client','p-company','p-city','p-lang','p-currency','p-title','p-subtitle','p-date','p-expiry','p-intro','p-hero','p-gallery','p-events-json','p-deposit','p-notes','p-forms','p-filename'],
   invoice:  ['i-num','i-lang','i-date','i-due','i-payment-terms','i-client-id','i-client','i-company','i-addr','i-city','i-country','i-email','i-tax','i-payment','i-notes','i-filename'],
-  contract: ['c-num','c-lang','c-date','c-event-date','c-client','c-company','c-addr','c-city','c-country','c-event','c-venue','c-deposit-pct','c-deposit-due','c-balance-due','c-payment-inst','c-cancel','c-liability','c-terms','c-filename'],
+  contract: ['c-num','c-lang','c-date','c-event-date','c-client-id','c-client','c-company','c-addr','c-city','c-country','c-event','c-venue','c-deposit-pct','c-deposit-due','c-balance-due','c-payment-inst','c-cancel','c-liability','c-terms','c-filename'],
   quote:    ['qq-client-id','qq-client','qq-num','qq-amount','qq-valid','qq-desc','qq-notes']
 };
 const DRAFT_TABS   = { proposal:'proposals', invoice:'invoices', contract:'contracts', quote:'quickquote' };
