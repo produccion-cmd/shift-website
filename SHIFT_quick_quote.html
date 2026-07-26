@@ -73,6 +73,9 @@ function _render(client, d, expTs) {
     document.getElementById('_q-notes-sec').style.display='block';
   }
   document.getElementById('_q-valid').textContent = validDate;
+  const _amt = parseFloat(d.amount||0);
+  const _amtStr = Number.isInteger(_amt) ? String(_amt) : _amt.toFixed(2);
+  document.getElementById('_q-pay').href = `https://paypal.me/5hift/${_amtStr}USD`;
   const subj = encodeURIComponent(`Quote Acceptance — ${d.num||'Quotation'} · ${client}`);
   const body = encodeURIComponent(`Hi SHIFT team,\n\nI'd like to proceed with ${d.num||'the quote'} for $${fmtAmt(d.amount)} USD.\n\nPlease send the full contract and next steps.\n\nThanks,\n${client}`);
   document.getElementById('_q-accept').href = `mailto:Produccion@5hift.com.mx?subject=${subj}&body=${body}`;
@@ -194,8 +197,8 @@ body{background:var(--bg);color:var(--w);font-family:'Inter',system-ui,sans-seri
   </div>
 
   <div class="q-cta">
-    <a class="q-btn-primary" id="_q-accept" href="#">Accept Quote →</a>
-    <a class="q-btn-secondary" href="mailto:Produccion@5hift.com.mx">Contact SHIFT →</a>
+    <a class="q-btn-primary" id="_q-pay" href="#" target="_blank" rel="noopener">Accept &amp; Pay →</a>
+    <a class="q-btn-secondary" id="_q-accept" href="#">Accept by Email →</a>
   </div>
 
   <div class="q-footer">
