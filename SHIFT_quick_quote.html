@@ -73,9 +73,15 @@ function _render(client, d, expTs) {
     document.getElementById('_q-notes-sec').style.display='block';
   }
   document.getElementById('_q-valid').textContent = validDate;
-  const _amt = parseFloat(d.amount||0);
-  const _amtStr = Number.isInteger(_amt) ? String(_amt) : _amt.toFixed(2);
-  document.getElementById('_q-pay').href = `https://paypal.me/5hift/${_amtStr}USD`;
+  const _total = parseFloat(d.amount||0);
+  const _dep = parseInt(d.dep||0, 10);
+  const _isDep = _dep > 0 && _dep < 100;
+  const _payAmt = _isDep ? _total * _dep / 100 : _total;
+  const _payStr = Number.isInteger(_payAmt) ? String(_payAmt) : _payAmt.toFixed(2);
+  document.getElementById('_q-pay').href = `https://paypal.me/5hift/${_payStr}USD`;
+  document.getElementById('_q-pay').textContent = _isDep
+    ? `Pay ${_dep}% Deposit ($${fmtAmt(_payAmt)}) →`
+    : 'Accept & Pay →';
   const subj = encodeURIComponent(`Quote Acceptance — ${d.num||'Quotation'} · ${client}`);
   const body = encodeURIComponent(`Hi SHIFT team,\n\nI'd like to proceed with ${d.num||'the quote'} for $${fmtAmt(d.amount)} USD.\n\nPlease send the full contract and next steps.\n\nThanks,\n${client}`);
   document.getElementById('_q-accept').href = `mailto:Produccion@5hift.com.mx?subject=${subj}&body=${body}`;

@@ -1260,6 +1260,23 @@ body{background:var(--bg);color:var(--white);font-family:'Inter',sans-serif;min-
       </div>
 
       <div class="f-row" style="margin-bottom:16px">
+        <label class="f-label">Payment Button</label>
+        <input type="hidden" id="qq-pay" value="full"/>
+        <div class="p-mode-row">
+          <button type="button" class="p-mode-btn on" data-m="full" onclick="qqSetPay('full')">
+            <b>Pago total</b><span>Cobra el 100% al aceptar</span>
+          </button>
+          <button type="button" class="p-mode-btn" data-m="deposit" onclick="qqSetPay('deposit')">
+            <b>Anticipo</b><span>Cobra solo un % al aceptar</span>
+          </button>
+        </div>
+        <div id="qq-dep-wrap" style="display:none;align-items:center;gap:12px;margin-top:10px">
+          <label class="f-label" for="qq-dep-pct" style="margin:0;white-space:nowrap">% de anticipo</label>
+          <input class="f-input" type="number" id="qq-dep-pct" value="50" min="1" max="99" step="1" style="max-width:110px"/>
+        </div>
+      </div>
+
+      <div class="f-row" style="margin-bottom:16px">
         <label class="f-label" for="qq-desc">Scope of Work (optional)</label>
         <textarea class="f-textarea" id="qq-desc" placeholder="Brief description of services included…" rows="3"></textarea>
       </div>
@@ -5128,6 +5145,15 @@ function initQuoteForm() {
   }
 }
 
+function qqSetPay(mode) {
+  const el = document.getElementById('qq-pay');
+  if (el) el.value = mode;
+  document.querySelectorAll('#tab-quickquote .p-mode-btn').forEach(b => b.classList.toggle('on', b.dataset.m === mode));
+  const w = document.getElementById('qq-dep-wrap');
+  if (w) w.style.display = (mode === 'deposit') ? 'flex' : 'none';
+}
+function qqSyncPayUI() { qqSetPay((document.getElementById('qq-pay')?.value) || 'full'); }
+
 async function generateQuote() {
   const client = document.getElementById('qq-client').value.trim();
   const validUntil = document.getElementById('qq-valid').value;
@@ -5150,6 +5176,12 @@ async function generateQuote() {
   const qData = { num, amount: amount.toFixed(2), validUntil };
   if (desc)  qData.desc  = desc;
   if (notes) qData.notes = notes;
+  const payMode = (document.getElementById('qq-pay')?.value) || 'full';
+  if (payMode === 'deposit') {
+    let pct = parseInt(document.getElementById('qq-dep-pct')?.value || '50', 10);
+    if (!(pct > 0 && pct < 100)) pct = 50;
+    qData.dep = pct;
+  }
   const q = encodeURIComponent(toBase64(JSON.stringify(qData)));
   const url = `${QUOTE_URL}?t=${encodeURIComponent(token)}&q=${q}`;
 
@@ -6129,7 +6161,7 @@ const DRAFT_FIELDS = {
   proposal: ['p-client-id','p-client','p-company','p-city','p-lang','p-currency','p-title','p-subtitle','p-date','p-expiry','p-intro','p-hero','p-gallery','p-events-json','p-deposit','p-notes','p-forms','p-filename'],
   invoice:  ['i-num','i-lang','i-date','i-due','i-payment-terms','i-client-id','i-client','i-company','i-addr','i-city','i-country','i-email','i-tax','i-payment','i-notes','i-filename'],
   contract: ['c-num','c-lang','c-date','c-event-date','c-client-id','c-client','c-company','c-addr','c-city','c-country','c-event','c-venue','c-deposit-pct','c-deposit-due','c-balance-due','c-payment-inst','c-cancel','c-liability','c-terms','c-filename'],
-  quote:    ['qq-client-id','qq-client','qq-num','qq-amount','qq-valid','qq-desc','qq-notes']
+  quote:    ['qq-client-id','qq-client','qq-num','qq-amount','qq-valid','qq-desc','qq-notes','qq-pay','qq-dep-pct']
 };
 const DRAFT_TABS   = { proposal:'proposals', invoice:'invoices', contract:'contracts', quote:'quickquote' };
 const DRAFT_LABELS = { proposal:'Proposal', invoice:'Invoice', contract:'Contract', quote:'Quick Quote' };
@@ -6211,6 +6243,7 @@ function resumeDraft(id) {
   if (d.type === 'proposal') { pEvLoadFromJson(); updateProposalTotal(); forceProposalPreview(); }
   if (d.type === 'invoice')  { calcInvoiceTotal(); forceInvoicePreview(); }
   if (d.type === 'contract') { calcContractDeposit(); renderContractPreview(); }
+  if (d.type === 'quote')    qqSyncPayUI();
   renderDraftBars();
   toast('Draft loaded — editing "' + d.name + '"','ok');
 }
