@@ -2103,7 +2103,7 @@ const DATA_REPO  = 'produccion-cmd/shift-data'; // private repo — sync + seed 
 // GitHub PAT). For hard security, front this page with Cloudflare Access.
 const PW_SALT = 'shift-mgr-v3';
 const PW_ITERS = 120000;
-const DEFAULT_PW_HASH = '077ae13a253fa009fa3e81aab3c843d349b32dcc9d623a400a1b439385814eba';
+const DEFAULT_PW_HASH = 'fc4e630da54f040ee5566f9d1799cd0a48d9676130410bd38d7721f62b5f70dc';
 const LOGIN_MAX_FAILS = 5, LOGIN_COOLDOWN_MS = 30000;
 function _pwHashStored() { return localStorage.getItem('shift-mgr-pw-hash') || DEFAULT_PW_HASH; }
 async function _pwHash(pw) {
