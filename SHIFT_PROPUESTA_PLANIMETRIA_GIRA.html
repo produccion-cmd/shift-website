@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>SHIFT · Propuesta · Planimetría de Gira en Vectorworks</title>
+<style>
+  @page { size: Letter; margin: 14mm 13mm 16mm 13mm; }
+
+  :root{ --ink:#000; --body:#1a1a1a; --mute:#555; --faint:#777; --hair:#bbb; --soft:#e6e6e6; --fill:#f2f2f2; }
+  *{box-sizing:border-box}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+  body{margin:0; background:#fff; color:var(--body);
+    font:11.5px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif; font-variant-numeric:tabular-nums;}
+  .sheet{max-width:920px; margin:0 auto; padding:28px 26px 60px}
+
+  .bar{position:sticky; top:0; z-index:20; background:#fff; border-bottom:1px solid var(--soft);
+    padding:10px 0 12px; margin-bottom:26px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .bar span{font-size:10.5px; color:var(--faint); letter-spacing:.06em; text-transform:uppercase}
+  button{font:600 11px/1 inherit; letter-spacing:.06em; text-transform:uppercase; background:#000; color:#fff;
+    border:1px solid #000; border-radius:2px; padding:9px 16px; cursor:pointer}
+  button.ghost{background:#fff; color:#000}
+  button:hover{opacity:.75}
+
+  header.mast{border-top:3px solid var(--ink); padding-top:16px; margin-bottom:24px}
+  .logo-row{display:flex; align-items:center; gap:12px; margin-bottom:4px}
+  .logo-row svg{width:26px; height:26px; display:block; flex:none}
+  .brand{font:700 19px/1 inherit; letter-spacing:.24em}
+  .brand-sub{font-size:9px; letter-spacing:.18em; color:var(--mute); text-transform:uppercase; margin-top:7px}
+  h1{font-size:21px; line-height:1.2; font-weight:700; margin:16px 0 4px; letter-spacing:-.01em}
+  .sub{color:var(--mute); font-size:12px; margin:0 0 16px; max-width:72ch}
+
+  .meta{display:grid; grid-template-columns:repeat(auto-fit,minmax(126px,1fr)); border:1px solid var(--hair)}
+  .meta div{padding:8px 10px; border-right:1px solid var(--hair)}
+  .meta div:last-child{border-right:none}
+  .meta .k{font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin-bottom:3px}
+  .meta .v{font-size:11.5px; font-weight:600; color:var(--ink)}
+
+  section{margin-top:30px}
+  h2{font-size:13px; font-weight:700; margin:0 0 3px; border-bottom:2px solid var(--ink); padding-bottom:6px;
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px}
+  h2 .ev{font-size:9px; letter-spacing:.12em; color:var(--faint); font-weight:600; text-transform:uppercase; white-space:nowrap}
+  h3{font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; margin:18px 0 6px; color:var(--ink)}
+
+  .venue{font-size:11px; color:var(--mute); margin:9px 0 0}
+  .venue b{color:var(--ink)}
+
+  .times{display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--ink); margin-top:9px; break-inside:avoid}
+  .times div{padding:7px 10px; border-right:1px solid var(--hair)}
+  .times div:last-child{border-right:none}
+  .times .k{font-size:8px; letter-spacing:.11em; text-transform:uppercase; color:var(--faint); margin-bottom:3px}
+  .times .v{font-size:12px; font-weight:700; color:var(--ink)}
+
+  .constraint{border-left:3px solid var(--ink); background:var(--fill); padding:9px 12px; margin:10px 0 0;
+    font-size:10.5px; line-height:1.5; break-inside:avoid}
+  .constraint b{color:var(--ink)}
+  .constraint .lbl{font-size:8.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); display:block; margin-bottom:3px}
+
+  table{width:100%; border-collapse:collapse; margin-top:6px; font-size:10.5px}
+  th,td{border:1px solid var(--hair); padding:6px 8px; text-align:left; vertical-align:top}
+  thead th{background:var(--fill); font-size:8.5px; letter-spacing:.09em; text-transform:uppercase; font-weight:700; color:var(--ink)}
+  tbody tr{break-inside:avoid}
+  .qty{width:52px; text-align:center; font-weight:600}
+  .fill-col{width:24%; background:repeating-linear-gradient(0deg,transparent,transparent 17px,#eee 17px,#eee 18px)}
+  .fill-sm{width:14%; background:repeating-linear-gradient(0deg,transparent,transparent 17px,#eee 17px,#eee 18px)}
+  td.req{font-weight:600}
+  .note{font-size:9.5px; color:var(--mute); display:block; margin-top:2px; font-weight:400}
+  .flag{font-weight:700; color:var(--ink)}
+  .flag::before{content:"▲ "}
+
+  ol.gen{padding-left:18px; margin:8px 0 0; font-size:11px}
+  ol.gen li{margin-bottom:7px; break-inside:avoid}
+  ol.gen b{color:var(--ink)}
+
+  .sign{display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:46px; break-inside:avoid}
+  .sign div{border-top:1px solid var(--ink); padding-top:7px; font-size:9.5px; color:var(--faint); letter-spacing:.06em; text-transform:uppercase}
+
+  footer{margin-top:34px; padding-top:12px; border-top:1px solid var(--soft); font-size:9.5px; color:var(--faint); line-height:1.6}
+
+  @media print{
+    .bar{display:none !important}
+    .sheet{max-width:none; padding:0}
+    body{font-size:9.6px}
+    table{font-size:9px}
+    thead th{font-size:7.6px}
+    h1{font-size:18px}
+    h2{font-size:11.5px}
+    thead{display:table-header-group}
+    .constraint{background:#f4f4f4 !important}
+    a{color:inherit; text-decoration:none}
+  }
+</style>
+
+<style>
+  .opts{display:grid; grid-template-columns:1.1fr 1fr 1fr 1fr; border:1px solid var(--hair); margin-top:10px; font-size:10.5px; break-inside:avoid}
+  .opts>div{padding:8px 10px; border-right:1px solid var(--hair); border-bottom:1px solid var(--hair)}
+  .opts>div:nth-child(4n){border-right:none}
+  .opts .h{background:var(--fill); font-size:8.5px; letter-spacing:.09em; text-transform:uppercase; font-weight:700; color:var(--ink)}
+  .opts .h .n{font-size:14px; letter-spacing:0; text-transform:none; display:block; margin-bottom:2px}
+  .opts .k{font-size:8.5px; letter-spacing:.09em; text-transform:uppercase; font-weight:700; color:var(--ink); background:var(--fill)}
+  .opts .rec{outline:2px solid var(--ink); outline-offset:-2px}
+  .opts .price{font-size:18px; font-weight:700; color:var(--ink); letter-spacing:-.01em}
+  .opts .price small{display:block; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); font-weight:600; margin-top:2px}
+  .badge{display:inline-block; font-size:8px; letter-spacing:.12em; text-transform:uppercase; border:1px solid var(--ink); padding:2px 6px; margin-left:6px; vertical-align:middle}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:26px}
+  @media (max-width:640px){ .opts{grid-template-columns:1fr} .opts>div{border-right:none} .cols{grid-template-columns:1fr} .opts .k{border-top:2px solid var(--ink)} }
+  @media print{ .opts{font-size:9px} .opts .price{font-size:15px} }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<div class="bar">
+  <button onclick="window.print()">Descargar PDF</button>
+  <button class="ghost" onclick="window.print()">Imprimir</button>
+  <span>En el diálogo elige Guardar como PDF · Tamaño Carta · Márgenes predeterminados</span>
+</div>
+
+<header class="mast">
+  <div class="logo-row">
+    <svg viewBox="0 0 1125.13 1080.02" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#000" d="M1125.06,2.46s0,0,0,0V0H0v1080.02h21.25v-.07l412.21-1.16,529.12-4.5s0,0,0,0h.2s0-.02,0-.02c.07,0,.13,0,.2-.02,98.2-16.88,162.16-83.8,162.15-182.96l-.08-888.84ZM1106.43,467.27c0,.09,0,.18-.01.28-6.53,60.8-18.72,115.27-47.07,167.18-.07.12-.14.24-.23.35-104.18,135.23-271.11,166.73-392.6,311.63-.05.06-.11.12-.16.18-70.12,68.87-154.75,99.55-252.51,111.89H21.25V21.25h1084.28l.9,446.02ZM654.19,1002.6c62.16-54.15,121.78-113.4,192.06-156.77,49.21-30.36,101.05-56.35,149-88.77,45.1-30.49,79.67-69.67,102.28-119.51,1.12-2.47,4.81-1.56,4.69,1.14-4.46,96.29-78.96,167.65-167.61,205.29-73.2,31.08-139.9,67.36-206.04,116.1-24.46,18.03-46.81,33.9-71.64,46.55-2.59,1.32-4.93-2.13-2.74-4.04ZM703.1,1019.86c50.72-38.27,110.57-73.54,173.77-103l135.15-63c43.5-20.28,67.62-60.4,86.43-103.92,1.07-2.47,4.75-1.67,4.71,1.03-1.19,84.71-60.09,147.07-139.35,176.68l-258.36,96.49c-2.65.99-4.61-2.56-2.35-4.26ZM971.95,1018.72l-193.99,26.51c-2.94.4-3.94-3.79-1.13-4.76l200.89-68.97c58.21-19.98,100.35-57.14,125.43-114.04,1.09-2.48,4.81-1.58,4.7,1.12-3.27,77.75-54.42,149-135.9,160.14Z"/></svg>
+    <div>
+      <div class="brand">5HIFT</div>
+      <div class="brand-sub">SHIFT Events · Diseño y Producción Técnica</div>
+    </div>
+  </div>
+  <h1>Propuesta · Planimetría de gira en Vectorworks</h1>
+  <p class="sub">Conversión del modelo existente del show en el paquete de planos y reportes que usa la producción durante la gira. El diseño ya está resuelto; este alcance cubre únicamente la documentación técnica.</p>
+  <div class="meta">
+    <div><div class="k">Cliente</div><div class="v">Por definir</div></div>
+    <div><div class="k">Proyecto</div><div class="v">Gira · Planimetría</div></div>
+    <div><div class="k">Fecha</div><div class="v">23 SEP 2026</div></div>
+    <div><div class="k">Vigencia</div><div class="v">15 días</div></div>
+    <div><div class="k">Moneda</div><div class="v">USD</div></div>
+    <div><div class="k">Preparó</div><div class="v">Edwin Rodríguez</div></div>
+  </div>
+</header>
+
+<section>
+  <h2>Opciones <span class="ev">Tres alcances · Una sola contratación</span></h2>
+  <div class="opts">
+    <div class="h"></div>
+    <div class="h"><span class="n">1 · Plot básico</span>Para avanzar el rigging</div>
+    <div class="h rec"><span class="n">2 · Paquete de producción</span>Recomendado</div>
+    <div class="h"><span class="n">3 · Paquete de gira</span>Documentación viva</div>
+
+    <div class="k">Alcance</div>
+    <div>Plan view, section y una hoja de rigging.</div>
+    <div class="rec">Paquete completo: plan, secciones, rigging y motores, LX, video (LED wall layout, tiles, pixel map, sightlines), audio, risers y decks, drawing index.</div>
+    <div>Todo lo de la opción 2, más ajustes de la documentación durante la gira.</div>
+
+    <div class="k">Hojas</div>
+    <div>3 a 5</div>
+    <div class="rec">12 a 20</div>
+    <div>12 a 20, más overlays por venue</div>
+
+    <div class="k">Reportes</div>
+    <div>Ninguno</div>
+    <div class="rec">Hang report, fixture schedule, motores, LED tile count y pixel map, medidas desde centro.</div>
+    <div>Los mismos, actualizados en cada versión.</div>
+
+    <div class="k">Revisiones</div>
+    <div>1 ronda</div>
+    <div class="rec">2 rondas</div>
+    <div>2 rondas, más revisiones por venue (hasta 6 venues)</div>
+
+    <div class="k">Entrega</div>
+    <div>PDF</div>
+    <div class="rec">PDF, VWX limpio, DWG y MVR</div>
+    <div>PDF, VWX, DWG y MVR por versión</div>
+
+    <div class="k">Inversión</div>
+    <div class="price">$1,200<small>USD</small></div>
+    <div class="rec price">$2,500<small>USD</small></div>
+    <div class="price">$4,000<small>USD</small></div>
+  </div>
+</section>
+
+<section>
+  <div class="cols">
+    <div>
+      <h2>Agregados <span class="ev">Cualquier opción</span></h2>
+      <table>
+        <thead><tr><th>Concepto</th><th style="width:90px;text-align:right">USD</th></tr></thead>
+        <tbody>
+          <tr><td>Cable report<span class="note">Recorridos y largos por sistema.</span></td><td style="text-align:right">$500</td></tr>
+          <tr><td>Distribución de procesadores y data de video</td><td style="text-align:right">$300</td></tr>
+          <tr><td>Ronda de revisión adicional</td><td style="text-align:right">$400</td></tr>
+          <tr><td>Venue overlay fuera de los 6 incluidos<span class="note">Solo opción 3, por venue.</span></td><td style="text-align:right">$300</td></tr>
+          <tr><td>Limpieza de clases y capas del archivo recibido<span class="note">Incluida en opciones 2 y 3.</span></td><td style="text-align:right">$300</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h2>Condiciones <span class="ev">Pago y alcance</span></h2>
+      <ol class="gen">
+        <li><b>50% al firmar</b> y 50% contra entrega de la versión 1.</li>
+        <li>Una <b>ronda de revisión</b> es un solo envío consolidado de comentarios sobre la versión entregada.</li>
+        <li><b>Cambios al diseño</b> (mover truss, agregar posiciones, cambiar fixtures o tamaño de pantalla) no son revisión de planimetría y se cotizan aparte.</li>
+        <li>El modelo entra como está. El cliente entrega el archivo <b>VWX</b> y las fichas de los fixtures y tiles LED que no estén en el archivo.</li>
+        <li>Toda la documentación se entrega bajo el <b>estándar SHIFT</b>: reportes en worksheets vivas, símbolos con records, hojas numeradas y drawing index.</li>
+        <li>Vigencia de esta propuesta: <b>15 días</b> a partir de la fecha indicada.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<div class="sign">
+  <div>Cliente · Nombre y firma</div>
+  <div>SHIFT Events · Edwin Rodríguez</div>
+</div>
+
+<footer>
+  SHIFT Events · Diseño y producción técnica · Houston, TX · shiftevnts.com<br>
+  Esta propuesta no constituye orden de compra ni compromiso de contratación hasta la firma y el pago del anticipo.
+</footer>
+
+</div>
+</body>
+</html>
