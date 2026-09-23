@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <title>SHIFT · Propuesta · Planimetría de Gira en Vectorworks</title>
 <style>
-  @page { size: Letter; margin: 14mm 13mm 16mm 13mm; }
+  @page { size: Letter; margin: 10mm 12mm 10mm 12mm; }
 
   :root{ --ink:#000; --body:#1a1a1a; --mute:#555; --faint:#777; --hair:#bbb; --soft:#e6e6e6; --fill:#f2f2f2; }
   *{box-sizing:border-box}
@@ -105,7 +105,18 @@
   .badge{display:inline-block; font-size:8px; letter-spacing:.12em; text-transform:uppercase; border:1px solid var(--ink); padding:2px 6px; margin-left:6px; vertical-align:middle}
   .cols{display:grid; grid-template-columns:1fr 1fr; gap:26px}
   @media (max-width:640px){ .opts{grid-template-columns:1fr} .opts>div{border-right:none} .cols{grid-template-columns:1fr} .opts .k{border-top:2px solid var(--ink)} }
-  @media print{ .opts{font-size:9px} .opts .price{font-size:15px} }
+  @media print{
+    .opts{font-size:9px} .opts .price{font-size:15px}
+    .opts>div{padding:5px 8px}
+    header.mast{padding-top:10px; margin-bottom:12px}
+    h1{margin:10px 0 3px} .sub{margin-bottom:10px}
+    .meta{grid-template-columns:repeat(6,1fr)}
+    .meta div{padding:5px 8px}
+    section{margin-top:16px}
+    ol.gen li{margin-bottom:3px}
+    .sign{margin-top:22px}
+    footer{margin-top:16px; padding-top:8px}
+  }
 </style>
 </head>
 <body>
